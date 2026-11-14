@@ -13,5 +13,5 @@ Web app personale per studiare il materiale del corso Epicode in modo più legge
 - Traffico minimo, come un utente normale: niente crawling massivo, niente aggiramento di protezioni (es. Cloudflare Turnstile).
 - Nessuna credenziale salvata in chiaro o committata.
 
-**Stato**: ricognizione. Architettura, stack e design si decidono insieme prima di scrivere codice.
-Vedi [docs/portal-recon.md](docs/portal-recon.md).
+**Stato**: architettura, stack e design approvati, codice non ancora iniziato.
+Documentazione in [docs/](docs/README.md): [architettura](docs/architecture.md), [decisioni](docs/decisions/), [funzionale](docs/functional/overview.md), [design system](docs/design-system.md), [ricognizione del portale](docs/portal-recon.md).
