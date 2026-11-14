@@ -1,0 +1,36 @@
+# Study Feed: design system (approvato da Damian il 14/11/2026)
+
+## Direzione
+Layout "Inchiostro": vetro leggero (bianco 7% su scuro, bianco 72% su chiaro, blur 22px), angoli medi (card 16–26px, telefono 46px), azioni in colonna a destra nel feed, barra di navigazione in vetro (Feed, Quiz, Ripasso, Io).
+
+## Colori principali
+| Ruolo | Scuro | Chiaro |
+|---|---|---|
+| Fondo | Ossidiana #0B0B0E | #EDF0F3 |
+| Superficie / vetro | rgba(255,255,255,.07) | rgba(255,255,255,.72) |
+| Testo | Ghiaccio #DCE3EA | Ossidiana #0B0B0E |
+| Testo secondario | #98A0A9 | #5B6570 |
+| Concetti da ripassare / risposta sbagliata | Ghiaccio #DCE3EA | #4A535D |
+
+## Accenti (a scelta dell'utente, default Racing red)
+L'accento colora azioni, progresso, voce attiva e risposta giusta.
+
+| Accento | Riempimento | Testo su scuro | Testo su chiaro | Testo sopra il riempimento |
+|---|---|---|---|---|
+| Racing red (default) | #E10600 | #FF4D3D | #C80500 | #FFFFFF |
+| Electric violet | #8F00FF | #B266FF | #7A00DB | #FFFFFF |
+| Blu oltremare | #2340FF | #8593FF | #2340FF | #FFFFFF |
+| Turchese | #30D5C8 | #30D5C8 | #0B7F76 | #0B0B0E |
+| Verde lime | #A3E635 | #A3E635 | #3F6B0A | #0B0B0E |
+
+Con il rosso, la risposta giusta va confermata anche con un'icona di spunta, perché il rosso si legge come errore.
+
+Temi: scuro, chiaro, automatico (segue il sistema).
+
+## Tipografia
+- Titoli: Space Grotesk 700
+- Testo: Inter 400/500/600
+- Etichette, codice, contatori: JetBrains Mono 400/500
+
+## Mockup
+- [design/mockups/](design/mockups/) (scuro: `A-`…`E-`, chiaro: `*-chiaro-*`)
