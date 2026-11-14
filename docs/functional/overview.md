@@ -8,7 +8,7 @@ Lo studente apre una lezione nel portale Epicode come sempre e preme **Importa**
 ## Feed
 Nella barra in basso: Feed, Libri, Ripasso, Io.
 
-Clip verticali di un concetto ciascuna, ordinate per capitolo o in modalità "Per te". Su ogni clip ci sono quattro azioni: **Salva**, **Chiedi** (domanda all'assistente), **Quiz** rapido e **Fonte** (apre la lezione nel portale al punto giusto). Una barra in alto mostra l'avanzamento nel capitolo.
+Clip verticali di un concetto ciascuna, ordinate per capitolo o in modalità "Per te". Su ogni clip ci sono quattro azioni: **Salva**, **Chiedi** (domanda all'assistente), **Quiz** rapido e **Fonte** ("Guarda sul portale": apre la lezione al minuto della clip). Le clip sono schede testuali animate, perché i video Epicode non si possono riprodurre fuori dal portale. Una barra in alto mostra l'avanzamento nel capitolo.
 
 ## Quiz di fine capitolo
 Domande generate dal capitolo, con la spiegazione dopo ogni risposta. Le risposte sbagliate aggiungono il concetto al ripasso.

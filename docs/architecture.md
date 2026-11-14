@@ -33,7 +33,9 @@ Vincoli che l'architettura rispetta sempre (vedi [portal-recon.md](portal-recon.
 - nessuna chiamata che marca contenuti come visti/completati;
 - nessun login automatico, nessun aggiramento di Turnstile, nessuna credenziale Epicode salvata;
 - traffico verso Epicode solo dal browser dello studente e solo su sua azione, mai dal cloud;
-- i video non vengono scaricati né ritagliati.
+- i video non vengono scaricati né ritagliati;
+- non si scrive mai sulle collezioni di progresso (`video_tracking`, `content_completions`, `/v2/content/checkmark-completion`);
+- l'estensione chiede a Directus solo i campi necessari (mai `fields=*.*`, che espone dati di altri studenti).
 
 ## 2. Componenti
 
@@ -74,6 +76,8 @@ Catalogo **condiviso e deduplicato** ([ADR 0002](decisions/0002-contenuti-condiv
              └─ Chapter (capitolo)
                   └─ Lesson (lezione, con id Epicode di origine)
                        └─ LessonPart (parte video)
+   Mappatura Directus: unit → Subject, module → Chapter, activity → Lesson,
+   contenuti vimeo/googledocs/markdown/quiz → LessonPart
                             └─ ContentVersion (revisione)
                                  · contentHash (SHA-256 del contenuto normalizzato)
                                  · importedAt, firstSeenAt
@@ -112,7 +116,8 @@ Esclusi: condivisione libera tra utenti (ridistribuzione di contenuti protetti) 
 
 - La trascrizione di ogni versione viene segmentata in clip di un concetto (inizio/fine in secondi, titolo, sottotitolo chiave), e da qui si ricavano quiz e concetti. Modello: Claude, tramite l'adapter `ContentGenerator`.
 - Esecuzione asincrona (coda), idempotente per `contentHash`, con i risultati salvati.
-- Riproduzione: player Vimeo incorporato dal secondo giusto, se l'embed fuori dal dominio Epicode è permesso; altrimenti una scheda animata generata dal testo con il link "Fonte" alla lezione nel portale. Da verificare con il file HAR.
+- Fonti testuali (dal file HAR, vedi [portal-recon.md](portal-recon.md) §5): per ogni parte video il riassunto markdown (`summary.it/en`), il riassunto di capitolo in markdown e i sottotitoli VTT con timestamp. Gli URL dei VTT sono firmati e scadono, quindi l'estensione li legge al momento dell'import.
+- Riproduzione: i video Vimeo hanno `embed_permission: whitelist` e **non si possono incorporare** fuori dal dominio Epicode. Le clip sono quindi **schede testuali/animate** (titolo, frase chiave dai sottotitoli, codice, schema) con il pulsante "Guarda sul portale" che apre la lezione al minuto della clip.
 
 ## 7 bis. Libri personali
 
@@ -148,8 +153,6 @@ Esclusi: condivisione libera tra utenti (ridistribuzione di contenuti protetti) 
 
 ## 11. Punti aperti
 
-- Formato reale di curriculum, riassunti e trascrizioni (dal file HAR).
-- Possibilità di incorporare i video Vimeo fuori dal dominio Epicode.
 - Termini d'uso per studenti.
 - Sincronizzazione cifrata e accesso del server MCP ai risultati personali.
 - Limiti pratici della trasformazione via MCP per libri lunghi (contesto, durata), da misurare su un libro di prova.
