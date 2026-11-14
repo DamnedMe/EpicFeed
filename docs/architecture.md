@@ -1,7 +1,7 @@
 # Architettura
 
 Stato: **approvata, nessun codice ancora scritto** (14/11/2026).
-Le motivazioni delle singole scelte sono negli ADR in [decisions/](decisions/).
+Le motivazioni delle singole scelte sono negli ADR in [decisions/](decisions/). Aggiornata il 14/11/2026 con la sezione Libri ([ADR 0005](decisions/0005-sezione-libri.md)).
 
 ## 1. Panoramica
 
@@ -41,7 +41,7 @@ Vincoli che l'architettura rispetta sempre (vedi [portal-recon.md](portal-recon.
 |---|---|---|
 | `apps/web` | Next.js (App Router), TypeScript, Tailwind, Motion, PWA | Feed, quiz, ripasso, impostazioni tema/accento; API di import e lettura catalogo |
 | `apps/extension` | Estensione Chrome (Manifest V3), TypeScript | Importa la lezione aperta dallo studente: trascrizione, riassunto, metadati di corso |
-| `apps/mcp` | Server MCP in TypeScript (SDK ufficiale) | Strumenti per Claude: cerca lezione, concetti deboli, quiz al volo, grafici dei progressi |
+| `apps/mcp` | Server MCP in TypeScript (SDK ufficiale) | Strumenti per Claude: cerca lezione, concetti deboli, quiz al volo, grafici dei progressi; importazione e trasformazione dei libri (§7 bis) |
 | `packages/core` | TypeScript puro | Dominio e casi d'uso (vedi §3). Nessuna dipendenza da framework |
 | `packages/adapters` | TypeScript | Implementazioni delle porte: Supabase, Claude API, IndexedDB, crypto |
 | `packages/ui` | React + Tailwind | Componenti condivisi e token del [design system](design-system.md) |
@@ -56,7 +56,7 @@ Dipendenze solo verso l'interno ([ADR 0004](decisions/0004-clean-architecture-e-
  apps (Next.js, estensione, MCP)  →  adapters  →  core/application  →  core/domain
 ```
 
-- **domain**: entità e regole pure (`Course`, `Subject`, `Lesson`, `ContentVersion`, `Clip`, `QuizItem`, `Concept`, `ReviewCard`, `Entitlement`). Nessun I/O.
+- **domain**: entità e regole pure. Lezione Epicode e libro sono due tipi di `Source` con la stessa struttura `Source > Unit > FeedItem (Clip | Passage)`, così feed, quiz e ripasso sono unici. Entità: (`Source`, `Book`, `Course`, `Subject`, `Lesson`, `ContentVersion`, `Clip`, `QuizItem`, `Concept`, `ReviewCard`, `Entitlement`). Nessun I/O.
 - **application**: casi d'uso (`ImportLesson`, `GenerateClipsForVersion`, `GetFeed`, `AnswerQuiz`, `ScheduleReview`, `GrantLessonAccess`). Dipendono solo da **porte** (interfacce) come `ContentRepository`, `EntitlementVerifier`, `ContentGenerator`, `ProgressStore`, `Clock`.
 - **adapters**: implementano le porte (`SupabaseContentRepository`, `ClaudeContentGenerator`, `IndexedDbProgressStore`, `PossessionProofVerifier`).
 - **apps**: solo composizione e presentazione. Nessuna regola di business nei componenti React o nelle route.
@@ -114,6 +114,15 @@ Esclusi: condivisione libera tra utenti (ridistribuzione di contenuti protetti) 
 - Esecuzione asincrona (coda), idempotente per `contentHash`, con i risultati salvati.
 - Riproduzione: player Vimeo incorporato dal secondo giusto, se l'embed fuori dal dominio Epicode è permesso; altrimenti una scheda animata generata dal testo con il link "Fonte" alla lezione nel portale. Da verificare con il file HAR.
 
+## 7 bis. Libri personali
+
+[ADR 0005](decisions/0005-sezione-libri.md).
+- L'utente carica un PDF o un EPUB senza DRM e sceglie la modalità: *Studiare* (clip, quiz, ripasso) o *Solo leggere* (passaggi chiave). La modalità si può cambiare dopo.
+- La trasformazione avviene via MCP da Claude Desktop sul PC: `importa_libro` legge il file in locale ed estrae capitoli e copertina, Claude genera il feed un capitolo alla volta, `salva_feed_capitolo` lo invia all'API e `stato_elaborazione` mostra l'avanzamento. Il file originale non lascia il PC.
+- Il feed generato è salvato in un'area **privata** del server (RLS: solo il proprietario). Nessuna condivisione né deduplica.
+- Copertina dai metadati EPUB o dalla prima pagina del PDF, altrimenti generata; sostituibile.
+- Fuori dalla prima versione: OCR per PDF scansionati, caricamento direttamente dall'app.
+
 ## 8. Sicurezza
 
 - Supabase Auth; Row Level Security su ogni tabella; il client non usa mai la service key.
@@ -143,3 +152,4 @@ Esclusi: condivisione libera tra utenti (ridistribuzione di contenuti protetti) 
 - Possibilità di incorporare i video Vimeo fuori dal dominio Epicode.
 - Termini d'uso per studenti.
 - Sincronizzazione cifrata e accesso del server MCP ai risultati personali.
+- Limiti pratici della trasformazione via MCP per libri lunghi (contesto, durata), da misurare su un libro di prova.
