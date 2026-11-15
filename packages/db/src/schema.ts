@@ -289,7 +289,9 @@ export const entitlements = pgTable(
     }).onDelete('cascade'),
     // Le policy del catalogo cercano per (utente, parte) e per versione.
     index('entitlements_user_part_idx').on(t.userId, t.lessonPartId),
-    index('entitlements_version_idx').on(t.contentVersionId),
+    // Copre anche la chiave esterna composta (versione, parte): senza, ogni
+    // cancellazione di una versione scorrerebbe tutta la tabella.
+    index('entitlements_version_part_idx').on(t.contentVersionId, t.lessonPartId),
     pgPolicy('entitlements_select_own', {
       for: 'select',
       to: authenticatedRole,
