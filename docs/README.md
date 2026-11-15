@@ -2,6 +2,7 @@
 
 | Documento | Contenuto |
 |---|---|
+| [development-plan.md](development-plan.md) | Piano di sviluppo: perimetro dell'MVP, milestone, struttura della repo, stack e scelte aperte |
 | [architecture.md](architecture.md) | Architettura tecnica: componenti, clean architecture, modello dati e accessi, sicurezza, performance, qualità |
 | [decisions/](decisions/) | Architecture Decision Records: una decisione per file, con contesto e alternative |
 | [functional/overview.md](functional/overview.md) | Documentazione funzionale: cosa fa l'app per lo studente |
