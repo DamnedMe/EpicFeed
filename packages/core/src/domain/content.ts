@@ -15,7 +15,7 @@ export type SummaryLanguage = 'it' | 'en';
  */
 export interface VideoPartContent {
   readonly kind: 'video';
-  readonly summaries: Readonly<Partial<Record<SummaryLanguage, string>>>;
+  readonly summaries: { readonly [L in SummaryLanguage]?: string | undefined };
 }
 
 /** Contenuto di una parte da leggere (markdown). */
