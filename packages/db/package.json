@@ -1,0 +1,38 @@
+{
+  "name": "@study-feed/db",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Schema Postgres (Drizzle), migrazioni e policy RLS di Study Feed.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "migrations"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "db:check": "drizzle-kit check && drizzle-kit generate && git diff --exit-code -- migrations",
+    "db:migrate": "drizzle-kit migrate"
+  },
+  "dependencies": {
+    "drizzle-orm": "0.45.4"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.16",
+    "@study-feed/config": "workspace:*",
+    "@types/node": "26.6.6",
+    "drizzle-kit": "0.31.11",
+    "eslint": "10.15.0",
+    "typescript": "6.0.3",
+    "vitest": "5.1.0"
+  }
+}

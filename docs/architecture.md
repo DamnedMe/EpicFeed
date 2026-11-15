@@ -1,6 +1,6 @@
 # Architettura
 
-Stato: **approvata, nessun codice ancora scritto** (14/11/2026).
+Stato: **approvata** (14/11/2026); milestone M0 Fondamenta realizzata il 15/11/2026 (monorepo, `core`, token di `ui`, schema e RLS in `db`, CI). Dettagli tecnici in [technical/](technical/setup.md).
 Le motivazioni delle singole scelte sono negli ADR in [decisions/](decisions/). Aggiornata il 14/11/2026 con la sezione Libri ([ADR 0005](decisions/0005-sezione-libri.md)) il 15/11/2026 con la gestione dei sottotitoli ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondaria.md)) e con generazione via MCP e login ([ADR 0007](decisions/0007-generazione-via-mcp-e-login.md)).
 
 ## 1. Panoramica
@@ -46,9 +46,11 @@ Vincoli che l'architettura rispetta sempre (vedi [portal-recon.md](portal-recon.
 | `apps/mcp` | Server MCP in TypeScript (SDK ufficiale) | Strumenti per Claude: cerca lezione, concetti deboli, quiz al volo, grafici dei progressi, segnala errore; importazione e trasformazione dei libri (§7 bis) |
 | `packages/core` | TypeScript puro | Dominio e casi d'uso (vedi §3). Nessuna dipendenza da framework |
 | `packages/adapters` | TypeScript | Implementazioni delle porte: Supabase, Claude API, IndexedDB, crypto |
-| `packages/ui` | React + Tailwind | Componenti condivisi e token del [design system](design-system.md) |
+| `packages/ui` | React + Tailwind | Componenti condivisi e token del [design system](design-system.md) ([implementazione](technical/design-tokens.md)) |
+| `packages/db` | Drizzle + SQL | Schema Postgres, migrazioni e policy RLS ([dettagli](technical/database.md)) |
+| `packages/config` | TypeScript, ESLint | Configurazione condivisa |
 
-Monorepo con pnpm workspaces.
+Monorepo con pnpm workspaces e Turborepo ([setup](technical/setup.md)).
 
 ## 3. Clean architecture
 
@@ -135,7 +137,7 @@ Gerarchia delle fonti ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondar
 
 ## 8. Sicurezza
 
-- Supabase Auth: codice via email al primo accesso, poi password, in seguito Accedi con Google ([ADR 0007](decisions/0007-generazione-via-mcp-e-login.md)). Il server MCP usa un token personale revocabile. Row Level Security su ogni tabella; il client non usa mai la service key.
+- Supabase Auth: codice via email al primo accesso, poi password, in seguito Accedi con Google ([ADR 0007](decisions/0007-generazione-via-mcp-e-login.md)). Il server MCP usa un token personale revocabile. Row Level Security su ogni tabella, con i soli permessi di lettura per gli studenti e nessuno per gli utenti anonimi, verificata da test su un Postgres in memoria ([database.md](technical/database.md)); il client non usa mai la service key.
 - Validazione di ogni input con zod ai confini (API, estensione, MCP).
 - Nessun segreto nel bundle client; segreti solo in variabili d'ambiente del server.
 - Header di sicurezza (CSP restrittiva, HSTS, frame-ancestors) e permessi minimi nell'estensione (solo il dominio Epicode e la nostra API).

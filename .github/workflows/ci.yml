@@ -1,0 +1,66 @@
+# Integrazione continua: ogni push e ogni pull request verso main devono
+# superare formattazione, lint, typecheck, test, build, controllo delle
+# migrazioni e audit delle dipendenze. Con la protezione del branch attiva,
+# il merge è bloccato finché questo workflow non è verde.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Il workflow legge solo il codice: nessun permesso di scrittura sul repository.
+permissions:
+  contents: read
+
+# Un nuovo push sulla stessa PR annulla l'esecuzione precedente.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Lint, typecheck, test e build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Installa le dipendenze (lockfile bloccato)
+        run: pnpm install --frozen-lockfile
+
+      - name: Formattazione
+        run: pnpm format:check
+
+      - name: Lint, typecheck, test e build
+        run: pnpm turbo run lint typecheck test build
+
+      - name: Migrazioni allineate allo schema
+        run: pnpm --filter @study-feed/db db:check
+
+  audit:
+    name: Audit delle dipendenze
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+
+      - name: pnpm audit
+        run: pnpm audit --audit-level=moderate

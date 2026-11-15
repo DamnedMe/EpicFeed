@@ -1,0 +1,17 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# Sicurezza della supply chain: non installare versioni pubblicate da meno di
+# un giorno (protegge da pacchetti compromessi ritirati in fretta).
+minimumReleaseAge: 1440
+
+# Solo questi pacchetti possono eseguire script di installazione.
+onlyBuiltDependencies:
+  - esbuild
+
+# Dipendenze transitive (solo di sviluppo) portate a versioni senza
+# vulnerabilità note, finché i pacchetti che le usano non si aggiornano.
+overrides:
+  '@esbuild-kit/core-utils>esbuild': ^0.25.12
+  '@typescript-eslint/typescript-estree>minimatch': ^11.0.1

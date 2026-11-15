@@ -3,7 +3,7 @@
 Cosa fa l'app dal punto di vista dello studente. Ogni funzione nuova aggiunge o aggiorna una sezione qui.
 
 ## Importare una lezione
-Lo studente apre una lezione nel portale Epicode come sempre e preme **Importa** nell'estensione. La lezione entra nel suo feed. Se un altro studente l'aveva già importata, non viene duplicata. Ognuno vede solo le lezioni che ha importato dal proprio account.
+Lo studente apre una lezione nel portale Epicode come sempre e preme **Importa** nell'estensione. La lezione entra nel suo feed. Se un altro studente l'aveva già importata, non viene duplicata. Ognuno vede solo le lezioni che ha importato dal proprio account: anche corsi, materie e capitoli compaiono solo se contengono almeno una parte importata. Se Epicode aggiorna una lezione, il nuovo import crea una nuova versione datata e quella vecchia resta consultabile.
 
 ## Feed
 Nella barra in basso: Feed, Libri, Ripasso, Io.
@@ -30,7 +30,7 @@ Sezione dedicata con la libreria personale: copertine, filtro Tutti/Studio/Lettu
 Si possono anche scegliere i capitoli da includere e la lunghezza delle clip. La trasformazione si avvia da Claude Desktop sul PC; durante l'elaborazione la libreria mostra il capitolo a cui è arrivata. Il file resta sul PC e il libro è visibile solo a chi l'ha caricato.
 
 ## Aspetto
-Tema scuro, chiaro o automatico, e cinque colori di accento: racing red (predefinito), electric violet, blu oltremare, turchese e verde lime. Vedi [design-system.md](../design-system.md).
+Tema scuro, chiaro o automatico, e cinque colori di accento: racing red (predefinito), electric violet, blu oltremare, turchese e verde lime. Al primo avvio l'app è in tema scuro con racing red; in automatico segue il tema chiaro o scuro del telefono o del computer. Il cambio è immediato, senza ricaricare. Tutte le combinazioni rispettano il contrasto minimo per una lettura comoda (WCAG AA). Vedi [design-system.md](../design-system.md).
 
 ## Privacy
 I risultati (risposte, errori, ripasso) restano sul dispositivo dello studente. Si possono esportare e reimportare con un file di backup.

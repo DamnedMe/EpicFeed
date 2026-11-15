@@ -1,0 +1,20 @@
+# Aggiornamenti automatici delle dipendenze, raggruppati per non riempire le PR.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      sviluppo:
+        dependency-type: development
+      produzione:
+        dependency-type: production
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday

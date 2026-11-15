@@ -1,0 +1,8 @@
+pnpm-lock.yaml
+dist/
+coverage/
+.turbo/
+packages/db/migrations/meta/
+docs/design/
+# La documentazione è prosa: la formattazione resta a chi scrive.
+*.md
