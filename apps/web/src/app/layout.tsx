@@ -4,7 +4,7 @@ import { DEFAULT_ACCENT, DEFAULT_THEME } from '@study-feed/ui';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: { default: 'Study Feed', template: '%s · Study Feed' },
+  title: { default: 'EpicFeed', template: '%s · EpicFeed' },
   description: 'Le lezioni Epicode trasformate in schede, quiz e ripasso.',
   robots: { index: false, follow: false },
 };

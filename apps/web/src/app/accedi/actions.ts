@@ -1,5 +1,6 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { getCurrentUser, isEmailAllowed } from '@/server/auth';
@@ -25,7 +26,7 @@ function field(form: FormData, name: string): string {
 }
 
 const GENERIC_SENT =
-  "Se l'indirizzo è abilitato, ti abbiamo inviato un codice. Controlla anche lo spam.";
+  "Se l'indirizzo è abilitato, ti abbiamo inviato un'email: apri il link da questo browser, oppure scrivi qui il codice se l'email ne contiene uno. Controlla anche lo spam.";
 
 /**
  * Invia il codice monouso via email (primo accesso o password dimenticata).
@@ -44,9 +45,14 @@ export async function sendCode(_prev: AuthFormState, form: FormData): Promise<Au
   }
   if (isEmailAllowed(email.data)) {
     const supabase = await createSupabaseServerClient();
+    // Le email predefinite di Supabase contengono un link (il codice compare
+    // solo con un modello personalizzato): il link torna a /accedi/callback.
+    const redirectTo = await callbackUrl();
     const { error } = await supabase.auth.signInWithOtp({
       email: email.data,
-      options: { shouldCreateUser: true },
+      options: redirectTo
+        ? { shouldCreateUser: true, emailRedirectTo: redirectTo }
+        : { shouldCreateUser: true },
     });
     if (error) {
       return {
@@ -58,6 +64,16 @@ export async function sendCode(_prev: AuthFormState, form: FormData): Promise<Au
     }
   }
   return { step: 'code', email: email.data, message: GENERIC_SENT, error: false };
+}
+
+/**
+ * Indirizzo di ritorno del link email, costruito dall'origine della richiesta.
+ * Supabase accetta solo indirizzi della sua lista di redirect, quindi
+ * un'origine falsificata non porta il link altrove.
+ */
+async function callbackUrl(): Promise<string | undefined> {
+  const origin = (await headers()).get('origin');
+  return origin ? `${origin}/accedi/callback` : undefined;
 }
 
 /** Verifica il codice ricevuto via email e apre la sessione. */

@@ -50,7 +50,7 @@ async function main(): Promise<void> {
   if (!connection) {
     const card = el('div', undefined, 'card');
     card.append(
-      el('p', 'Collega l’estensione al tuo account Study Feed: '),
+      el('p', 'Collega l’estensione al tuo account EpicFeed: '),
       appLink('apri la pagina Estensione', '/estensione'),
     );
     show(card);
@@ -121,7 +121,7 @@ function renderStatus(status: ImportStatus): void {
       show(message(`Lettura dei sottotitoli: video ${status.done + 1} di ${status.total}…`));
       break;
     case 'sending':
-      show(message('Invio a Study Feed…'));
+      show(message('Invio a EpicFeed…'));
       break;
     case 'done': {
       const fresh = status.result.parts.filter((part) => part.newEntitlement).length;

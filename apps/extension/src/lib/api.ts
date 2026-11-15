@@ -45,7 +45,7 @@ export async function sendImport(
       credentials: 'omit',
     });
   } catch {
-    throw new ApiCallError('Study Feed non è raggiungibile: controlla la connessione.');
+    throw new ApiCallError('EpicFeed non è raggiungibile: controlla la connessione.');
   }
   const json: unknown = await response.json().catch(() => null);
   if (!response.ok) {
@@ -56,6 +56,6 @@ export async function sendImport(
     );
   }
   const parsed = importLessonResponseSchema.safeParse(json);
-  if (!parsed.success) throw new ApiCallError('Risposta inattesa da Study Feed.');
+  if (!parsed.success) throw new ApiCallError('Risposta inattesa da EpicFeed.');
   return parsed.data;
 }

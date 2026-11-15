@@ -23,7 +23,7 @@ export const PAUSE_BETWEEN_VIDEOS_MS = 1500;
 
 /**
  * Esegue l'import di una lezione: legge i sottotitoli di ogni parte video,
- * uno alla volta, poi invia tutto a Study Feed. Se un player non risponde o
+ * uno alla volta, poi invia tutto a EpicFeed. Se un player non risponde o
  * una traccia non si scarica, la parte entra comunque con il solo riassunto.
  *
  * @param preview - Lezione letta dal portale.

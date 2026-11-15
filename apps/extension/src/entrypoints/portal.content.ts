@@ -16,7 +16,7 @@ import { parsePortalUrl } from '../lib/portal';
  * 2. carica e rimuove i player Vimeo nascosti da cui leggere i sottotitoli.
  *
  * Il token di accesso del portale resta in questa pagina: non viene mai
- * inviato all'estensione né a Study Feed.
+ * inviato all'estensione né a EpicFeed.
  */
 export default defineContentScript({
   matches: ['https://learn.epicode.edu.mt/*'],
