@@ -20,7 +20,7 @@ auth.users ───────────────────────
 | `content_versions` | Contenuto canonico (JSON) e impronta | (`lesson_part_id`, `content_hash`) univoci, hash di 64 caratteri esadecimali, ≤ 2 MB, `generation_status` |
 | `entitlements` | Permesso utente ↔ versione | PK (`user_id`, `content_version_id`); FK composta (versione, parte) per coerenza; cancellazione a cascata con l'utente |
 
-Vincoli `CHECK` replicano nel database le regole del core (titoli 1–300 caratteri, posizioni ≥ 0, id Epicode con soli caratteri sicuri), così un dato non valido non entra nemmeno per errore. Un indice parziale su `content_versions` (`pending`, `failed`) rende veloce la ricerca delle versioni da generare; gli indici su `entitlements` servono alle policy RLS.
+Vincoli `CHECK` replicano nel database le regole del core (titoli 1–300 caratteri, posizioni ≥ 0, id Epicode con soli caratteri sicuri), così un dato non valido non entra nemmeno per errore. Un indice parziale su `content_versions` (`pending`, `failed`) rende veloce la ricerca delle versioni da generare; gli indici su `entitlements` servono alle policy RLS e coprono la chiave esterna composta (versione, parte).
 
 ## Sicurezza: RLS e permessi
 - **RLS attiva su ogni tabella.**
@@ -49,7 +49,14 @@ Ogni nuova tabella deve aggiungere qui la sua policy e un test che verifica che 
 ## Collegare Supabase
 Progetto: **EpicFeed** (`https://nxuysaeevxcncchqjtep.supabase.co`), creato il 15/11/2026. L'URL del progetto è pubblico; password del database, chiave `service_role` e stringa di connessione sono segreti.
 
-### Applicare le migrazioni (da GitHub, consigliato)
+### Stato
+- 15/11/2026: migrazioni `0000_init` e `0001_harden_grants` applicate tramite il connettore Supabase di Claude, e registrate in `drizzle.__drizzle_migrations` con lo stesso hash e la stessa data che usa drizzle, così il workflow e lo script restano allineati e non le riapplicano.
+- Verifica dopo l'applicazione: RLS attiva e una policy su tutte le 8 tabelle, `anon` senza privilegi, `authenticated` con il solo `SELECT`, advisor di sicurezza di Supabase senza segnalazioni. L'advisor di performance ha segnalato la chiave esterna composta di `entitlements` senza indice, corretta con `0002_entitlements_fk_index`.
+
+### Applicare le migrazioni con Claude (connettore Supabase)
+Con il connettore Supabase collegato, Claude può applicare le migrazioni nuove con `apply_migration`, aggiungendo nella stessa migrazione la riga in `drizzle.__drizzle_migrations` (hash SHA-256 del file `.sql` e campo `when` del journal). Non serve la password del database.
+
+### Applicare le migrazioni (da GitHub)
 Il workflow `.github/workflows/db-migrate.yml` applica le migrazioni senza installare nulla sul PC.
 
 Una volta sola:
