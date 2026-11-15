@@ -34,3 +34,4 @@ Temi: scuro, chiaro, automatico (segue il sistema).
 
 ## Mockup
 - [design/mockups/](design/mockups/) (scuro: `A-`…`E-`, chiaro: `*-chiaro-*`)
+- [design/mockups/libri-scuro-racing-red.png](design/mockups/libri-scuro-racing-red.png): sezione Libri (libreria, caricamento, feed di lettura). Le copertine usano titoli in Fraunces solo come segnaposto per le copertine generate.
