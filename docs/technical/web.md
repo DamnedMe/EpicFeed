@@ -6,6 +6,7 @@ Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailw
 | Percorso | Cosa fa | Accesso |
 |---|---|---|
 | `/accedi` | Codice via email al primo accesso, poi email e password | pubblico |
+| `/accedi/callback` | Ritorno dal link dell'email di accesso (scambia il codice PKCE con la sessione) | pubblico |
 | `/accedi/password` | Imposta la password (almeno 12 caratteri) dopo il primo accesso | sessione |
 | `/lezioni` | **Le mie lezioni**: lezioni importate raggruppate per materia e capitolo, con numero di parti, sottotitoli e stato di generazione | sessione |
 | `/estensione` | Collega l'estensione, elenca e revoca i collegamenti | sessione |
@@ -33,9 +34,10 @@ Le route chiamano `getServices()` di `container.ts`, che crea una sola volta la 
 
 ## Accesso
 Supabase Auth con email ([ADR 0007](../decisions/0007-generazione-via-mcp-e-login.md)):
-1. lo studente inserisce l'email; se è in `ALLOWED_EMAILS` riceve un **codice a 6 cifre** (`signInWithOtp`); altrimenti il messaggio è lo stesso, per non rivelare quali email sono ammesse;
-2. inserito il codice, al primo accesso imposta una password (salvata da Supabase; `user_metadata.password_set` ricorda che l'ha fatto);
-3. dalle volte successive entra con email e password.
+1. lo studente inserisce l'email; se è in `ALLOWED_EMAILS` riceve un'email di accesso (`signInWithOtp`); altrimenti il messaggio è lo stesso, per non rivelare quali email sono ammesse;
+2. l'email contiene un **link** che torna a `/accedi/callback` (flusso PKCE: funziona nel browser da cui è stato chiesto). Il **codice a 6 cifre** compare solo con un modello email personalizzato, che Supabase permette di modificare solo con un server SMTP proprio; l'app accetta entrambi;
+3. entrato, al primo accesso imposta una password (salvata da Supabase; `user_metadata.password_set` ricorda che l'ha fatto);
+4. dalle volte successive entra con email e password.
 
 Ogni pagina protetta richiama `requireUser()` (sessione verificata con Supabase, non solo letta dal cookie) e ricontrolla l'allowlist.
 
@@ -65,8 +67,8 @@ La build in CI non ha bisogno di nessuna variabile: vengono lette e validate sol
 Una volta sola:
 1. Vercel → *Add New → Project* → importa `DamnedMe/study-feed`; *Root Directory* `apps/web` (Vercel riconosce pnpm e Turborepo).
 2. Aggiungi le variabili della tabella. Per `DATABASE_URL`: in Supabase *Connect → Transaction pooler*; la password, se non la conosci, si reimposta da *Database → Settings → Reset database password* (meglio solo lettere e numeri).
-3. In Supabase *Authentication → URL Configuration*: *Site URL* = indirizzo Vercel.
-4. In Supabase *Authentication → Email Templates → Magic Link*: il testo deve contenere `{{ .Token }}` (il codice a 6 cifre), per esempio `Il tuo codice: {{ .Token }}`.
+3. In Supabase *Authentication → URL Configuration*: *Site URL* = indirizzo Vercel, e tra i *Redirect URLs* `https://<indirizzo>/**`.
+4. (Facoltativo) Per ricevere il codice invece del link: configurare un SMTP proprio in *Authentication → Emails → SMTP Settings* e mettere `{{ .Token }}` nei modelli *Magic link or OTP* e *Confirm sign up*.
 5. Dopo aver creato il tuo account, *Authentication → Sign In / Providers*: disattiva *Allow new users to sign up*, così nessun altro può registrarsi anche conoscendo l'indirizzo.
 6. Ricompila l'estensione con `WXT_APP_ORIGIN` = indirizzo Vercel ([import.md](import.md#build-e-installazione)).
 

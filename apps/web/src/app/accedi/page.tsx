@@ -5,7 +5,12 @@ import { LoginForm } from './login-form';
 
 export const metadata: Metadata = { title: 'Accedi' };
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const { errore } = await searchParams;
   const user = await getCurrentUser();
   if (user) redirect(user.hasPassword ? '/lezioni' : '/accedi/password');
 
@@ -17,6 +22,11 @@ export default async function LoginPage() {
         </p>
         <p className="text-sm text-muted">Le tue lezioni Epicode, una scheda alla volta.</p>
       </div>
+      {errore === 'link' && (
+        <p role="alert" className="text-sm text-accent-text">
+          Il link non è valido o è scaduto. Richiedilo di nuovo e aprilo nello stesso browser.
+        </p>
+      )}
       <LoginForm />
     </main>
   );
