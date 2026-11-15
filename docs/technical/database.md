@@ -56,9 +56,11 @@ Una volta sola:
 1. In Supabase: *Connect* (in alto) → *Connection string* → **Session pooler** (funziona anche dai server di GitHub, che non usano IPv6). Copia la stringa e sostituisci `[YOUR-PASSWORD]` con la password del database. Se la password contiene caratteri speciali (`@`, `#`, `/`, `:`…), conviene reimpostarla con lettere e numeri (*Database → Settings → Reset database password*).
 2. In GitHub: *Settings → Secrets and variables → Actions → New repository secret*, nome `DATABASE_URL`, valore la stringa del punto 1.
 
-Ogni volta che una PR aggiunge migrazioni, dopo il merge: *Actions → Migrazioni database → Run workflow* (branch `main`). drizzle-kit applica solo le migrazioni nuove e registra quelle applicate nello schema `drizzle`, quindi rilanciarlo non fa danni.
+Ogni volta che una PR aggiunge migrazioni, dopo il merge: *Actions → Migrazioni database → Run workflow* (branch `main`). Lo script `packages/db/scripts/migrate.js` applica solo le migrazioni nuove e registra quelle applicate in `drizzle.__drizzle_migrations` (come drizzle-kit), quindi rilanciarlo non fa danni.
 
-Il workflow gira solo su `main`, mai due volte in parallelo, e la stringa di connessione non compare nei log. `drizzle.config.ts` impone `sslmode=require` se la stringa non lo specifica.
+Se qualcosa va storto, l'errore nel log del workflow dice il motivo e cosa fare (password mancante o errata, caratteri speciali nella password, host sbagliato, connessione diretta IPv6 al posto del pooler). Il log mostra solo utente, host e porta, mai la password. Lo script sostituisce `drizzle-kit migrate`, che in caso di errore non mostrava il motivo.
+
+Il workflow gira solo su `main`, mai due volte in parallelo, e la stringa di connessione non compare nei log. La connessione verso Supabase è sempre cifrata (`ssl: require`).
 
 ### Applicare le migrazioni dal PC (alternativa)
 Crea `packages/db/.env` (ignorato da git) con `DATABASE_URL=<stringa>` e lancia `pnpm --filter @study-feed/db db:migrate`.
@@ -68,4 +70,4 @@ Crea `packages/db/.env` (ignorato da git) con `DATABASE_URL=<stringa>` e lancia 
 - URL del progetto e chiave `anon` (pubblica) serviranno alla web app in M1 come variabili d'ambiente su Vercel; la chiave `service_role` resta solo nei segreti del server. Nessun segreto va scritto in chat o nella repo.
 
 ### Verifica del flusso
-`drizzle-kit migrate` con il driver `postgres` è stato provato su un Postgres locale con lo strato Supabase simulato: prima esecuzione applicata, seconda esecuzione senza modifiche.
+Lo script è stato provato su un Postgres locale con lo strato Supabase simulato (prima esecuzione applicata, seconda senza modifiche) e con stringhe sbagliate (password mancante, caratteri speciali, host inesistente), verificando che la password non compaia mai nell'output.
