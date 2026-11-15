@@ -39,7 +39,19 @@ export async function computeContentHash(
   content: LessonPartContent,
   sha256: Sha256 = webCryptoSha256,
 ): Promise<ContentHash> {
-  const bytes = new TextEncoder().encode(canonicalJson(normalizeContent(content)));
+  return hashCanonical(normalizeContent(content), sha256);
+}
+
+/**
+ * Impronta di un valore già in forma canonica: JSON con chiavi ordinate,
+ * UTF-8, SHA-256, esadecimale minuscolo.
+ *
+ * @param canonical - Valore normalizzato.
+ * @param sha256 - Implementazione del digest.
+ * @returns L'impronta esadecimale.
+ */
+export async function hashCanonical(canonical: unknown, sha256: Sha256): Promise<ContentHash> {
+  const bytes = new TextEncoder().encode(canonicalJson(canonical));
   const digest = await sha256(bytes);
   return Array.from(digest, (byte) => byte.toString(16).padStart(2, '0')).join('') as ContentHash;
 }

@@ -1,6 +1,6 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { asUser, createTestDatabase, inRollback } from './harness.js';
+import { asUser, createTestDatabase, inRollback } from '../src/testing.js';
 
 // Due studenti: Anna ha importato la lezione, Bruno no.
 const anna = '0a0a0a0a-0000-4000-8000-00000000000a';

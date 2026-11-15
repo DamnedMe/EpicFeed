@@ -1,0 +1,36 @@
+{
+  "name": "@study-feed/adapters",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Implementazioni delle porte del core: catalogo su Postgres (Drizzle), token di import, limite di frequenza.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@study-feed/core": "workspace:*",
+    "@study-feed/db": "workspace:*",
+    "drizzle-orm": "0.45.4"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.16",
+    "@study-feed/config": "workspace:*",
+    "@types/node": "26.6.6",
+    "eslint": "10.15.0",
+    "typescript": "6.0.3",
+    "vitest": "5.1.0"
+  }
+}

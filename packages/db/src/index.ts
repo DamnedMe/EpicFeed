@@ -4,7 +4,14 @@
  * @packageDocumentation
  */
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
-import type { contentVersions, entitlements, lessonParts, lessons } from './schema.js';
+import type {
+  apiTokens,
+  contentVersions,
+  entitlements,
+  lessonParts,
+  lessons,
+  subtitleTracks,
+} from './schema.js';
 
 export * from './schema.js';
 
@@ -18,3 +25,7 @@ export type ContentVersionRow = InferSelectModel<typeof contentVersions>;
 export type NewContentVersionRow = InferInsertModel<typeof contentVersions>;
 /** Riga della tabella `entitlements`. */
 export type EntitlementRow = InferSelectModel<typeof entitlements>;
+/** Riga della tabella `subtitle_tracks`. */
+export type SubtitleTrackRow = InferSelectModel<typeof subtitleTracks>;
+/** Riga della tabella `api_tokens`. */
+export type ApiTokenRow = InferSelectModel<typeof apiTokens>;

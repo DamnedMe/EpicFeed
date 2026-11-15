@@ -43,6 +43,8 @@ export interface LessonPart {
   readonly kind: LessonPartKind;
   readonly title: string;
   readonly position: number;
+  /** Id del video Vimeo (solo parti video): collega riassunti e sottotitoli al video. */
+  readonly videoId?: string | undefined;
 }
 
 /**
@@ -81,6 +83,7 @@ export function createLessonPart(input: LessonPart): LessonPart {
     kind: input.kind,
     title: requireTitle(input.title, 'Titolo della parte'),
     position: requirePosition(input.position, 'Posizione della parte'),
+    videoId: input.videoId === undefined ? undefined : requireVideoId(input.videoId),
   });
 }
 
@@ -90,10 +93,35 @@ const PART_KINDS: readonly string[] = ['video', 'reading'] satisfies LessonPartK
 // l'id si può usare senza escaping in URL e log.
 const EPICODE_ID_PATTERN = /^[A-Za-z0-9-]{1,64}$/;
 
-function requireEpicodeId(value: string): string {
+/**
+ * Valida l'id di un elemento del portale Epicode.
+ *
+ * @param value - Id grezzo (intero o UUID Directus).
+ * @returns L'id senza spazi ai lati.
+ * @throws {@link DomainError} `INVALID_ID` se contiene caratteri non ammessi o è troppo lungo.
+ */
+export function requireEpicodeId(value: string): string {
   const trimmed = value.trim();
   if (!EPICODE_ID_PATTERN.test(trimmed)) {
     throw new DomainError('INVALID_ID', 'Id Epicode non valido');
+  }
+  return trimmed;
+}
+
+// Gli id dei video Vimeo sono numerici.
+const VIDEO_ID_PATTERN = /^[0-9]{1,20}$/;
+
+/**
+ * Valida l'id di un video Vimeo.
+ *
+ * @param value - Id grezzo.
+ * @returns L'id senza spazi ai lati.
+ * @throws {@link DomainError} `INVALID_ID` se non è un numero di al massimo 20 cifre.
+ */
+export function requireVideoId(value: string): string {
+  const trimmed = value.trim();
+  if (!VIDEO_ID_PATTERN.test(trimmed)) {
+    throw new DomainError('INVALID_ID', 'Id del video non valido');
   }
   return trimmed;
 }

@@ -1,7 +1,17 @@
+/**
+ * Strumenti di test condivisi (`@study-feed/db/testing`): un Postgres in
+ * memoria (PGlite) con lo strato Supabase simulato e tutte le migrazioni.
+ * Li usano i test di `db` (RLS) e di `adapters` (repository Drizzle).
+ * Richiedono `@electric-sql/pglite` tra le dipendenze di sviluppo.
+ *
+ * @packageDocumentation
+ */
 import { readFileSync } from 'node:fs';
 import { PGlite, type Transaction } from '@electric-sql/pglite';
 
+// Valgono sia da `src/` (test) sia da `dist/` (pacchetto compilato).
 const migrationsDir = new URL('../migrations/', import.meta.url);
+const shimFile = new URL('../testing/supabase-shim.sql', import.meta.url);
 
 interface Journal {
   entries: { tag: string }[];
@@ -13,7 +23,7 @@ interface Journal {
  */
 export async function createTestDatabase(): Promise<PGlite> {
   const db = new PGlite();
-  await db.exec(readFileSync(new URL('./supabase-shim.sql', import.meta.url), 'utf8'));
+  await db.exec(readFileSync(shimFile, 'utf8'));
   const journal = JSON.parse(
     readFileSync(new URL('meta/_journal.json', migrationsDir), 'utf8'),
   ) as Journal;

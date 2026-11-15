@@ -6,7 +6,6 @@ import { DomainError } from './errors.js';
 const content: LessonPartContent = {
   kind: 'video',
   summaries: { it: 'Le closure ricordano lo scope in cui sono nate.' },
-  subtitles: [{ startMs: 0, endMs: 2500, text: 'Oggi parliamo di closure' }],
 };
 
 describe('webCryptoSha256', () => {
@@ -24,7 +23,6 @@ describe('computeContentHash', () => {
 
   it('è stabile rispetto a differenze invisibili (spazi, fine riga, ordine)', async () => {
     const noisy = {
-      subtitles: [{ text: ' Oggi parliamo\r\ndi closure ', endMs: 2500, startMs: 0 }],
       summaries: { it: 'Le closure ricordano lo scope in cui sono nate.   \r\n', en: '' },
       kind: 'video',
     } as LessonPartContent;
@@ -33,7 +31,7 @@ describe('computeContentHash', () => {
 
   it('cambia se Epicode modifica il contenuto (nuova versione)', async () => {
     const changed: LessonPartContent = {
-      ...content,
+      kind: 'video',
       summaries: { it: 'Le closure ricordano lo scope.' },
     };
     expect(await computeContentHash(changed)).not.toBe(await computeContentHash(content));
