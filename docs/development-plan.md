@@ -1,7 +1,6 @@
 # Piano di sviluppo
 
-Stato: **proposta** (15/11/2026). Damian ha scelto generazione e login ([ADR 0007](decisions/0007-generazione-via-mcp-e-login.md)); restano da confermare hosting (C) ed estensione (E).
-Nessun codice applicativo prima che tutte le scelte del §4 siano confermate.
+Stato: **approvato da Damian** (15/11/2026). Le scelte del §4 sono registrate nell'[ADR 0007](decisions/0007-generazione-via-mcp-e-login.md).
 
 Base: [architettura](architecture.md), ADR [0001](decisions/0001-architettura-ibrida.md)–[0006](decisions/0006-sottotitoli-come-fonte-secondaria.md), [design system](design-system.md), [ricognizione del portale](portal-recon.md).
 
@@ -109,7 +108,7 @@ Rispetto all'[architettura](architecture.md) §2 si aggiungono `packages/db` (sc
 ### Già deciso (ADR 0001–0006)
 TypeScript strict in monorepo pnpm · Next.js (App Router) + Tailwind + Motion, PWA · Supabase (Postgres + Auth) con Drizzle · estensione Chrome MV3 · server MCP con SDK ufficiale · Claude API per la generazione · `ts-fsrs` · IndexedDB per i risultati · zod ai confini · Vitest + Playwright · GitHub Actions.
 
-### Proposte di dettaglio (scelgo io se non ci sono obiezioni)
+### Dettagli di stack (approvati con il piano)
 
 | Tema | Proposta | Perché |
 |---|---|---|
@@ -121,7 +120,7 @@ TypeScript strict in monorepo pnpm · Next.js (App Router) + Tailwind + Motion, 
 | Regione dati | Supabase UE (Francoforte) | GDPR e latenza dall'Italia |
 | Font | Self-hosted con `next/font` | Nessuna richiesta a Google Fonts, CSP più stretta |
 
-### Scelte aperte (da decidere con Damian)
+### Scelte prese con Damian
 
 **A. Chi esegue la generazione delle lezioni Epicode (e chi la paga)**: DECISO, A2 via MCP da Claude Desktop ([ADR 0007](decisions/0007-generazione-via-mcp-e-login.md))
 
@@ -139,7 +138,7 @@ TypeScript strict in monorepo pnpm · Next.js (App Router) + Tailwind + Motion, 
 | B2. Inngest | Retry, step e osservabilità pronti, integrazione Next.js semplice | Un servizio esterno in più (piano gratuito sufficiente per ora) |
 | B3. Supabase Edge Functions | Vicine al database | Runtime Deno: il nostro `core` TypeScript va adattato, più attrito |
 
-**C. Hosting della web app**
+**C. Hosting della web app**: DECISO, C1 Vercel
 
 | Opzione | Pro | Contro |
 |---|---|---|
@@ -157,7 +156,7 @@ TypeScript strict in monorepo pnpm · Next.js (App Router) + Tailwind + Motion, 
 
 Le opzioni si possono combinare (es. D1 subito, D3 in M8).
 
-**E. Framework dell'estensione**
+**E. Framework dell'estensione**: DECISO, E1 WXT
 
 | Opzione | Pro | Contro |
 |---|---|---|
@@ -173,7 +172,6 @@ Le opzioni si possono combinare (es. D1 subito, D3 in M8).
 - Nessun segreto nel codice o nel bundle client.
 
 ## 6. Cosa serve da Damian prima di M0
-- Le scelte C ed E (o un "ok alle consigliate").
 - Un account Supabase e uno Vercel (o l'alternativa scelta). Nessuna chiave Claude API: la generazione usa il piano Claude di Damian.
 - Per Accedi con Google (M8): un progetto Google Cloud con schermata di consenso OAuth e un client OAuth web; lo configuriamo insieme quando ci arriviamo. Le chiavi vanno nelle variabili d'ambiente dei servizi, mai in chat o nella repo.
 - Prima di M1: i termini d'uso studenti, se reperibili (onboarding o contratto di iscrizione).

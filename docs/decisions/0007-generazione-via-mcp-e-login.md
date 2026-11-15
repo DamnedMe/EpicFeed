@@ -1,4 +1,4 @@
-# ADR 0007: Generazione via MCP da Claude Desktop e login a più passi
+# ADR 0007: Generazione via MCP, login, hosting ed estensione
 
 - Stato: accettata
 - Data: 15/11/2026
@@ -21,6 +21,11 @@ Il [piano di sviluppo](../development-plan.md) §4 lasciava aperte, tra le altre
 1. **Primo accesso** con codice monouso via email (Supabase Auth).
 2. Subito dopo, l'utente **imposta una password**; da lì entra con email e password (il codice via email resta per il recupero).
 3. **Accedi con Google** (OAuth 2.0, gratuito) in un secondo momento: richiede un progetto Google Cloud con schermata di consenso e client OAuth, da creare con un account dedicato. Previsto in M8.
+
+### Hosting ed estensione
+- Web app su **Vercel** (piano Hobby finché il progetto resta personale e non commerciale; da rivedere se diventa un servizio).
+- Estensione costruita con **WXT** (Vite, Manifest V3, TypeScript).
+- Gli altri dettagli di stack (Turborepo, Radix, Dexie, Serwist, Supabase in UE, font self-hosted) sono approvati con il [piano di sviluppo](../development-plan.md) §4.
 
 ## Alternative scartate
 - **Claude API sul server**: automatica e utilizzabile anche dal telefono, ma con un costo per capitolo e una chiave a pagamento da custodire.
