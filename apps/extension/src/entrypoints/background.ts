@@ -11,7 +11,7 @@ const PLAYER_TIMEOUT_MS = 20_000;
  * Service worker dell'estensione:
  * - riceve dalla web app il collegamento (token di import);
  * - coordina l'import avviato dal popup: player nascosti uno alla volta,
- *   download dei sottotitoli, invio a Study Feed;
+ *   download dei sottotitoli, invio a EpicFeed;
  * - scrive lo stato in `storage.session`, da cui lo legge il popup.
  */
 export default defineBackground(() => {

@@ -1,12 +1,14 @@
 # Documentazione funzionale: panoramica
 
+Il nome dell'app, nella web app e nell'estensione, è **EpicFeed** (la repository e i pacchetti restano `study-feed`).
+
 Cosa fa l'app dal punto di vista dello studente. Ogni funzione nuova aggiunge o aggiorna una sezione qui.
 
 ## Accedere
 L'app è privata: entra solo chi ha un indirizzo email abilitato. La prima volta si inserisce l'email e si riceve un **codice** da scrivere nell'app, poi si sceglie una **password** (almeno 12 caratteri). Dalle volte successive si entra con email e password. Se si dimentica la password, si richiede di nuovo il codice.
 
 ## Collegare l'estensione
-Una volta sola, sul PC: si installa l'estensione Study Feed in Chrome (nel profilo in cui si usa Epicode), si apre la pagina **Estensione** dell'app e si preme **Collega**. L'estensione riceve un permesso che vale 30 giorni e serve solo a importare lezioni; dalla stessa pagina si vedono i collegamenti attivi e si possono **revocare**. La password di Epicode non viene mai chiesta né salvata.
+Una volta sola, sul PC: si installa l'estensione EpicFeed in Chrome (nel profilo in cui si usa Epicode), si apre la pagina **Estensione** dell'app e si preme **Collega**. L'estensione riceve un permesso che vale 30 giorni e serve solo a importare lezioni; dalla stessa pagina si vedono i collegamenti attivi e si possono **revocare**. La password di Epicode non viene mai chiesta né salvata.
 
 ## Importare una lezione
 Lo studente apre una lezione nel portale Epicode come sempre e preme **Importa** nell'estensione. L'estensione mostra un'anteprima (titolo, capitolo, quante parti video e di testo verranno importate) e, con un clic, importa la **lezione intera**: i riassunti di ogni video, il riassunto del capitolo e i **sottotitoli di tutti i video**. Per leggere i sottotitoli apre per un attimo, nascosto, il player di ogni video senza avviarlo, uno dopo l'altro: per una lezione con 5 video servono una decina di secondi, e l'avanzamento si vede nell'estensione. Nessun video risulta guardato per effetto dell'import e sul portale non viene modificato nulla.

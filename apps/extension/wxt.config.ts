@@ -6,9 +6,9 @@ import { defineConfig } from 'wxt';
  * Permessi minimi:
  * - `storage`: il token di import e l'indirizzo dell'app, solo in locale;
  * - host: il portale (lettura della lezione), il CMS Directus (solo GET con i
- *   campi necessari), il player e i sottotitoli di Vimeo, e l'API di Study Feed.
+ *   campi necessari), il player e i sottotitoli di Vimeo, e l'API di EpicFeed.
  *
- * `externally_connectable`: solo la web app di Study Feed può inviare il
+ * `externally_connectable`: solo la web app di EpicFeed può inviare il
  * token di collegamento all'estensione.
  *
  * `key`: chiave pubblica che fissa l'id dell'estensione
@@ -24,8 +24,8 @@ export default defineConfig({
     // La web app in locale è ammessa solo nella build di sviluppo.
     const origins = mode === 'development' ? [appOrigin, 'http://localhost:3000'] : [appOrigin];
     return {
-      name: 'Study Feed',
-      description: 'Importa in Study Feed la lezione Epicode che stai guardando.',
+      name: 'EpicFeed',
+      description: 'Importa in EpicFeed la lezione Epicode che stai guardando.',
       key: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqk/b9YKSPqoDwko+JUiF0eKx2RFK28dLes6ajPZwoleqcGhhompLv6yJVmmt+HPQAnE7sE9VVLsr/MaEUUYkJ2geMSHLsDH8STxriHjjBdUwRY7klM17R05VV4/4TE+ScbQFuf3XG/7mQQUypBQkcGFX26YQC70b3dfmFua4HPthVByKKAf5CahOtKb1aQ6pOPNsDGs26warK60an1dIiyAhuzpo8Jq1Qfxt1YseZca71Q/A2TwfRzynA5+WuvzYg9oKKaZOFLRL5HFd6my2uDieYQQrvHE8mQrIkuSp55i+VwrvMvsz8UnqP01Z0v2tOlb4+AH2C14ltljyuzUB+QIDAQAB',
       permissions: ['storage'],
       host_permissions: [
@@ -36,7 +36,7 @@ export default defineConfig({
         ...origins.map((origin) => `${origin}/*`),
       ],
       externally_connectable: { matches: origins.map((origin) => `${origin}/*`) },
-      action: { default_title: 'Study Feed: importa la lezione' },
+      action: { default_title: 'EpicFeed: importa la lezione' },
     };
   },
 });

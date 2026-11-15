@@ -5,7 +5,7 @@ Le motivazioni delle singole scelte sono negli ADR in [decisions/](decisions/). 
 
 ## 1. Panoramica
 
-Study Feed trasforma le lezioni Epicode che lo studente sta già seguendo in un feed verticale di clip brevi, con quiz di fine capitolo e un ripasso mirato dei concetti sbagliati.
+EpicFeed trasforma le lezioni Epicode che lo studente sta già seguendo in un feed verticale di clip brevi, con quiz di fine capitolo e un ripasso mirato dei concetti sbagliati.
 
 L'architettura è **ibrida** ([ADR 0001](decisions/0001-architettura-ibrida.md)):
 

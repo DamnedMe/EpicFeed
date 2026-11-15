@@ -2,7 +2,7 @@
   "name": "@study-feed/extension",
   "version": "0.1.0",
   "private": true,
-  "description": "Estensione Chrome (MV3, WXT) che importa in Study Feed la lezione Epicode aperta.",
+  "description": "Estensione Chrome (MV3, WXT) che importa in EpicFeed la lezione Epicode aperta.",
   "type": "module",
   "scripts": {
     "dev": "wxt",

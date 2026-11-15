@@ -1,4 +1,4 @@
-# Study Feed: design system (approvato da Damian il 14/11/2026)
+# EpicFeed: design system (approvato da Damian il 14/11/2026)
 
 ## Direzione
 Layout "Inchiostro": vetro leggero (bianco 7% su scuro, bianco 72% su chiaro, blur 22px), angoli medi (card 16–26px, telefono 46px), azioni in colonna a destra nel feed, barra di navigazione in vetro (Feed, Libri, Ripasso, Io; i quiz si aprono dal feed, vedi ADR 0005).

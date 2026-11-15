@@ -1,6 +1,6 @@
 # Import delle lezioni (M1)
 
-Come una lezione passa dal portale Epicode al catalogo di Study Feed: estensione, collegamento con la web app, API di import e caso d'uso del core. Le scelte sono motivate in [ADR 0009](../decisions/0009-import-lezione-intera-e-sottotitoli.md).
+Come una lezione passa dal portale Epicode al catalogo di EpicFeed: estensione, collegamento con la web app, API di import e caso d'uso del core. Le scelte sono motivate in [ADR 0009](../decisions/0009-import-lezione-intera-e-sottotitoli.md).
 
 ```
  Portale Epicode (pagina della lezione, loggato)
@@ -27,7 +27,7 @@ Come una lezione passa dal portale Epicode al catalogo di Study Feed: estensione
 - Le password Epicode non passano mai dall'estensione.
 
 ## Corrispondenza portale → catalogo
-| Portale (Directus) | Study Feed | Note |
+| Portale (Directus) | EpicFeed | Note |
 |---|---|---|
 | tenant del corso (es. EIT) | `study_programs` | se manca: `epicode` / "Epicode" |
 | anno accademico da `courses.starts_at` | `editions` | settembre–agosto, es. `2025/26` |

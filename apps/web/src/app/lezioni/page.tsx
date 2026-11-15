@@ -37,7 +37,7 @@ export default async function LessonsPage() {
               al tuo account.
             </li>
             <li>Apri una lezione sul portale Epicode.</li>
-            <li>Premi l&apos;icona di Study Feed e poi &quot;Importa&quot;.</li>
+            <li>Premi l&apos;icona di EpicFeed e poi &quot;Importa&quot;.</li>
           </ol>
         </div>
       </Shell>

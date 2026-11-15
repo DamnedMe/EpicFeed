@@ -8,7 +8,7 @@ export function Shell({ title, children }: { title: string; children: ReactNode 
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col gap-6 px-4 py-6">
       <header className="flex items-center justify-between gap-4">
         <Link href="/lezioni" className="font-display text-lg font-bold tracking-tight">
-          Study<span className="text-accent-text">Feed</span>
+          Epic<span className="text-accent-text">Feed</span>
         </Link>
         <nav className="flex items-center gap-4 font-mono text-xs text-muted">
           <Link href="/lezioni" className="hover:text-text">
