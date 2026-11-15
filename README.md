@@ -13,5 +13,12 @@ Web app personale per studiare il materiale del corso Epicode in modo più legge
 - Traffico minimo, come un utente normale: niente crawling massivo, niente aggiramento di protezioni (es. Cloudflare Turnstile).
 - Nessuna credenziale salvata in chiaro o committata.
 
-**Stato**: architettura e design approvati; [piano di sviluppo](docs/development-plan.md) approvato, si parte dalla milestone M0.
+**Stato**: milestone M0 Fondamenta completata (monorepo, dominio, design system, schema e RLS, CI). Prossima: M1 Import e catalogo ([piano di sviluppo](docs/development-plan.md)).
+
+**Sviluppo**
+```bash
+corepack enable && pnpm install
+pnpm check   # formattazione, lint, typecheck, test e build, come in CI
+```
+Requisiti e comandi in [docs/technical/setup.md](docs/technical/setup.md).
 Documentazione in [docs/](docs/README.md): [architettura](docs/architecture.md), [decisioni](docs/decisions/), [funzionale](docs/functional/overview.md), [design system](docs/design-system.md), [ricognizione del portale](docs/portal-recon.md).

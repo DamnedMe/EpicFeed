@@ -1,0 +1,33 @@
+/*
+ * Collega i token di Study Feed a Tailwind CSS 4.
+ * Uso nella web app:
+ *   @import 'tailwindcss';
+ *   @import '@study-feed/ui/tokens.css';
+ *   @import '@study-feed/ui/tailwind.css';
+ * Poi: bg-background, text-muted, bg-accent, text-accent, rounded-card, font-display…
+ * `inline` fa sì che le classi leggano le variabili a runtime: cambiare tema o
+ * accento non richiede di rigenerare il CSS.
+ */
+@theme inline {
+  --color-background: var(--sf-background);
+  --color-surface: var(--sf-surface);
+  --color-border: var(--sf-border);
+  --color-text: var(--sf-text);
+  --color-muted: var(--sf-text-muted);
+  --color-review: var(--sf-review);
+  --color-accent: var(--sf-accent-fill);
+  --color-on-accent: var(--sf-accent-on-fill);
+  --color-accent-text: var(--sf-accent-text);
+
+  --font-display: var(--sf-font-display);
+  --font-sans: var(--sf-font-body);
+  --font-mono: var(--sf-font-mono);
+
+  --radius-sm: var(--sf-radius-sm);
+  --radius-md: var(--sf-radius-md);
+  --radius-lg: var(--sf-radius-lg);
+  --radius-card: var(--sf-radius-card);
+  --radius-device: var(--sf-radius-device);
+
+  --blur-glass: var(--sf-glass-blur);
+}

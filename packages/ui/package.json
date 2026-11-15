@@ -1,0 +1,36 @@
+{
+  "name": "@study-feed/ui",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Design system di Study Feed: token di colori, temi, accenti e tipografia.",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./tokens.css": "./dist/tokens.css",
+    "./tailwind.css": "./tailwind.css"
+  },
+  "files": [
+    "dist",
+    "tailwind.css"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node scripts/write-css.js",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@study-feed/config": "workspace:*",
+    "@types/node": "26.6.6",
+    "@vitest/coverage-v8": "5.1.0",
+    "eslint": "10.15.0",
+    "typescript": "6.0.3",
+    "vitest": "5.1.0"
+  }
+}
