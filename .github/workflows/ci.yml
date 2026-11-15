@@ -61,6 +61,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
+          # setup-node v5 attiva da solo la cache di pnpm (campo packageManager),
+          # ma questo job non installa nulla: senza store la cache fallirebbe.
+          package-manager-cache: false
 
       - name: pnpm audit
         run: pnpm audit --audit-level=moderate
