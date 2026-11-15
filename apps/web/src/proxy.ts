@@ -13,7 +13,7 @@ import { NextResponse, type NextRequest } from 'next/server';
  */
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
-  const csp = contentSecurityPolicy(nonce);
+  const csp = contentSecurityPolicy(nonce, request.nextUrl.protocol === 'https:');
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-nonce', nonce);
@@ -52,7 +52,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   return response;
 }
 
-function contentSecurityPolicy(nonce: string): string {
+function contentSecurityPolicy(nonce: string, https: boolean): string {
   const dev = process.env.NODE_ENV === 'development';
   const supabase = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
   return [
@@ -66,7 +66,8 @@ function contentSecurityPolicy(nonce: string): string {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    'upgrade-insecure-requests',
+    // Solo in HTTPS: in locale (http://localhost) romperebbe il caricamento delle risorse.
+    ...(https ? ['upgrade-insecure-requests'] : []),
   ].join('; ');
 }
 

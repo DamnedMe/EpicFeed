@@ -36,11 +36,14 @@ let services: Services | undefined;
  */
 export function getServices(): Services {
   if (services) return services;
-  const client = postgres(serverEnv().DATABASE_URL, {
+  const url = serverEnv().DATABASE_URL;
+  // Verso Supabase sempre cifrato; in chiaro solo verso un database locale (sviluppo e prove).
+  const local = ['localhost', '127.0.0.1'].includes(new URL(url).hostname);
+  const client = postgres(url, {
     prepare: false,
     max: 3,
     idle_timeout: 20,
-    ssl: 'require',
+    ssl: local ? false : 'require',
   });
   const db = drizzle(client, { schema }) as unknown as Database;
   services = {
