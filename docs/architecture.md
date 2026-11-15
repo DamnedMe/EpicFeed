@@ -41,11 +41,12 @@ Vincoli che l'architettura rispetta sempre (vedi [portal-recon.md](portal-recon.
 
 | Componente | Tecnologia | Responsabilità |
 |---|---|---|
-| `apps/web` | Next.js (App Router), TypeScript, Tailwind, Motion, PWA | Feed, quiz, ripasso, impostazioni tema/accento; API di import e lettura catalogo |
-| `apps/extension` | Estensione Chrome (Manifest V3), TypeScript | Importa la lezione aperta dallo studente: trascrizione, riassunto, metadati di corso |
+| `apps/web` | Next.js (App Router), TypeScript, Tailwind, Motion, PWA | Feed, quiz, ripasso, impostazioni tema/accento; API di import e lettura catalogo ([dettagli](technical/web.md)) |
+| `apps/extension` | Estensione Chrome (Manifest V3, WXT), TypeScript | Importa la lezione aperta dallo studente: riassunti, riassunto di capitolo, sottotitoli di tutti i video, metadati di corso ([dettagli](technical/import.md)) |
 | `apps/mcp` | Server MCP in TypeScript (SDK ufficiale) | Strumenti per Claude: cerca lezione, concetti deboli, quiz al volo, grafici dei progressi, segnala errore; importazione e trasformazione dei libri (§7 bis) |
 | `packages/core` | TypeScript puro | Dominio e casi d'uso (vedi §3). Nessuna dipendenza da framework |
-| `packages/adapters` | TypeScript | Implementazioni delle porte: Supabase, Claude API, IndexedDB, crypto |
+| `packages/contracts` | zod | Schemi delle richieste e risposte condivisi tra API, estensione e (da M2) server MCP |
+| `packages/adapters` | TypeScript, Drizzle | Implementazioni delle porte: catalogo su Postgres, token, limite di frequenza; poi IndexedDB |
 | `packages/ui` | React + Tailwind | Componenti condivisi e token del [design system](design-system.md) ([implementazione](technical/design-tokens.md)) |
 | `packages/db` | Drizzle + SQL | Schema Postgres, migrazioni e policy RLS ([dettagli](technical/database.md)) |
 | `packages/config` | TypeScript, ESLint | Configurazione condivisa |
@@ -137,7 +138,7 @@ Gerarchia delle fonti ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondar
 
 ## 8. Sicurezza
 
-- Supabase Auth: codice via email al primo accesso, poi password, in seguito Accedi con Google ([ADR 0007](decisions/0007-generazione-via-mcp-e-login.md)). Il server MCP usa un token personale revocabile. Row Level Security su ogni tabella, con i soli permessi di lettura per gli studenti e nessuno per gli utenti anonimi, verificata da test su un Postgres in memoria ([database.md](technical/database.md)); il client non usa mai la service key.
+- Supabase Auth: codice via email al primo accesso, poi password, in seguito Accedi con Google ([ADR 0007](decisions/0007-generazione-via-mcp-e-login.md)). Il server MCP usa un token personale revocabile; l'estensione un token di import (solo `POST /api/import`, 30 giorni, revocabile, salvato come hash) consegnato dalla web app tramite `externally_connectable`. Row Level Security su ogni tabella, con i soli permessi di lettura per gli studenti e nessuno per gli utenti anonimi, verificata da test su un Postgres in memoria ([database.md](technical/database.md)); il client non usa mai la service key.
 - Validazione di ogni input con zod ai confini (API, estensione, MCP).
 - Nessun segreto nel bundle client; segreti solo in variabili d'ambiente del server.
 - Header di sicurezza (CSP restrittiva, HSTS, frame-ancestors) e permessi minimi nell'estensione (solo il dominio Epicode e la nostra API).

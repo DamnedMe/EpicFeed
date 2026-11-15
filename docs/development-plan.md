@@ -51,7 +51,7 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
 - `packages/ui`: token CSS dei colori, temi e accenti dal [design system](design-system.md); font self-hosted.
 - Supabase (regione UE): schema iniziale con Drizzle, RLS attiva su ogni tabella dal primo giorno.
 
-**M1 Import e catalogo**
+**M1 Import e catalogo**: realizzata il 15/11/2026 ([import.md](technical/import.md), [web.md](technical/web.md), [ADR 0009](decisions/0009-import-lezione-intera-e-sottotitoli.md)). Su scelta di Damian l'estensione importa la lezione intera con un clic, compresi i sottotitoli di tutte le parti video, salvati come tracce separate dalle versioni. Restano da fare, fuori dal codice: messa online su Vercel e prima prova sul portale reale ([web.md](technical/web.md#messa-online-vercel)).
 - Estensione: si attiva solo su `learn.epicode.edu.mt`, legge ciò che la pagina della lezione ha già caricato, chiede a Directus solo i campi necessari, mostra un'anteprima e invia con un clic. Mai scritture sulle collezioni di progresso.
 - Login nella web app (ADR 0007): primo accesso con codice via email, poi l'utente imposta una password; da lì entra con email e password.
 - Accesso dell'estensione: l'utente fa login nella web app, che passa all'estensione un token di sessione a scadenza breve (niente password nell'estensione).

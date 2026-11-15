@@ -5,20 +5,29 @@ Pacchetto `packages/db`. Postgres su Supabase (regione UE, Francoforte), schema 
 ## Tabelle
 ```
 study_programs ─< editions ─< subjects ─< chapters ─< lessons ─< lesson_parts ─< content_versions
-                                                                       │                │
+                                                                       │    │           │
+                                                                       │    └─< subtitle_tracks
+                                                                       │               │
 auth.users ─────────────────────────────────────────────────< entitlements >────────────┘
+     │ ├──< subtitle_access >── subtitle_tracks
+     │ ├──< api_tokens
+     │ └──< import_events
 ```
 
 | Tabella | Contenuto | Chiavi e vincoli principali |
 |---|---|---|
 | `study_programs` | Corso di studi | `epicode_id` univoco |
 | `editions` | Anno o edizione | (`study_program_id`, `label`) univoci |
-| `subjects` | Materia (Directus `unit`) | (`edition_id`, `epicode_id`) univoci |
+| `subjects` | Materia (corso Epicode, Directus `courses`) | (`edition_id`, `epicode_id`) univoci |
 | `chapters` | Capitolo (Directus `module`) | (`subject_id`, `epicode_id`) univoci |
 | `lessons` | Lezione (Directus `activity`) | (`chapter_id`, `epicode_id`) univoci |
-| `lesson_parts` | Parte video o testo | (`lesson_id`, `epicode_id`) univoci, `kind` enum |
+| `lesson_parts` | Parte video o testo | (`lesson_id`, `epicode_id`) univoci, `kind` enum, `video_id` (Vimeo, solo per i video) |
 | `content_versions` | Contenuto canonico (JSON) e impronta | (`lesson_part_id`, `content_hash`) univoci, hash di 64 caratteri esadecimali, ≤ 2 MB, `generation_status` |
 | `entitlements` | Permesso utente ↔ versione | PK (`user_id`, `content_version_id`); FK composta (versione, parte) per coerenza; cancellazione a cascata con l'utente |
+| `subtitle_tracks` | Traccia di sottotitoli di una parte (righe in JSON) | (`lesson_part_id`, `content_hash`) univoci, lingua in formato BCP 47 semplificato, `auto_generated`, ≤ 2 MB |
+| `subtitle_access` | Accesso utente ↔ traccia | PK (`user_id`, `subtitle_track_id`), concesso per prova di possesso |
+| `api_tokens` | Token di import dell'estensione | solo lo SHA-256 del token (64 esadecimali), `scope` enum (`import`), scadenza, revoca |
+| `import_events` | Registro degli import | utente, lezione, numero di parti, data: serve al limite di frequenza (60/ora) |
 
 Vincoli `CHECK` replicano nel database le regole del core (titoli 1–300 caratteri, posizioni ≥ 0, id Epicode con soli caratteri sicuri), così un dato non valido non entra nemmeno per errore. Un indice parziale su `content_versions` (`pending`, `failed`) rende veloce la ricerca delle versioni da generare; gli indici su `entitlements` servono alle policy RLS e coprono la chiave esterna composta (versione, parte).
 
@@ -27,8 +36,9 @@ Vincoli `CHECK` replicano nel database le regole del core (titoli 1–300 caratt
 - Gli studenti (`authenticated`) possono solo **leggere**, e solo ciò che hanno importato:
   - `entitlements`: solo i propri permessi;
   - `content_versions` e `lesson_parts`: solo se esiste un proprio permesso su quella versione o parte;
+  - `subtitle_tracks`: solo se esiste un proprio `subtitle_access`; `subtitle_access`, `api_tokens` e `import_events`: solo le proprie righe;
   - `lessons` → `chapters` → `subjects` → `editions` → `study_programs`: visibili se è visibile almeno un elemento del livello sotto. Ogni policy guarda un solo livello e si appoggia alla RLS di quel livello, così la regola resta semplice da leggere e la visibilità risale da `entitlements` fino al corso.
-- Nessuna policy di scrittura, e in più la migrazione `0001_harden_grants` toglie a `authenticated` i privilegi di insert/update/delete e ad `anon` ogni privilegio. Le scritture (import, generazione) le fa solo l'API sul server, dopo validazione e prova di possesso.
+- Nessuna policy di scrittura, e in più le migrazioni `0001_harden_grants` e `0004_harden_grants_import` tolgono a `authenticated` i privilegi di insert/update/delete e ad `anon` ogni privilegio. Le scritture (import, generazione) le fa solo l'API sul server, dopo validazione e prova di possesso.
 - Le policy usano `(select auth.uid())`, che Postgres valuta una volta per query invece che per riga (raccomandazione di Supabase per la latenza).
 
 ### Come è testato
@@ -38,6 +48,10 @@ Vincoli `CHECK` replicano nel database le regole del core (titoli 1–300 caratt
 - `anon` non ha alcun privilegio;
 - nessuna scrittura è possibile dal client (nemmeno concedersi un permesso);
 - deduplica, formato dell'impronta, coerenza versione/parte e cancellazione a cascata.
+
+`test/rls-import.test.ts` fa lo stesso per le tabelle di M1: tracce visibili solo con il proprio accesso, token e registro degli import solo i propri, nessuna scrittura dal client, vincoli su lingua, hash e `video_id`.
+
+L'ambiente di test (PGlite + shim) è esportato come `@study-feed/db/testing` e lo usano anche i test di `packages/adapters`.
 
 Ogni nuova tabella deve aggiungere qui la sua policy e un test che verifica che un altro utente non la legga ([piano di sviluppo](../development-plan.md) §5).
 
@@ -52,6 +66,8 @@ Progetto: **EpicFeed** (`https://nxuysaeevxcncchqjtep.supabase.co`), creato il 1
 ### Stato
 - 15/11/2026: migrazioni `0000_init` e `0001_harden_grants` applicate tramite il connettore Supabase di Claude, e registrate in `drizzle.__drizzle_migrations` con lo stesso hash e la stessa data che usa drizzle, così il workflow e lo script restano allineati e non le riapplicano.
 - Verifica dopo l'applicazione: RLS attiva e una policy su tutte le 8 tabelle, `anon` senza privilegi, `authenticated` con il solo `SELECT`, advisor di sicurezza di Supabase senza segnalazioni. L'advisor di performance ha segnalato la chiave esterna composta di `entitlements` senza indice, corretta con `0002_entitlements_fk_index`.
+
+- M1: migrazioni `0003_import_subtitles_tokens` (tabelle nuove e `video_id`) e `0004_harden_grants_import` (permessi), entrambe non distruttive (solo aggiunte), da applicare con il connettore dopo il merge della PR di M1.
 
 ### Applicare le migrazioni con Claude (connettore Supabase)
 Con il connettore Supabase collegato, Claude può applicare le migrazioni nuove con `apply_migration`, aggiungendo nella stessa migrazione la riga in `drizzle.__drizzle_migrations` (hash SHA-256 del file `.sql` e campo `when` del journal). Non serve la password del database.
@@ -74,7 +90,7 @@ Crea `packages/db/.env` (ignorato da git) con `DATABASE_URL=<stringa>` e lancia 
 
 ### Altre impostazioni
 - *Authentication → Providers*: lascia attivo solo Email (codice monouso e password, [ADR 0007](../decisions/0007-generazione-via-mcp-e-login.md)).
-- URL del progetto e chiave `anon` (pubblica) serviranno alla web app in M1 come variabili d'ambiente su Vercel; la chiave `service_role` resta solo nei segreti del server. Nessun segreto va scritto in chat o nella repo.
+- URL del progetto e chiave pubblicabile sono variabili d'ambiente della web app su Vercel ([web.md](web.md#variabili-dambiente)); la web app non usa la chiave `service_role`: scrive con `DATABASE_URL` dal server. Nessun segreto va scritto in chat o nella repo.
 
 ### Verifica del flusso
 Lo script è stato provato su un Postgres locale con lo strato Supabase simulato (prima esecuzione applicata, seconda senza modifiche) e con stringhe sbagliate (password mancante, caratteri speciali, host inesistente), verificando che la password non compaia mai nell'output.
