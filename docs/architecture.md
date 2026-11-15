@@ -1,7 +1,7 @@
 # Architettura
 
 Stato: **approvata, nessun codice ancora scritto** (14/11/2026).
-Le motivazioni delle singole scelte sono negli ADR in [decisions/](decisions/). Aggiornata il 14/11/2026 con la sezione Libri ([ADR 0005](decisions/0005-sezione-libri.md)) e il 15/11/2026 con la gestione dei sottotitoli ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondaria.md)).
+Le motivazioni delle singole scelte sono negli ADR in [decisions/](decisions/). Aggiornata il 14/11/2026 con la sezione Libri ([ADR 0005](decisions/0005-sezione-libri.md)) il 15/11/2026 con la gestione dei sottotitoli ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondaria.md)) e con generazione via MCP e login ([ADR 0007](decisions/0007-generazione-via-mcp-e-login.md)).
 
 ## 1. Panoramica
 
@@ -116,11 +116,11 @@ Esclusi: condivisione libera tra utenti (ridistribuzione di contenuti protetti) 
 
 Gerarchia delle fonti ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondaria.md)): **riassunti > glossario > sottotitoli**. I sottotitoli Epicode sono spesso generati automaticamente e imprecisi, quindi non sono la base del testo.
 
-- Ogni versione viene divisa in clip di un concetto a partire dai **riassunti** (della parte video e del capitolo): titolo, frase chiave, spiegazione, codice. Quiz e concetti si ricavano **solo dai riassunti**. Modello: Claude, tramite l'adapter `ContentGenerator`.
+- Ogni versione viene divisa in clip di un concetto a partire dai **riassunti** (della parte video e del capitolo): titolo, frase chiave, spiegazione, codice. Quiz e concetti si ricavano **solo dai riassunti**. Modello: Claude, da Claude Desktop tramite il server MCP.
 - I **sottotitoli** servono per allineare ogni clip al suo intervallo nel video (inizio/fine in secondi) e per qualche dettaglio in più. L'allineamento usa concetti e parole chiave; se è incerto la clip punta all'inizio della parte video.
 - Ogni passaggio preso dai sottotitoli viene corretto da Claude confrontandolo con i riassunti e con il **glossario dei termini tecnici** della materia (costruito dai riassunti e arricchito dalle correzioni dell'utente). Ciò che non trova riscontro viene scartato.
 - Le **correzioni dell'utente** ("Segnala errore") sono salvate in un'area privata del server (RLS: solo l'autore), si applicano alla clip su tutti i suoi dispositivi e vengono passate alle generazioni successive. Non modificano il catalogo condiviso.
-- Esecuzione asincrona (coda), idempotente per `contentHash`, con i risultati salvati.
+- Esecuzione: da Claude Desktop tramite il server MCP ([ADR 0007](decisions/0007-generazione-via-mcp-e-login.md)); la versione passa da `da_generare` a `pronta`, idempotente per `contentHash`, con i risultati salvati e rivalidati dall'API.
 - Fonti testuali (dal file HAR, vedi [portal-recon.md](portal-recon.md) §5): per ogni parte video il riassunto markdown (`summary.it/en`), il riassunto di capitolo in markdown e i sottotitoli VTT con timestamp. Gli URL dei VTT sono firmati e scadono, quindi l'estensione li legge al momento dell'import.
 - Riproduzione: i video Vimeo hanno `embed_permission: whitelist` e **non si possono incorporare** fuori dal dominio Epicode. Le clip sono quindi **schede testuali/animate** (titolo, frase chiave dai riassunti, codice, schema) con il pulsante "Guarda sul portale" che apre la lezione al minuto della clip.
 
@@ -135,7 +135,7 @@ Gerarchia delle fonti ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondar
 
 ## 8. Sicurezza
 
-- Supabase Auth; Row Level Security su ogni tabella; il client non usa mai la service key.
+- Supabase Auth: codice via email al primo accesso, poi password, in seguito Accedi con Google ([ADR 0007](decisions/0007-generazione-via-mcp-e-login.md)). Il server MCP usa un token personale revocabile. Row Level Security su ogni tabella; il client non usa mai la service key.
 - Validazione di ogni input con zod ai confini (API, estensione, MCP).
 - Nessun segreto nel bundle client; segreti solo in variabili d'ambiente del server.
 - Header di sicurezza (CSP restrittiva, HSTS, frame-ancestors) e permessi minimi nell'estensione (solo il dominio Epicode e la nostra API).
