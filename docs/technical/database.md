@@ -47,10 +47,25 @@ Ogni nuova tabella deve aggiungere qui la sua policy e un test che verifica che 
 - Le migrazioni non si modificano dopo essere state applicate: si aggiunge una migrazione nuova.
 
 ## Collegare Supabase
-Da fare una volta, quando il progetto Supabase esiste:
-1. Su [supabase.com](https://supabase.com) crea il progetto nella regione **Central EU (Frankfurt)**, con una password del database lunga e casuale (salvala nel tuo gestore di password).
-2. Copia la stringa di connessione da *Connect → Direct connection* (oppure *Session pooler* se la tua rete non supporta IPv6).
-3. In locale crea `packages/db/.env` (ignorato da git) con `DATABASE_URL=<stringa>` e lancia `pnpm --filter @study-feed/db db:migrate`.
-4. In *Authentication → Providers* lascia attivo solo Email (codice monouso e password, [ADR 0007](../decisions/0007-generazione-via-mcp-e-login.md)).
+Progetto: **EpicFeed** (`https://nxuysaeevxcncchqjtep.supabase.co`), creato il 15/11/2026. L'URL del progetto è pubblico; password del database, chiave `service_role` e stringa di connessione sono segreti.
 
-URL del progetto e chiave `anon` (pubblica) serviranno alla web app in M1 come variabili d'ambiente su Vercel; la chiave `service_role` e la password del database restano solo nei segreti del server. Nessuna di queste va scritta in chat o nella repo.
+### Applicare le migrazioni (da GitHub, consigliato)
+Il workflow `.github/workflows/db-migrate.yml` applica le migrazioni senza installare nulla sul PC.
+
+Una volta sola:
+1. In Supabase: *Connect* (in alto) → *Connection string* → **Session pooler** (funziona anche dai server di GitHub, che non usano IPv6). Copia la stringa e sostituisci `[YOUR-PASSWORD]` con la password del database. Se la password contiene caratteri speciali (`@`, `#`, `/`, `:`…), conviene reimpostarla con lettere e numeri (*Database → Settings → Reset database password*).
+2. In GitHub: *Settings → Secrets and variables → Actions → New repository secret*, nome `DATABASE_URL`, valore la stringa del punto 1.
+
+Ogni volta che una PR aggiunge migrazioni, dopo il merge: *Actions → Migrazioni database → Run workflow* (branch `main`). drizzle-kit applica solo le migrazioni nuove e registra quelle applicate nello schema `drizzle`, quindi rilanciarlo non fa danni.
+
+Il workflow gira solo su `main`, mai due volte in parallelo, e la stringa di connessione non compare nei log. `drizzle.config.ts` impone `sslmode=require` se la stringa non lo specifica.
+
+### Applicare le migrazioni dal PC (alternativa)
+Crea `packages/db/.env` (ignorato da git) con `DATABASE_URL=<stringa>` e lancia `pnpm --filter @study-feed/db db:migrate`.
+
+### Altre impostazioni
+- *Authentication → Providers*: lascia attivo solo Email (codice monouso e password, [ADR 0007](../decisions/0007-generazione-via-mcp-e-login.md)).
+- URL del progetto e chiave `anon` (pubblica) serviranno alla web app in M1 come variabili d'ambiente su Vercel; la chiave `service_role` resta solo nei segreti del server. Nessun segreto va scritto in chat o nella repo.
+
+### Verifica del flusso
+`drizzle-kit migrate` con il driver `postgres` è stato provato su un Postgres locale con lo strato Supabase simulato: prima esecuzione applicata, seconda esecuzione senza modifiche.

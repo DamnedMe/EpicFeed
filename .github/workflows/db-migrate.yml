@@ -1,0 +1,52 @@
+# Applica le migrazioni di packages/db al database Supabase.
+# Si avvia a mano (Actions → "Migrazioni database" → Run workflow) e solo da
+# main, così in produzione arriva soltanto ciò che è stato revisionato e unito.
+# La stringa di connessione sta nel segreto DATABASE_URL del repository e non
+# compare mai nei log.
+name: Migrazioni database
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Mai due migrazioni in parallelo sullo stesso database.
+concurrency:
+  group: db-migrate
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: Applica le migrazioni
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Installa le dipendenze (lockfile bloccato)
+        run: pnpm install --frozen-lockfile
+
+      - name: Verifica che il segreto sia impostato
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::Manca il segreto DATABASE_URL (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+
+      - name: Applica le migrazioni
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: pnpm --filter @study-feed/db db:migrate
