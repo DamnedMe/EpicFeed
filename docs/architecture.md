@@ -1,7 +1,7 @@
 # Architettura
 
 Stato: **approvata, nessun codice ancora scritto** (14/11/2026).
-Le motivazioni delle singole scelte sono negli ADR in [decisions/](decisions/). Aggiornata il 14/11/2026 con la sezione Libri ([ADR 0005](decisions/0005-sezione-libri.md)).
+Le motivazioni delle singole scelte sono negli ADR in [decisions/](decisions/). Aggiornata il 14/11/2026 con la sezione Libri ([ADR 0005](decisions/0005-sezione-libri.md)) e il 15/11/2026 con la gestione dei sottotitoli ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondaria.md)).
 
 ## 1. Panoramica
 
@@ -43,7 +43,7 @@ Vincoli che l'architettura rispetta sempre (vedi [portal-recon.md](portal-recon.
 |---|---|---|
 | `apps/web` | Next.js (App Router), TypeScript, Tailwind, Motion, PWA | Feed, quiz, ripasso, impostazioni tema/accento; API di import e lettura catalogo |
 | `apps/extension` | Estensione Chrome (Manifest V3), TypeScript | Importa la lezione aperta dallo studente: trascrizione, riassunto, metadati di corso |
-| `apps/mcp` | Server MCP in TypeScript (SDK ufficiale) | Strumenti per Claude: cerca lezione, concetti deboli, quiz al volo, grafici dei progressi; importazione e trasformazione dei libri (§7 bis) |
+| `apps/mcp` | Server MCP in TypeScript (SDK ufficiale) | Strumenti per Claude: cerca lezione, concetti deboli, quiz al volo, grafici dei progressi, segnala errore; importazione e trasformazione dei libri (§7 bis) |
 | `packages/core` | TypeScript puro | Dominio e casi d'uso (vedi §3). Nessuna dipendenza da framework |
 | `packages/adapters` | TypeScript | Implementazioni delle porte: Supabase, Claude API, IndexedDB, crypto |
 | `packages/ui` | React + Tailwind | Componenti condivisi e token del [design system](design-system.md) |
@@ -58,8 +58,8 @@ Dipendenze solo verso l'interno ([ADR 0004](decisions/0004-clean-architecture-e-
  apps (Next.js, estensione, MCP)  →  adapters  →  core/application  →  core/domain
 ```
 
-- **domain**: entità e regole pure. Lezione Epicode e libro sono due tipi di `Source` con la stessa struttura `Source > Unit > FeedItem (Clip | Passage)`, così feed, quiz e ripasso sono unici. Entità: (`Source`, `Book`, `Course`, `Subject`, `Lesson`, `ContentVersion`, `Clip`, `QuizItem`, `Concept`, `ReviewCard`, `Entitlement`). Nessun I/O.
-- **application**: casi d'uso (`ImportLesson`, `GenerateClipsForVersion`, `GetFeed`, `AnswerQuiz`, `ScheduleReview`, `GrantLessonAccess`). Dipendono solo da **porte** (interfacce) come `ContentRepository`, `EntitlementVerifier`, `ContentGenerator`, `ProgressStore`, `Clock`.
+- **domain**: entità e regole pure. Lezione Epicode e libro sono due tipi di `Source` con la stessa struttura `Source > Unit > FeedItem (Clip | Passage)`, così feed, quiz e ripasso sono unici. Entità: (`Source`, `Book`, `Course`, `Subject`, `Lesson`, `ContentVersion`, `Clip`, `QuizItem`, `Concept`, `ReviewCard`, `Entitlement`, `Glossary`, `Correction`). Ogni `Clip`/`Passage` conserva la provenienza del testo (`origin`: riassunto, capitolo o sottotitoli). Nessun I/O.
+- **application**: casi d'uso (`ImportLesson`, `GenerateClipsForVersion`, `BuildGlossary`, `AlignClipsToSubtitles`, `ReportError`, `GetFeed`, `AnswerQuiz`, `ScheduleReview`, `GrantLessonAccess`). Dipendono solo da **porte** (interfacce) come `ContentRepository`, `EntitlementVerifier`, `ContentGenerator`, `GlossaryRepository`, `CorrectionRepository`, `ProgressStore`, `Clock`.
 - **adapters**: implementano le porte (`SupabaseContentRepository`, `ClaudeContentGenerator`, `IndexedDbProgressStore`, `PossessionProofVerifier`).
 - **apps**: solo composizione e presentazione. Nessuna regola di business nei componenti React o nelle route.
 
@@ -114,10 +114,15 @@ Esclusi: condivisione libera tra utenti (ridistribuzione di contenuti protetti) 
 
 ## 7. Generazione dei contenuti
 
-- La trascrizione di ogni versione viene segmentata in clip di un concetto (inizio/fine in secondi, titolo, sottotitolo chiave), e da qui si ricavano quiz e concetti. Modello: Claude, tramite l'adapter `ContentGenerator`.
+Gerarchia delle fonti ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondaria.md)): **riassunti > glossario > sottotitoli**. I sottotitoli Epicode sono spesso generati automaticamente e imprecisi, quindi non sono la base del testo.
+
+- Ogni versione viene divisa in clip di un concetto a partire dai **riassunti** (della parte video e del capitolo): titolo, frase chiave, spiegazione, codice. Quiz e concetti si ricavano **solo dai riassunti**. Modello: Claude, tramite l'adapter `ContentGenerator`.
+- I **sottotitoli** servono per allineare ogni clip al suo intervallo nel video (inizio/fine in secondi) e per qualche dettaglio in più. L'allineamento usa concetti e parole chiave; se è incerto la clip punta all'inizio della parte video.
+- Ogni passaggio preso dai sottotitoli viene corretto da Claude confrontandolo con i riassunti e con il **glossario dei termini tecnici** della materia (costruito dai riassunti e arricchito dalle correzioni dell'utente). Ciò che non trova riscontro viene scartato.
+- Le **correzioni dell'utente** ("Segnala errore") sono salvate in un'area privata del server (RLS: solo l'autore), si applicano alla clip su tutti i suoi dispositivi e vengono passate alle generazioni successive. Non modificano il catalogo condiviso.
 - Esecuzione asincrona (coda), idempotente per `contentHash`, con i risultati salvati.
 - Fonti testuali (dal file HAR, vedi [portal-recon.md](portal-recon.md) §5): per ogni parte video il riassunto markdown (`summary.it/en`), il riassunto di capitolo in markdown e i sottotitoli VTT con timestamp. Gli URL dei VTT sono firmati e scadono, quindi l'estensione li legge al momento dell'import.
-- Riproduzione: i video Vimeo hanno `embed_permission: whitelist` e **non si possono incorporare** fuori dal dominio Epicode. Le clip sono quindi **schede testuali/animate** (titolo, frase chiave dai sottotitoli, codice, schema) con il pulsante "Guarda sul portale" che apre la lezione al minuto della clip.
+- Riproduzione: i video Vimeo hanno `embed_permission: whitelist` e **non si possono incorporare** fuori dal dominio Epicode. Le clip sono quindi **schede testuali/animate** (titolo, frase chiave dai riassunti, codice, schema) con il pulsante "Guarda sul portale" che apre la lezione al minuto della clip.
 
 ## 7 bis. Libri personali
 
@@ -155,4 +160,5 @@ Esclusi: condivisione libera tra utenti (ridistribuzione di contenuti protetti) 
 
 - Termini d'uso per studenti.
 - Sincronizzazione cifrata e accesso del server MCP ai risultati personali.
+- Condivisione verificata delle correzioni nel catalogo comune ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondaria.md)).
 - Limiti pratici della trasformazione via MCP per libri lunghi (contesto, durata), da misurare su un libro di prova.
