@@ -101,7 +101,7 @@ Altri endpoint visti: `/items/courses`, `/items/courses/{id}`, `/items/folders`,
 
 ### Video e trascrizioni
 
-- La configurazione del player Vimeo contiene i **sottotitoli VTT** (`text_tracks`): inglese generato automaticamente e **italiano**, con timestamp. Sono la base ideale per dividere una lezione in clip per concetto.
+- La configurazione del player Vimeo contiene i **sottotitoli VTT** (`text_tracks`): inglese generato automaticamente e **italiano**, con timestamp. Utili per i tempi, ma spesso generati automaticamente e imprecisi (segnalazione di Damian, 15/11): sono una **fonte secondaria**, usata per collegare le clip al minuto del video e corretta con riassunti e glossario prima dell'uso ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondaria.md)).
 - Gli URL dei VTT sono firmati e scadono: vanno letti al momento, mentre si guarda la lezione, non salvati come link.
 - Il video ha **`embed_permission: whitelist`**: si può incorporare solo nei domini autorizzati da Epicode. **Nella nostra app il player Vimeo non funzionerà.** Quindi le clip saranno schede testuali/animate generate da trascrizione e riassunti, con un link "Guarda sul portale" al secondo giusto.
 
@@ -117,7 +117,7 @@ Altri endpoint visti: `/items/courses`, `/items/courses/{id}`, `/items/folders`,
 
 ### Cosa significa per l'architettura
 
-- Il materiale "studiabile" è già testuale: riassunti per video (IT/EN), riassunti di capitolo in markdown, sottotitoli VTT italiani. **Non serve scaricare né tagliare video.**
+- Il materiale "studiabile" è già testuale: riassunti per video (IT/EN), riassunti di capitolo in markdown, sottotitoli VTT italiani. **Non serve scaricare né tagliare video.** La base delle schede sono i riassunti; i sottotitoli danno i tempi ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondaria.md)).
 - L'importazione può avvenire dal browser di Damian mentre usa il portale (estensione): legge solo il contenuto aperto, con le stesse richieste che l'app fa già. Zero traffico in più, nessun crawling.
 - I quiz di capitolo (`quiz`) esistono già sul portale: li possiamo usare come riferimento, ma i nostri quiz saranno generati dai riassunti, per non leggere le risposte degli esami.
 
@@ -127,3 +127,4 @@ Altri endpoint visti: `/items/courses`, `/items/courses/{id}`, `/items/folders`,
 - Cosa espone la Student API e se ha limiti d'uso.
 - ~~Formato dei riassunti e dei capitoli~~: risolto, vedi sezione 5.
 - Verificare che i sottotitoli italiani ci siano per tutte le parti video, non solo per la prima.
+- Verificare che il riassunto `summary` ci sia per tutte le parti video: se manca, la scheda si basa sul riassunto di capitolo e i passaggi da sottotitoli vanno trattati con più cautela.

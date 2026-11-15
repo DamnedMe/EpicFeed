@@ -10,8 +10,14 @@ Nella barra in basso: Feed, Libri, Ripasso, Io.
 
 Clip verticali di un concetto ciascuna, ordinate per capitolo o in modalità "Per te". Su ogni clip ci sono quattro azioni: **Salva**, **Chiedi** (domanda all'assistente), **Quiz** rapido e **Fonte** ("Guarda sul portale": apre la lezione al minuto della clip). Le clip sono schede testuali animate, perché i video Epicode non si possono riprodurre fuori dal portale. Una barra in alto mostra l'avanzamento nel capitolo.
 
+### Da dove viene il testo delle schede
+Il testo nasce dai riassunti scritti di ogni parte video e del capitolo. I sottotitoli del portale, spesso generati in automatico e imprecisi, servono soprattutto a sapere a che minuto aprire la lezione con "Guarda sul portale". Quando una scheda riporta un dettaglio preso dai sottotitoli, Claude lo ha prima corretto con i riassunti e con un glossario dei termini tecnici del corso, e la scheda lo indica con un piccolo segno.
+
+### Segnala errore
+Dal menu di ogni scheda, **Segnala errore** permette di evidenziare il testo sbagliato e scrivere quello giusto, oppure solo di segnalare che qualcosa non torna (in questo caso la scheda viene rigenerata dai riassunti). La correzione resta: vale sul telefono e sul PC, viene riapplicata se Epicode aggiorna la lezione e, se riguarda un termine tecnico, viene usata anche per le lezioni successive della stessa materia. Le correzioni sono visibili solo a chi le scrive. Si può segnalare un errore anche chiedendolo all'assistente di studio.
+
 ## Quiz di fine capitolo
-Domande generate dal capitolo, con la spiegazione dopo ogni risposta. Le risposte sbagliate aggiungono il concetto al ripasso.
+Domande generate dai riassunti del capitolo (mai dai sottotitoli), con la spiegazione dopo ogni risposta. Le risposte sbagliate aggiungono il concetto al ripasso.
 
 ## Ripasso
 Ogni giorno l'app propone i concetti da rivedere, secondo un algoritmo di ripetizione spaziata (FSRS). Lo studente valuta quanto se lo ricordava (Di nuovo, Difficile, Bene, Facile) e l'app pianifica il ripasso successivo.
