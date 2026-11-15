@@ -67,7 +67,7 @@ Progetto: **EpicFeed** (`https://nxuysaeevxcncchqjtep.supabase.co`), creato il 1
 - 15/11/2026: migrazioni `0000_init` e `0001_harden_grants` applicate tramite il connettore Supabase di Claude, e registrate in `drizzle.__drizzle_migrations` con lo stesso hash e la stessa data che usa drizzle, così il workflow e lo script restano allineati e non le riapplicano.
 - Verifica dopo l'applicazione: RLS attiva e una policy su tutte le 8 tabelle, `anon` senza privilegi, `authenticated` con il solo `SELECT`, advisor di sicurezza di Supabase senza segnalazioni. L'advisor di performance ha segnalato la chiave esterna composta di `entitlements` senza indice, corretta con `0002_entitlements_fk_index`.
 
-- M1: migrazioni `0003_import_subtitles_tokens` (tabelle nuove e `video_id`) e `0004_harden_grants_import` (permessi), entrambe non distruttive (solo aggiunte), da applicare con il connettore dopo il merge della PR di M1.
+- 15/11/2026 (M1): migrazioni `0003_import_subtitles_tokens` (tabelle nuove e `video_id`) e `0004_harden_grants_import` (permessi), solo aggiunte, applicate con il connettore e registrate nel log di drizzle. Verifica: RLS e una policy su tutte le 12 tabelle, `anon` senza `SELECT`, `authenticated` senza `INSERT`, advisor di sicurezza senza segnalazioni (quello di performance segnala solo indici non ancora usati, normale con il database vuoto).
 
 ### Applicare le migrazioni con Claude (connettore Supabase)
 Con il connettore Supabase collegato, Claude può applicare le migrazioni nuove con `apply_migration`, aggiungendo nella stessa migrazione la riga in `drizzle.__drizzle_migrations` (hash SHA-256 del file `.sql` e campo `when` del journal). Non serve la password del database.
