@@ -54,6 +54,8 @@ Ogni pacchetto ha gli stessi script (`build`, `lint`, `typecheck`, `test`) e Tur
 4. controllo che le migrazioni corrispondano allo schema Drizzle;
 5. `pnpm audit` (job separato): fallisce con vulnerabilità di livello moderato o superiore.
 
+Il workflow `db-migrate.yml` (*Migrazioni database*) si avvia a mano da `main` e applica le migrazioni a Supabase ([database.md](database.md#collegare-supabase)).
+
 Il workflow ha solo permessi di lettura. Dependabot (`.github/dependabot.yml`) propone ogni lunedì gli aggiornamenti di dipendenze e azioni, raggruppati.
 
 ### Protezione del branch `main`
@@ -63,4 +65,4 @@ Va attivata una volta dalle impostazioni del repository (Settings → Branches �
 - *Block force pushes*.
 
 ## Variabili d'ambiente
-Nessuna serve per sviluppare e testare: i test del database usano un Postgres in memoria. `DATABASE_URL` serve solo per `db:migrate` verso Supabase ([database.md](database.md#collegare-supabase)). Le variabili vanno in un file `.env` locale (ignorato da git) o nei segreti dei servizi, mai nella repo né in chat.
+Nessuna serve per sviluppare e testare: i test del database usano un Postgres in memoria. `DATABASE_URL` serve solo per `db:migrate` verso Supabase (segreto del repository per il workflow, oppure `packages/db/.env` in locale) ([database.md](database.md#collegare-supabase)). Le variabili vanno in un file `.env` locale (ignorato da git) o nei segreti dei servizi, mai nella repo né in chat.

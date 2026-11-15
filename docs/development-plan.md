@@ -44,7 +44,7 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
 
 ### Dettaglio M0–M4
 
-**M0 Fondamenta**: realizzata il 15/11/2026, tranne il collegamento al progetto Supabase (in attesa della sua creazione, vedi [database.md](technical/database.md#collegare-supabase)) e la protezione del branch (da attivare nelle impostazioni del repository, vedi [setup.md](technical/setup.md#protezione-del-branch-main)).
+**M0 Fondamenta**: realizzata il 15/11/2026, con il progetto Supabase EpicFeed creato; le migrazioni si applicano con il workflow *Migrazioni database* ([database.md](technical/database.md#collegare-supabase)) e la protezione del branch (da attivare nelle impostazioni del repository, vedi [setup.md](technical/setup.md#protezione-del-branch-main)).
 - Monorepo pnpm + Turborepo, TypeScript strict, ESLint + Prettier, Vitest.
 - GitHub Actions: lint, typecheck, test, build, `pnpm audit`; protezione del branch `main` (merge solo con CI verde).
 - `packages/core`: entità `Source`, `Lesson`, `LessonPart`, `ContentVersion`, `Entitlement` e la normalizzazione + hash del contenuto, con test.
