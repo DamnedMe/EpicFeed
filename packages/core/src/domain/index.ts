@@ -9,5 +9,7 @@ export * from './content-hash.js';
 export * from './content-version.js';
 export * from './entitlement.js';
 export * from './errors.js';
+export * from './import.js';
 export * from './ids.js';
+export * from './subtitles.js';
 export { normalizeText } from './text.js';

@@ -3,7 +3,8 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**", ".output/**"],
+      "env": ["NEXT_PUBLIC_*"]
     },
     "lint": {
       "dependsOn": ["^build"]

@@ -22,6 +22,20 @@
       "when": 1794754645765,
       "tag": "0002_entitlements_fk_index",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794756855324,
+      "tag": "0003_import_subtitles_tokens",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794756856317,
+      "tag": "0004_harden_grants_import",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,93 @@
+/* Colori del tema scuro e accento racing red del design system (docs/design-system.md). */
+:root {
+  --bg: #0b0b0e;
+  --surface: rgba(255, 255, 255, 0.07);
+  --border: rgba(255, 255, 255, 0.12);
+  --text: #dce3ea;
+  --muted: #98a0a9;
+  --accent: #e10600;
+  --accent-text: #ff4d3d;
+  color-scheme: dark;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  width: 340px;
+  padding: 14px;
+  background: var(--bg);
+  color: var(--text);
+  font:
+    14px/1.45 Inter,
+    system-ui,
+    sans-serif;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.brand {
+  font:
+    700 16px 'Space Grotesk',
+    system-ui,
+    sans-serif;
+  letter-spacing: -0.01em;
+}
+.accent {
+  color: var(--accent-text);
+}
+.badge,
+.mono {
+  font:
+    11px 'JetBrains Mono',
+    ui-monospace,
+    monospace;
+  color: var(--muted);
+}
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.muted {
+  color: var(--muted);
+}
+.error {
+  color: var(--accent-text);
+}
+h1 {
+  font:
+    700 15px 'Space Grotesk',
+    system-ui,
+    sans-serif;
+  margin: 2px 0 6px;
+}
+ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+li {
+  margin: 2px 0;
+}
+button {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+a {
+  color: var(--accent-text);
+}

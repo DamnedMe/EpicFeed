@@ -7,3 +7,5 @@ dist/
 coverage/
 .turbo/
 *.tsbuildinfo
+.wxt/
+.output/

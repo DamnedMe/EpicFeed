@@ -1,6 +1,6 @@
 # Setup e monorepo
 
-Stato: milestone **M0 Fondamenta** (15/11/2026).
+Stato: milestone **M1 Import e catalogo** (15/11/2026).
 
 ## Requisiti
 - Node.js ≥ 22.12 (la versione di riferimento è in `.nvmrc`).
@@ -18,24 +18,32 @@ pnpm check            # formattazione + lint + typecheck + test + build, come in
 | `pnpm build` | Compila tutti i pacchetti (Turborepo, con cache) |
 | `pnpm lint` | ESLint su tutti i pacchetti |
 | `pnpm typecheck` | Controllo dei tipi senza emettere file |
-| `pnpm test` | Test Vitest (core e ui con soglie di copertura, db su Postgres in memoria) |
+| `pnpm test` | Test Vitest (core e ui con soglie di copertura; db e adapters su Postgres in memoria) |
 | `pnpm format` / `pnpm format:check` | Prettier (i file `.md` sono esclusi: la prosa resta com'è scritta) |
 | `pnpm --filter @study-feed/db db:generate` | Genera una nuova migrazione SQL dallo schema |
 | `pnpm --filter @study-feed/db db:check` | Verifica che le migrazioni siano allineate allo schema |
 | `pnpm --filter @study-feed/db db:migrate` | Applica le migrazioni al database di `DATABASE_URL` |
+| `pnpm --filter @study-feed/web dev` | Web app in locale su `http://localhost:3000` (serve `apps/web/.env.local`) |
+| `pnpm --filter @study-feed/extension dev` | Estensione in modalità sviluppo (Chrome con ricarica automatica) |
+| `pnpm --filter @study-feed/extension build` | Estensione da caricare in Chrome (`apps/extension/.output/chrome-mv3`) |
 
 ## Struttura
 ```
 study-feed/
+├─ apps/
+│  ├─ web/        Next.js: accesso, Le mie lezioni, API         → technical/web.md
+│  └─ extension/  estensione Chrome (WXT) che importa le lezioni → technical/import.md
 ├─ packages/
-│  ├─ config/   tsconfig ed ESLint condivisi
-│  ├─ core/     dominio e casi d'uso, TypeScript puro       → technical/core.md
-│  ├─ ui/       token del design system (CSS + TypeScript)  → technical/design-tokens.md
-│  └─ db/       schema Drizzle, migrazioni, RLS             → technical/database.md
+│  ├─ config/     tsconfig ed ESLint condivisi
+│  ├─ core/       dominio e casi d'uso, TypeScript puro       → technical/core.md
+│  ├─ contracts/  schemi zod condivisi tra API ed estensione   → technical/import.md
+│  ├─ adapters/   implementazioni Drizzle delle porte del core
+│  ├─ ui/         token del design system (CSS + TypeScript)  → technical/design-tokens.md
+│  └─ db/         schema Drizzle, migrazioni, RLS             → technical/database.md
 ├─ docs/
-└─ .github/     CI e Dependabot
+└─ .github/       CI e Dependabot
 ```
-Le cartelle `apps/web`, `apps/extension`, `apps/mcp` e i pacchetti `adapters` e `contracts` arrivano con le milestone M1–M3 ([piano di sviluppo](../development-plan.md) §3).
+`apps/mcp` arriva con la milestone M2 ([piano di sviluppo](../development-plan.md) §3).
 
 Ogni pacchetto ha gli stessi script (`build`, `lint`, `typecheck`, `test`) e Turborepo li esegue nell'ordine delle dipendenze, con cache: se un pacchetto non cambia, il suo risultato viene riusato.
 
@@ -59,10 +67,10 @@ Il workflow `db-migrate.yml` (*Migrazioni database*) si avvia a mano da `main` e
 Il workflow ha solo permessi di lettura. Dependabot (`.github/dependabot.yml`) propone ogni lunedì gli aggiornamenti di dipendenze e azioni, raggruppati.
 
 ### Protezione del branch `main`
-Va attivata una volta dalle impostazioni del repository (Settings → Branches → Add rule, oppure Rules → Rulesets) con:
+Non disponibile sui repository privati senza GitHub Pro: finché non c'è, si unisce una PR solo con la CI verde. Se in futuro diventa disponibile, va attivata una volta dalle impostazioni del repository (Settings → Branches → Add rule, oppure Rules → Rulesets) con:
 - *Require a pull request before merging*;
 - *Require status checks to pass*: `Lint, typecheck, test e build` e `Audit delle dipendenze`;
 - *Block force pushes*.
 
 ## Variabili d'ambiente
-Nessuna serve per sviluppare e testare: i test del database usano un Postgres in memoria. `DATABASE_URL` serve solo per `db:migrate` verso Supabase (segreto del repository per il workflow, oppure `packages/db/.env` in locale) ([database.md](database.md#collegare-supabase)). Le variabili vanno in un file `.env` locale (ignorato da git) o nei segreti dei servizi, mai nella repo né in chat.
+Nessuna serve per compilare e testare: i test del database usano un Postgres in memoria. La web app in esecuzione ne richiede alcune ([web.md](web.md#variabili-dambiente)); l'estensione legge `WXT_APP_ORIGIN` al build ([import.md](import.md#build-e-installazione)). `DATABASE_URL` serve solo per `db:migrate` verso Supabase (segreto del repository per il workflow, oppure `packages/db/.env` in locale) ([database.md](database.md#collegare-supabase)). Le variabili vanno in un file `.env` locale (ignorato da git) o nei segreti dei servizi, mai nella repo né in chat.

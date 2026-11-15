@@ -2,8 +2,19 @@
 
 Cosa fa l'app dal punto di vista dello studente. Ogni funzione nuova aggiunge o aggiorna una sezione qui.
 
+## Accedere
+L'app è privata: entra solo chi ha un indirizzo email abilitato. La prima volta si inserisce l'email e si riceve un **codice** da scrivere nell'app, poi si sceglie una **password** (almeno 12 caratteri). Dalle volte successive si entra con email e password. Se si dimentica la password, si richiede di nuovo il codice.
+
+## Collegare l'estensione
+Una volta sola, sul PC: si installa l'estensione Study Feed in Chrome (nel profilo in cui si usa Epicode), si apre la pagina **Estensione** dell'app e si preme **Collega**. L'estensione riceve un permesso che vale 30 giorni e serve solo a importare lezioni; dalla stessa pagina si vedono i collegamenti attivi e si possono **revocare**. La password di Epicode non viene mai chiesta né salvata.
+
 ## Importare una lezione
-Lo studente apre una lezione nel portale Epicode come sempre e preme **Importa** nell'estensione. La lezione entra nel suo feed. Se un altro studente l'aveva già importata, non viene duplicata. Ognuno vede solo le lezioni che ha importato dal proprio account: anche corsi, materie e capitoli compaiono solo se contengono almeno una parte importata. Se Epicode aggiorna una lezione, il nuovo import crea una nuova versione datata e quella vecchia resta consultabile.
+Lo studente apre una lezione nel portale Epicode come sempre e preme **Importa** nell'estensione. L'estensione mostra un'anteprima (titolo, capitolo, quante parti video e di testo verranno importate) e, con un clic, importa la **lezione intera**: i riassunti di ogni video, il riassunto del capitolo e i **sottotitoli di tutti i video**. Per leggere i sottotitoli apre per un attimo, nascosto, il player di ogni video senza avviarlo, uno dopo l'altro: per una lezione con 5 video servono una decina di secondi, e l'avanzamento si vede nell'estensione. Nessun video risulta guardato per effetto dell'import e sul portale non viene modificato nulla.
+
+Alla fine l'estensione dice com'è andata: quante parti sono nuove per lo studente, oppure "Era già tutto importato: nessun duplicato", ed eventualmente per quanti video non ha trovato i sottotitoli; un link apre Le mie lezioni. Gli elementi senza testo da studiare (slide, quiz, questionari) non vengono importati, e l'anteprima dice quanti sono. Se un altro studente l'aveva già importata, non viene duplicata. Ognuno vede solo le lezioni che ha importato dal proprio account: anche corsi, materie e capitoli compaiono solo se contengono almeno una parte importata. Se Epicode aggiorna una lezione, il nuovo import crea una nuova versione datata e quella vecchia resta consultabile. Importare di nuovo la stessa lezione non crea doppioni.
+
+## Le mie lezioni
+Nell'app, **Le mie lezioni** elenca le lezioni importate raggruppate per materia e capitolo, con il numero di parti, quante hanno i sottotitoli e lo stato delle schede (da generare, in generazione, pronte). Le schede le genera Claude Desktop dalla milestone successiva.
 
 ## Feed
 Nella barra in basso: Feed, Libri, Ripasso, Io.

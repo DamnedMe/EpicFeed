@@ -44,6 +44,20 @@ describe('createLessonPart', () => {
       position: 0,
     });
     expect(part.kind).toBe('video');
+    expect(part.videoId).toBeUndefined();
+  });
+
+  it("valida l'id del video", () => {
+    const base = {
+      id: partId,
+      lessonId,
+      epicodeId: '66864',
+      kind: 'video' as const,
+      title: 'Properties of binary trees',
+      position: 0,
+    };
+    expect(createLessonPart({ ...base, videoId: ' 1034168708 ' }).videoId).toBe('1034168708');
+    expect(() => createLessonPart({ ...base, videoId: '12a' })).toThrow(/video non valido/);
   });
 
   it('rifiuta un tipo sconosciuto', () => {

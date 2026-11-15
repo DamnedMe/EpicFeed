@@ -17,6 +17,8 @@ export type LessonId = Brand<string, 'LessonId'>;
 export type LessonPartId = Brand<string, 'LessonPartId'>;
 /** Id interno di una versione del contenuto. */
 export type ContentVersionId = Brand<string, 'ContentVersionId'>;
+/** Id interno di una traccia di sottotitoli. */
+export type SubtitleTrackId = Brand<string, 'SubtitleTrackId'>;
 /** Id interno di un libro personale (sezione Libri, ADR 0005). */
 export type BookId = Brand<string, 'BookId'>;
 
