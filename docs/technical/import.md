@@ -20,8 +20,8 @@ Come una lezione passa dal portale Epicode al catalogo di EpicFeed: estensione, 
 
 ## Regole di comportamento verso il portale
 - L'estensione agisce **solo** su `https://learn.epicode.edu.mt/course/{courseId}/curriculum/{contentId}` e solo quando lo studente preme **Importa**.
-- Al CMS Directus (`cms.epicode.edu.mt`) fa **3 richieste GET** per lezione, sempre con l'elenco esplicito dei campi: mai `fields=*.*`, che restituisce anche le iscrizioni di altri studenti ([portal-recon.md](../portal-recon.md)).
-- Usa il token che il portale ha già nella pagina (`localStorage.auth_token`) solo dentro il content script: non lo salva, non lo invia al nostro server, non lo vede il service worker.
+- Al CMS Directus (`cms.epicode.edu.mt`) fa le stesse letture che il portale fa aprendo una lezione: attività con l'elenco delle parti, modulo, unità, dettaglio delle sole parti utili (video e testi) e corso, una richiesta alla volta (circa 6–9 GET per lezione), sempre con l'elenco esplicito dei campi: mai `fields=*.*`, che restituisce anche le iscrizioni di altri studenti ([portal-recon.md](../portal-recon.md)).
+- **Sessione del portale** (verificata il 16/11/2026 sul portale rinnovato): il token di accesso al CMS sta solo nella memoria della pagina e viaggia come `Authorization: Bearer …`; storage e cookie non bastano. Lo script `portal-main.content.ts` gira nel mondo principale della pagina, ricorda l'header che il portale stesso usa verso il CMS ed esegue per l'estensione solo le GET di un elenco chiuso (`lib/cms-bridge.ts`: una voce di `content` o `courses` per id, campi ammessi, niente jolly né filtri). Il token resta in quella closure: non arriva al content script, al service worker né al nostro server. Se la pagina era aperta prima di installare l'estensione, basta ricaricarla.
 - **Mai scritture** sul portale, in particolare sulle collezioni di progresso: nessun video risulta visto per effetto dell'estensione.
 - Per i sottotitoli monta nella pagina del portale un iframe del player Vimeo nascosto, senza autoplay e muto (`?autoplay=0&muted=1&dnt=1#sf-import`), **uno alla volta** e con una pausa di 1,5 s tra un video e l'altro, poi lo rimuove. Il player funziona solo dentro i domini Epicode, quindi non c'è alternativa senza scaricare i video.
 - Le password Epicode non passano mai dall'estensione.
@@ -46,6 +46,7 @@ WXT 0.21 (Manifest V3), TypeScript, nessuna dipendenza nel content script del pl
 | File | Ruolo |
 |---|---|
 | `entrypoints/portal.content.ts` | Sul portale: legge la lezione (`lib/directus.ts`, `lib/lesson.ts`), monta e smonta il player nascosto |
+| `entrypoints/portal-main.content.ts` | Nel mondo principale della pagina: ponte verso il CMS con la sessione del portale (`lib/cms-bridge.ts`) |
 | `entrypoints/vimeo.content.ts` | Nel player, solo con `#sf-import`: legge `window.playerConfig.request.text_tracks` (`lib/player-config.ts`) |
 | `entrypoints/background.ts` | Riceve il collegamento dalla web app, esegue l'import (`lib/import-job.ts`), scarica i VTT (`lib/vtt.ts`) |
 | `entrypoints/popup/` | Anteprima della lezione, pulsante Importa, avanzamento ed esito |
