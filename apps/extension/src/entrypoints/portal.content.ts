@@ -1,4 +1,6 @@
-import { DIRECTUS_BASE, DirectusClient } from '../lib/directus';
+import { DirectusClient, PortalHttpError, directusError } from '../lib/directus';
+import { BRIDGE_SOURCE, isBridgeMessage } from '../lib/cms-bridge';
+import type { BridgeRequest } from '../lib/cms-bridge';
 import { buildLessonDraft } from '../lib/lesson';
 import {
   lessonPreviewSchema,
@@ -11,8 +13,9 @@ import { parsePortalUrl } from '../lib/portal';
 /**
  * Script nel portale Epicode. Fa due cose, e solo su richiesta dell'estensione
  * (mai da solo, mai in background):
- * 1. legge la lezione aperta dal CMS, con le stesse credenziali della pagina
- *    e solo i campi necessari (3 richieste GET);
+ * 1. legge la lezione aperta dal CMS, tramite il ponte con la pagina
+ *    (`portal-main.content.ts`, che usa la sessione del portale) e solo con i
+ *    campi necessari: le stesse letture che il portale fa aprendo la lezione;
  * 2. carica e rimuove i player Vimeo nascosti da cui leggere i sottotitoli.
  *
  * Il token di accesso del portale resta in questa pagina: non viene mai
@@ -63,45 +66,61 @@ async function readLesson(): Promise<ReadLessonResponse> {
     }
     return { ok: true, preview: preview.data };
   } catch (error) {
-    return {
-      ok: false,
-      error:
-        error instanceof PortalError
-          ? error.message
-          : 'Lettura della lezione non riuscita: ricarica la pagina del portale e riprova.',
-    };
+    return { ok: false, error: describeError(error) };
   }
 }
 
-class PortalError extends Error {}
+/** Messaggio per lo studente, con il dettaglio tecnico utile a capire il problema. */
+function describeError(error: unknown): string {
+  if (error instanceof PortalHttpError) {
+    const detail = [String(error.status), error.code, error.detail].filter(Boolean).join(' · ');
+    if (
+      error.status === 401 ||
+      error.code === 'TOKEN_EXPIRED' ||
+      error.code === 'INVALID_CREDENTIALS'
+    ) {
+      return `Ricarica la pagina della lezione su Epicode e riprova: l'estensione non vede ancora la sessione del portale. (${detail})`;
+    }
+    return `Il portale ha rifiutato la lettura della lezione. (${detail})`;
+  }
+  return 'Lettura della lezione non riuscita: ricarica la pagina del portale e riprova.';
+}
 
-/** GET verso il CMS con le credenziali della pagina (cookie e, se c'è, il token). */
+/**
+ * GET verso il CMS attraverso il ponte con la pagina: il token del portale
+ * resta nel mondo principale, qui arriva solo la risposta.
+ */
 async function getJson(path: string): Promise<unknown> {
-  const headers: Record<string, string> = { accept: 'application/json' };
-  const token = readPortalToken();
-  if (token) headers.authorization = `Bearer ${token}`;
-  const response = await fetch(`${DIRECTUS_BASE}${path}`, {
-    method: 'GET',
-    credentials: 'include',
-    headers,
+  const id = crypto.randomUUID();
+  const { status, body } = await new Promise<{ status: number; body: unknown }>((resolve) => {
+    const timer = window.setTimeout(() => {
+      done();
+      resolve({ status: 0, body: null });
+    }, 15_000);
+    const listener = (event: MessageEvent<unknown>) => {
+      if (event.source !== window || !isBridgeMessage(event.data, 'response')) return;
+      if (event.data.id !== id) return;
+      done();
+      resolve({ status: event.data.status, body: event.data.body });
+    };
+    const done = () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('message', listener);
+    };
+    window.addEventListener('message', listener);
+    const request: BridgeRequest = { source: BRIDGE_SOURCE, kind: 'request', id, path };
+    window.postMessage(request, window.location.origin);
   });
-  if (response.status === 401 || response.status === 403) {
-    throw new PortalError('Sessione del portale scaduta: rientra su Epicode e riprova.');
+  if (status === 0) {
+    // Nessun token ancora visto (pagina aperta prima di installare
+    // l'estensione) o rete assente.
+    throw new PortalHttpError(401, 'NO_SESSION', null);
   }
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return response.json() as Promise<unknown>;
-}
-
-function readPortalToken(): string | null {
-  try {
-    const raw = window.localStorage.getItem('auth_token');
-    if (!raw) return null;
-    // Il portale può salvarlo come stringa JSON ("…") o in chiaro.
-    const value = raw.startsWith('"') ? (JSON.parse(raw) as unknown) : raw;
-    return typeof value === 'string' && /^[\w.-]{10,4096}$/.test(value) ? value : null;
-  } catch {
-    return null;
+  if (status < 200 || status >= 300) {
+    const { code, detail } = directusError(body);
+    throw new PortalHttpError(status, code, detail);
   }
+  return body;
 }
 
 const PLAYER_PREFIX = 'study-feed-player-';

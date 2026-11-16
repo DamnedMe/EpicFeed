@@ -69,30 +69,85 @@ export type ActivityChild = z.infer<typeof childSchema>;
 /** Corso Epicode (la materia). */
 export type Course = z.infer<typeof courseSchema>['data'];
 
+/**
+ * Errore HTTP del CMS, con codice e messaggio di Directus quando ci sono
+ * (per esempio `FORBIDDEN` su un campo non leggibile, `TOKEN_EXPIRED`).
+ */
+export class PortalHttpError extends Error {
+  /**
+   * @param status - Stato HTTP.
+   * @param code - Codice di errore di Directus, se presente.
+   * @param detail - Messaggio di Directus, se presente (mai dati personali: sono errori di permesso).
+   */
+  constructor(
+    readonly status: number,
+    readonly code: string | null,
+    readonly detail: string | null,
+  ) {
+    super(`HTTP ${String(status)}${code ? ` ${code}` : ''}`);
+  }
+}
+
+/**
+ * Legge codice e messaggio di errore dal corpo di una risposta Directus.
+ *
+ * @param body - JSON della risposta (qualsiasi forma).
+ * @returns Codice e messaggio, o `null`.
+ */
+export function directusError(body: unknown): { code: string | null; detail: string | null } {
+  const first = (
+    body as { errors?: { message?: unknown; extensions?: { code?: unknown } }[] } | null
+  )?.errors?.[0];
+  const code = typeof first?.extensions?.code === 'string' ? first.extensions.code : null;
+  const detail = typeof first?.message === 'string' ? first.message.slice(0, 200) : null;
+  return { code, detail };
+}
+
 /** Funzione di richiesta iniettata (nei test un doppio, nel portale `fetch`). */
 export type GetJson = (path: string) => Promise<unknown>;
 
+// Gli stessi campi che il portale chiede quando si apre una lezione: così
+// l'estensione resta dentro i permessi di uno studente e nel traffico normale.
 const ACTIVITY_FIELDS = [
   'id',
   'title',
   'type',
   'sort',
-  'parent.id',
-  'parent.title',
-  'parent.type',
-  'parent.sort',
-  'parent.parent.id',
-  'parent.parent.sort',
+  'parent',
   'children.id',
   'children.title',
   'children.type',
   'children.embed_type',
   'children.sort',
-  'children.url',
-  'children.summary',
-  'children.markdown',
   'children.visibility.hidden',
 ];
+const NODE_FIELDS = ['id', 'title', 'type', 'sort', 'parent'];
+const PART_FIELDS = ['id', 'type', 'embed_type', 'url', 'summary', 'markdown'];
+
+const activityShellSchema = z.object({
+  data: z.object({
+    id,
+    title: z.string(),
+    type: z.literal('activity'),
+    sort: z.number().nullable(),
+    parent: id,
+    children: z.array(childSchema.omit({ url: true, summary: true, markdown: true })),
+  }),
+});
+
+const nodeSchema = z.object({
+  data: z.object({
+    id,
+    title: z.string().nullable().optional(),
+    type: z.string(),
+    sort: z.number().nullable(),
+    parent: id.nullable(),
+  }),
+});
+
+const partSchema = z.object({
+  data: childSchema.pick({ id: true, url: true, summary: true, markdown: true }),
+});
 
 function fields(list: string[]): string {
   return list.map((field) => `fields[]=${encodeURIComponent(field)}`).join('&');
@@ -121,14 +176,64 @@ export class DirectusClient {
   /**
    * Attività con modulo, unità e parti (riassunti e markdown inclusi).
    *
+   * Legge come fa il portale aprendo una lezione: prima l'attività con l'elenco
+   * delle parti, poi modulo e unità, poi il dettaglio delle sole parti utili
+   * (video Vimeo e testi), una richiesta alla volta.
+   *
    * @param activityId - Id dell'attività.
    * @returns L'attività.
    */
   async activity(activityId: string): Promise<Activity> {
-    const json = await this.getJson(
-      `/items/content/${encodeURIComponent(activityId)}?${fields(ACTIVITY_FIELDS)}`,
-    );
-    return activitySchema.parse(json).data;
+    const shell = activityShellSchema.parse(
+      await this.getJson(
+        `/items/content/${encodeURIComponent(activityId)}?${fields(ACTIVITY_FIELDS)}`,
+      ),
+    ).data;
+    const module = await this.node(shell.parent);
+    const unit = module.parent === null ? null : await this.node(module.parent);
+
+    const children: ActivityChild[] = [];
+    for (const child of shell.children) {
+      const useful =
+        !child.visibility?.hidden &&
+        ((child.type === 'embed' && child.embed_type === 'vimeo') || child.type === 'markdown');
+      if (!useful) {
+        children.push(child);
+        continue;
+      }
+      const detail = partSchema.parse(
+        await this.getJson(`/items/content/${encodeURIComponent(child.id)}?${fields(PART_FIELDS)}`),
+      ).data;
+      children.push({
+        ...child,
+        url: detail.url,
+        summary: detail.summary,
+        markdown: detail.markdown,
+      });
+    }
+
+    return activitySchema.parse({
+      data: {
+        id: shell.id,
+        title: shell.title,
+        type: 'activity',
+        sort: shell.sort,
+        parent: {
+          id: module.id,
+          title: module.title ?? '',
+          type: module.type,
+          sort: module.sort,
+          parent: unit ? { id: unit.id, sort: unit.sort } : null,
+        },
+        children,
+      },
+    }).data;
+  }
+
+  private async node(nodeId: string): Promise<z.infer<typeof nodeSchema>['data']> {
+    return nodeSchema.parse(
+      await this.getJson(`/items/content/${encodeURIComponent(nodeId)}?${fields(NODE_FIELDS)}`),
+    ).data;
   }
 
   /**
@@ -138,15 +243,18 @@ export class DirectusClient {
    * @returns Il corso.
    */
   async course(courseId: string): Promise<Course> {
-    const json = await this.getJson(
-      `/items/courses/${encodeURIComponent(courseId)}?${fields([
-        'id',
-        'title',
-        'starts_at',
-        'tenant.id',
-        'tenant.name',
-      ])}`,
-    );
-    return courseSchema.parse(json).data;
+    const path = `/items/courses/${encodeURIComponent(courseId)}?`;
+    try {
+      const json = await this.getJson(
+        path + fields(['id', 'title', 'starts_at', 'tenant.id', 'tenant.name']),
+      );
+      return courseSchema.parse(json).data;
+    } catch (error) {
+      // L'istituto è facoltativo: se il ruolo studente non può leggerlo, si
+      // riprova senza e il catalogo usa il corso di studi generico.
+      if (!(error instanceof PortalHttpError) || error.status !== 403) throw error;
+      const json = await this.getJson(path + fields(['id', 'title', 'starts_at']));
+      return courseSchema.parse(json).data;
+    }
   }
 }

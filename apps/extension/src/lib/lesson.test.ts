@@ -82,14 +82,24 @@ const responses: Record<string, unknown> = {
 describe('DirectusClient + buildLessonDraft', () => {
   it('chiede solo i campi necessari e costruisce un payload valido', async () => {
     const paths: string[] = [];
+    const full = (
+      responses.activity as { data: Record<string, unknown> & { children: { id: number }[] } }
+    ).data;
+    const byId: Record<string, unknown> = {
+      '66864': responses.ref,
+      '66863': { data: { ...full, parent: 66855 } },
+      '66855': { data: { id: 66855, title: '3. Trees', type: 'module', sort: 2, parent: 66424 } },
+      '66424': { data: { id: 66424, title: 'Unit', type: 'unit', sort: 1, parent: null } },
+    };
     const client = new DirectusClient((path) => {
       paths.push(decodeURIComponent(path));
-      const key = path.startsWith('/items/courses')
-        ? 'course'
-        : paths.length === 1
-          ? 'ref'
-          : 'activity';
-      return Promise.resolve(responses[key]);
+      if (path.startsWith('/items/courses')) return Promise.resolve(responses.course);
+      const contentId = /\/items\/content\/(\d+)/.exec(path)?.[1] ?? '';
+      if (paths.length === 1) return Promise.resolve(byId[contentId]);
+      if (path.includes('summary')) {
+        return Promise.resolve({ data: full.children.find((c) => String(c.id) === contentId) });
+      }
+      return Promise.resolve(byId[contentId]);
     });
     const ref = await client.contentRef('66864');
     const draft = buildLessonDraft(
@@ -99,6 +109,8 @@ describe('DirectusClient + buildLessonDraft', () => {
 
     expect(paths.every((path) => !path.includes('*'))).toBe(true);
     expect(paths[0]).toBe('/items/content/66864?fields[]=id&fields[]=type&fields[]=parent');
+    // ref, attività, modulo, unità, 3 parti utili (il video nascosto no), corso.
+    expect(paths).toHaveLength(8);
 
     expect(importLessonRequestSchema.safeParse(draft.request).success).toBe(true);
     expect(draft.request.path).toEqual({
