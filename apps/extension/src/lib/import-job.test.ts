@@ -111,7 +111,56 @@ describe('runImportJob', () => {
     expect(await runImportJob(preview, connection, d)).toEqual({
       phase: 'error',
       message: 'Ricollega l’estensione',
+      code: 'UNAUTHORIZED',
     });
+  });
+
+  it('con il limite orario attende e ritenta l’invio una volta, senza rileggere i video', async () => {
+    let calls = 0;
+    const loadTracks = vi.fn(() => Promise.resolve(null));
+    const waitForRateLimit = vi.fn(() => Promise.resolve(true));
+    const { deps: d } = deps({
+      loadTracks,
+      waitForRateLimit,
+      fetch: () => {
+        calls += 1;
+        return Promise.resolve(
+          calls === 1
+            ? Response.json(
+                { error: { code: 'RATE_LIMITED', message: 'Troppi import' } },
+                { status: 429, headers: { 'retry-after': '120' } },
+              )
+            : Response.json(okResponse),
+        );
+      },
+    });
+    expect(await runImportJob(preview, connection, d)).toMatchObject({ phase: 'done' });
+    expect(waitForRateLimit).toHaveBeenCalledWith(120);
+    expect(loadTracks).toHaveBeenCalledTimes(2);
+    expect(calls).toBe(2);
+  });
+
+  it('senza attesa per il limite orario mostra l’errore', async () => {
+    const { deps: d } = deps({
+      fetch: () =>
+        Promise.resolve(
+          Response.json(
+            { error: { code: 'RATE_LIMITED', message: 'Troppi import' } },
+            { status: 429 },
+          ),
+        ),
+    });
+    expect(await runImportJob(preview, connection, d)).toMatchObject({
+      phase: 'error',
+      code: 'RATE_LIMITED',
+    });
+  });
+
+  it('usa la pausa tra i video indicata dal chiamante', async () => {
+    const pause = vi.fn(() => Promise.resolve());
+    const { deps: d } = deps({ pause, videoPauseMs: () => 4321 });
+    await runImportJob(preview, connection, d);
+    expect(pause).toHaveBeenCalledWith(4321);
   });
 
   it('segnala quando non resta nulla da importare', async () => {

@@ -17,17 +17,80 @@ export const lessonPreviewSchema = z.object({
 /** Anteprima della lezione aperta, letta dal portale. */
 export type LessonPreview = z.infer<typeof lessonPreviewSchema>;
 
+/** Massimo di lezioni in un import a lotti (un corso Epicode ne ha 30–60). */
+export const MAX_BATCH_LESSONS = 400;
+
+const contentId = z.string().regex(/^\d{1,12}$/);
+
+/**
+ * Indice del corso per il popup: capitoli e lezioni con il lavoro che
+ * chiedono (video e testi da leggere). Serve a proporre l'import del
+ * capitolo o del corso e a stimarne la durata.
+ */
+export const outlineSummarySchema = z.object({
+  courseId: contentId,
+  courseTitle: z.string(),
+  /** Capitolo della lezione aperta. */
+  chapterId: contentId.nullable(),
+  chapters: z
+    .array(
+      z.object({
+        id: contentId,
+        title: z.string(),
+        lessons: z.array(
+          z.object({
+            id: contentId,
+            title: z.string(),
+            videos: z.number().int().min(0),
+            readings: z.number().int().min(0),
+          }),
+        ),
+      }),
+    )
+    .max(200),
+});
+
+/** Indice del corso per il popup. */
+export type OutlineSummary = z.infer<typeof outlineSummarySchema>;
+
 /** Popup → script del portale: leggi la lezione aperta. */
 export const readLessonMessage = z.object({ type: z.literal('sf/read-lesson') });
 
 /** Risposta dello script del portale a `sf/read-lesson`. */
 export const readLessonResponse = z.discriminatedUnion('ok', [
-  z.object({ ok: z.literal(true), preview: lessonPreviewSchema }),
+  z.object({
+    ok: z.literal(true),
+    /** `null` se la lezione aperta non ha nulla da importare (quiz, slide…). */
+    preview: lessonPreviewSchema.nullable(),
+    /** `null` se il portale non ha ancora scaricato l'indice del corso. */
+    outline: outlineSummarySchema.nullable(),
+  }),
   z.object({ ok: z.literal(false), error: z.string() }),
 ]);
 
 /** Risposta dello script del portale a `sf/read-lesson`. */
 export type ReadLessonResponse = z.infer<typeof readLessonResponse>;
+
+/** Service worker → script del portale: leggi una lezione del corso (import a lotti). */
+export const readActivityMessage = z.object({
+  type: z.literal('sf/read-activity'),
+  courseId: contentId,
+  activityId: contentId,
+});
+
+/** Risposta dello script del portale a `sf/read-activity`. */
+export const readActivityResponse = z.discriminatedUnion('ok', [
+  z.object({ ok: z.literal(true), preview: lessonPreviewSchema.nullable() }),
+  z.object({
+    ok: z.literal(false),
+    error: z.string(),
+    /** Errore che riguarderebbe anche le lezioni successive (sessione, pagina). */
+    fatal: z.boolean(),
+  }),
+]);
+
+/** Risposta dello script del portale a `sf/read-activity`. */
+export type ReadActivityResponse = z.infer<typeof readActivityResponse>;
 
 /** Service worker → script del portale: carica o rimuovi il player nascosto di un video. */
 export const playerCommandMessage = z.object({
@@ -57,17 +120,82 @@ export const startImportMessage = z.object({
   preview: lessonPreviewSchema,
 });
 
+/** Lezione di un import a lotti (capitolo o corso). */
+export const batchLessonSchema = z.object({
+  id: contentId,
+  title: z.string().max(300),
+  chapterId: contentId,
+});
+
+/** Popup → service worker: importa più lezioni (un capitolo o il corso intero). */
+export const startBatchImportMessage = z.object({
+  type: z.literal('sf/start-batch-import'),
+  tabId: z.number().int(),
+  plan: z.object({
+    scope: z.enum(['chapter', 'course']),
+    title: z.string().max(300),
+    courseId: contentId,
+    lessons: z.array(batchLessonSchema).min(1).max(MAX_BATCH_LESSONS),
+  }),
+});
+
+/** Piano di un import a lotti. */
+export type BatchPlan = z.infer<typeof startBatchImportMessage>['plan'];
+
+/** Popup → service worker: interrompi l'import in corso, o chiedi se ce n'è uno. */
+export const importControlMessage = z.object({
+  type: z.enum(['sf/stop-import', 'sf/import-state']),
+});
+
+/** Avanzamento di un import a lotti. */
+const batchProgressSchema = z.object({
+  scope: z.enum(['chapter', 'course']),
+  title: z.string(),
+  index: z.number().int().min(0),
+  total: z.number().int().min(1),
+  lessonTitle: z.string(),
+});
+
+/** Avanzamento di un import a lotti. */
+export type BatchProgress = z.infer<typeof batchProgressSchema>;
+
 /** Stato dell'ultimo import, salvato nello storage di sessione e letto dal popup. */
 export const importStatusSchema = z.discriminatedUnion('phase', [
-  z.object({ phase: z.literal('subtitles'), done: z.number(), total: z.number() }),
-  z.object({ phase: z.literal('sending') }),
+  z.object({ phase: z.literal('reading'), progress: batchProgressSchema }),
+  z.object({
+    phase: z.literal('pause'),
+    progress: batchProgressSchema,
+    /** Fine della pausa (epoch in ms). */
+    until: z.number(),
+    reason: z.enum(['pacing', 'rate-limit']),
+  }),
+  z.object({
+    phase: z.literal('subtitles'),
+    done: z.number(),
+    total: z.number(),
+    progress: batchProgressSchema.optional(),
+  }),
+  z.object({ phase: z.literal('sending'), progress: batchProgressSchema.optional() }),
+  z.object({
+    phase: z.literal('batch-done'),
+    scope: z.enum(['chapter', 'course']),
+    title: z.string(),
+    total: z.number(),
+    imported: z.number(),
+    freshLessons: z.number(),
+    empty: z.number(),
+    failed: z.array(z.object({ title: z.string(), message: z.string() })),
+    missingSubtitles: z.number(),
+    /** Motivo dell'interruzione anticipata, se c'è stata. */
+    stopped: z.string().nullable(),
+  }),
   z.object({
     phase: z.literal('done'),
     lessonTitle: z.string(),
     result: importLessonResponseSchema,
     missingSubtitles: z.number(),
   }),
-  z.object({ phase: z.literal('error'), message: z.string() }),
+  z.object({ phase: z.literal('error'), message: z.string(), code: z.string().optional() }),
 ]);
 
 /** Stato dell'ultimo import. */
