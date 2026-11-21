@@ -17,6 +17,9 @@ export function Shell({ title, children }: { title: string; children: ReactNode 
           <Link href="/estensione" className="hover:text-text">
             Estensione
           </Link>
+          <Link href="/claude-desktop" className="hover:text-text">
+            Claude
+          </Link>
           <form action={signOut}>
             <button type="submit" className="hover:text-text">
               Esci

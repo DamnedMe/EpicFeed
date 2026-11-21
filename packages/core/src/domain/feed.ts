@@ -1,6 +1,8 @@
 import type { ContentHash, Sha256 } from './content-hash.js';
 import { hashCanonical, webCryptoSha256 } from './content-hash.js';
-import type { Brand, LessonPartId } from './ids.js';
+import type { VideoAlignment } from './alignment.js';
+import { DomainError } from './errors.js';
+import type { Brand, LessonId, LessonPartId } from './ids.js';
 
 /**
  * Feed di una lezione: schede, quiz, concetti e voci di glossario generati da
@@ -411,4 +413,38 @@ export async function computeLessonSourcesHash(
     .map((source) => ({ part: source.lessonPartId, hash: source.contentHash }))
     .sort((a, b) => (a.part < b.part ? -1 : a.part > b.part ? 1 : a.hash < b.hash ? -1 : 1));
   return hashCanonical(canonical, sha256);
+}
+
+/** Scheda salvata: la scheda generata più il tratto di video (`null` se incerto). */
+export interface StoredFeedCard extends FeedCard {
+  readonly video: VideoAlignment | null;
+}
+
+/**
+ * Documento salvato per una lezione e letto dalla web app (M3). Il glossario
+ * non ne fa parte: va nel glossario della materia, condiviso tra le lezioni.
+ */
+export interface LessonFeedDocument {
+  readonly lessonId: LessonId;
+  readonly sourcesHash: ContentHash;
+  readonly promptVersion: string;
+  /** Istante di generazione in formato ISO 8601. */
+  readonly generatedAt: string;
+  readonly cards: readonly StoredFeedCard[];
+  readonly quiz: readonly QuizItem[];
+  readonly concepts: readonly Concept[];
+}
+
+/**
+ * Feed rifiutato dalle regole di {@link checkLessonFeed}: porta l'elenco
+ * completo dei problemi, da mostrare a Claude perché li corregga.
+ */
+export class FeedValidationError extends DomainError {
+  /**
+   * @param issues - Problemi trovati (almeno uno).
+   */
+  constructor(readonly issues: readonly FeedIssue[]) {
+    super('INVALID_FEED', `Il feed ha ${issues.length} problemi da correggere`);
+    this.name = 'FeedValidationError';
+  }
 }

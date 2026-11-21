@@ -147,3 +147,69 @@ describe('storedLessonFeedSchema', () => {
     expect(parsed.success).toBe(true);
   });
 });
+
+describe('contratti dell’API di generazione', () => {
+  it('accetta le risposte tipiche e rifiuta un token del tipo sbagliato', async () => {
+    const {
+      createGenerateTokenResponseSchema,
+      lessonSourcesResponseSchema,
+      lessonsToGenerateResponseSchema,
+      saveLessonFeedResponseSchema,
+    } = await import('./generation.js');
+    const lessonId = '33333333-3333-4333-8333-333333333333';
+    expect(
+      createGenerateTokenResponseSchema.safeParse({
+        token: `sfg_${'A'.repeat(43)}`,
+        expiresAt: '2027-02-19T19:00:00.000Z',
+      }).success,
+    ).toBe(true);
+    expect(
+      createGenerateTokenResponseSchema.safeParse({
+        token: `sfi_${'A'.repeat(43)}`,
+        expiresAt: '2027-02-19T19:00:00.000Z',
+      }).success,
+    ).toBe(false);
+    expect(
+      lessonsToGenerateResponseSchema.safeParse({
+        lessons: [
+          {
+            lessonId,
+            lessonTitle: 'Binary trees',
+            chapterTitle: 'Trees',
+            subjectTitle: 'DSA',
+            partCount: 4,
+          },
+        ],
+        totals: { lessons: 31, ready: 0, toGenerate: 31 },
+      }).success,
+    ).toBe(true);
+    expect(
+      lessonSourcesResponseSchema.safeParse({
+        lessonId,
+        sourcesHash: 'a'.repeat(64),
+        lessonTitle: 'Binary trees',
+        chapterTitle: 'Trees',
+        subjectTitle: 'DSA',
+        parts: [
+          {
+            lessonPartId: PART,
+            title: 'AVL',
+            kind: 'video',
+            position: 0,
+            hasSubtitles: true,
+            content: { kind: 'video', summaries: { it: 'a', en: 'b' } },
+          },
+        ],
+        glossary: feed.glossary,
+      }).success,
+    ).toBe(true);
+    expect(
+      saveLessonFeedResponseSchema.safeParse({
+        feedId: lessonId,
+        created: true,
+        cards: 10,
+        alignedCards: 7,
+      }).success,
+    ).toBe(true);
+  });
+});

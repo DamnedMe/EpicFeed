@@ -1,12 +1,22 @@
 import 'server-only';
 import {
   DrizzleCatalogRepository,
+  DrizzleGenerationRepository,
+  GenerateTokenService,
+  GenerationRateLimiter,
   ImportRateLimiter,
   ImportTokenService,
   MyLessonsQuery,
   type Database,
 } from '@study-feed/adapters';
-import { ImportLesson, PossessionProofVerifier, systemClock } from '@study-feed/core';
+import {
+  ImportLesson,
+  ListLessonsToGenerate,
+  PossessionProofVerifier,
+  ReadLessonForGeneration,
+  SaveLessonFeed,
+  systemClock,
+} from '@study-feed/core';
 import * as schema from '@study-feed/db';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
@@ -21,6 +31,11 @@ export interface Services {
   readonly tokens: ImportTokenService;
   readonly rateLimiter: ImportRateLimiter;
   readonly myLessons: MyLessonsQuery;
+  readonly generateTokens: GenerateTokenService;
+  readonly generationRateLimiter: GenerationRateLimiter;
+  readonly listLessonsToGenerate: ListLessonsToGenerate;
+  readonly readLessonForGeneration: ReadLessonForGeneration;
+  readonly saveLessonFeed: SaveLessonFeed;
 }
 
 let services: Services | undefined;
@@ -46,6 +61,7 @@ export function getServices(): Services {
     ssl: local ? false : 'require',
   });
   const db = drizzle(client, { schema }) as unknown as Database;
+  const generation = new DrizzleGenerationRepository(db);
   services = {
     importLesson: new ImportLesson({
       catalog: new DrizzleCatalogRepository(db),
@@ -55,6 +71,11 @@ export function getServices(): Services {
     tokens: new ImportTokenService(db),
     rateLimiter: new ImportRateLimiter(db),
     myLessons: new MyLessonsQuery(db),
+    generateTokens: new GenerateTokenService(db),
+    generationRateLimiter: new GenerationRateLimiter(db),
+    listLessonsToGenerate: new ListLessonsToGenerate(generation),
+    readLessonForGeneration: new ReadLessonForGeneration(generation),
+    saveLessonFeed: new SaveLessonFeed({ repository: generation, clock: systemClock }),
   };
   return services;
 }

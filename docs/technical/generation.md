@@ -47,7 +47,33 @@ Il server MCP esegue entrambi i controlli prima di inviare e restituisce a Claud
 
 I parametri (`DEFAULT_ALIGNMENT_OPTIONS`) si tarano sul set di valutazione di M2.
 
+## Casi d'uso (`packages/core/src/application/generation.ts`)
+| Caso d'uso | Cosa fa |
+|---|---|
+| `ListLessonsToGenerate` | Lezioni dello studente senza un feed per le fonti attuali: calcola l'impronta di ogni lezione con la stessa funzione del salvataggio e la confronta con i feed visibili. Restituisce anche i totali (lezioni, pronte, da generare) |
+| `ReadLessonForGeneration` | Fonti di una lezione posseduta (versione più recente di ogni parte, sottotitoli accessibili, glossario della materia) con la loro impronta; segna le versioni `generating` |
+| `SaveLessonFeed` | Ricarica le fonti con i permessi dello studente, rifiuta se l'impronta è cambiata (`SOURCES_CHANGED`), applica `checkLessonFeed` (`FeedValidationError` con tutti i problemi), allinea le schede tratte da parti video, salva feed, glossario e stato `ready` in una transazione. Il primo feed per le stesse fonti vince: un secondo salvataggio non sovrascrive |
+
+La porta `GenerationRepository` è implementata da `DrizzleGenerationRepository` (`packages/adapters`): le letture passano dalla RLS dello studente (`withUserRls`), le scritture usano la connessione del server dopo i controlli del caso d'uso.
+
+Stato delle versioni: `pending`/`failed` → `generating` alla lettura, `generating` → `ready` al salvataggio, sempre secondo le transizioni ammesse dal dominio (`canTransition`). "Le mie lezioni" mostra quindi "in generazione" e poi "pronte".
+
+## API
+Chiamata dal server MCP con `Authorization: Bearer sfg_…` (token "genera"). Nessun header CORS. Ogni chiamata, riuscita o no, entra nel registro `generation_events` e conta nel limite di **120 all'ora** (`429` con `Retry-After: 600`).
+
+| Metodo e percorso | Corpo / risposta | Errori |
+|---|---|---|
+| `GET /api/generation/lessons?limit=20` | `lessonsToGenerateResponseSchema`: lezioni da generare (max 100) e totali | `401`, `429` |
+| `GET /api/generation/lessons/{id}` | `lessonSourcesResponseSchema`: titoli, `sourcesHash`, parti con il contenuto (riassunti IT/EN o markdown) e `hasSubtitles`, glossario della materia | `400` id non valido, `404` lezione non posseduta |
+| `POST /api/generation/lessons/{id}/feed` | corpo `saveLessonFeedRequestSchema` (max 512 KB); risposta `saveLessonFeedResponseSchema`, `201` se creato, `200` se esisteva già | `413`, `400` JSON non valido o lezione diversa dal percorso, `422 INVALID_FEED` con `issues` (forma o regole), `409 CONFLICT` fonti cambiate, `404` |
+
+**I sottotitoli non vanno a Claude**: nell'MVP schede e quiz nascono solo da riassunti, testi e slide (ADR 0006, piano §1); i sottotitoli restano sul server e servono solo all'allineamento. Questo riduce anche il testo da leggere per ogni lezione.
+
+Gli errori `INVALID_FEED` portano l'elenco completo dei problemi (`issues: [{ path, message }]`), così il server MCP li passa a Claude in una volta.
+
+## Token "genera"
+Pagina **Claude Desktop** della web app (`/claude-desktop`): *Crea token* mostra il token una sola volta, con il pulsante Copia; l'elenco dei token attivi evidenzia quelli che scadono entro una settimana e permette di revocarli. Implementazione: `GenerateTokenService` (`packages/adapters/src/import-tokens.ts`), stessa logica del token dell'estensione (`PersonalTokenService`: 256 bit casuali, solo SHA-256 nel database) con ambito `generate`, prefisso `sfg_` e durata di 90 giorni. Un token di import non vale per la generazione e viceversa, anche per elenco e revoca.
+
 ## Prossimi passi (PR successive di M2)
-- Database e API: `lesson_feeds`, `glossary_terms`, token "genera", route per lezioni da generare, fonti e salvataggio.
 - Server MCP (`apps/mcp`) e pacchetto `.mcpb`.
 - Slide dallo zip (`importa_slide`).

@@ -10,6 +10,12 @@ Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailw
 | `/accedi/password` | Imposta la password (almeno 12 caratteri) dopo il primo accesso | sessione |
 | `/lezioni` | **Le mie lezioni**: lezioni importate raggruppate per materia e capitolo, con numero di parti, sottotitoli e stato di generazione | sessione |
 | `/estensione` | Collega l'estensione, elenca e revoca i collegamenti | sessione |
+| `/claude-desktop` | Crea il token "genera" per Claude Desktop (mostrato una volta), elenca e revoca i token | sessione |
+| `GET /api/generation/lessons` | Lezioni da generare e totali ([generation.md](generation.md#api)) | token "genera" |
+| `GET /api/generation/lessons/{id}` | Fonti di una lezione per Claude | token "genera" |
+| `POST /api/generation/lessons/{id}/feed` | Salva il feed generato | token "genera" |
+| `POST /api/generation/token` | Crea un token "genera" (90 giorni) | sessione, stessa origine |
+| `DELETE /api/generation/token/{id}` | Revoca un token "genera" | sessione, stessa origine |
 | `POST /api/import` | Import di una lezione ([import.md](import.md#api-post-apiimport)) | token di import |
 | `POST /api/extension/token` | Crea un token di import | sessione, stessa origine |
 | `DELETE /api/extension/token/{id}` | Revoca un token | sessione, stessa origine |

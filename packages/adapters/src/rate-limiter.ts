@@ -1,5 +1,5 @@
 import { and, count, eq, gt } from 'drizzle-orm';
-import { importEvents } from '@study-feed/db';
+import { generationEvents, importEvents } from '@study-feed/db';
 import type { Database } from './database.js';
 
 /** Regola del limite: al massimo `limit` import ogni `windowMs` millisecondi. */
@@ -57,5 +57,63 @@ export class ImportRateLimiter {
     await this.db
       .insert(importEvents)
       .values({ userId, lessonId, partCount, createdAt: this.now() });
+  }
+}
+
+/**
+ * Limite predefinito della generazione: 120 chiamate all'ora (ADR 0013). Una
+ * lezione costa due chiamate (lettura e salvataggio), più qualche nuovo
+ * tentativo se il feed va corretto: un corso intero resta sotto il limite.
+ */
+export const DEFAULT_GENERATION_RATE_LIMIT: RateLimitRule = {
+  limit: 120,
+  windowMs: 60 * 60 * 1000,
+};
+
+/** Azione registrata dal limite della generazione. */
+export type GenerationAction = 'read' | 'save';
+
+/**
+ * Limite di frequenza delle chiamate del server MCP, sul registro
+ * `generation_events` (stessa logica di {@link ImportRateLimiter}).
+ */
+export class GenerationRateLimiter {
+  /**
+   * @param db - Database con permessi di scrittura (solo lato server).
+   * @param rule - Limite da applicare.
+   * @param now - Sorgente del tempo, iniettabile nei test.
+   */
+  constructor(
+    private readonly db: Database,
+    private readonly rule: RateLimitRule = DEFAULT_GENERATION_RATE_LIMIT,
+    private readonly now: () => Date = () => new Date(),
+  ) {}
+
+  /**
+   * Dice se l'utente può fare un'altra chiamata adesso.
+   *
+   * @param userId - Utente autenticato.
+   * @returns `true` se è sotto il limite.
+   */
+  async isAllowed(userId: string): Promise<boolean> {
+    const since = new Date(this.now().getTime() - this.rule.windowMs);
+    const [row] = await this.db
+      .select({ n: count() })
+      .from(generationEvents)
+      .where(and(eq(generationEvents.userId, userId), gt(generationEvents.createdAt, since)));
+    return (row?.n ?? 0) < this.rule.limit;
+  }
+
+  /**
+   * Registra una chiamata.
+   *
+   * @param userId - Utente autenticato.
+   * @param action - Lettura delle fonti o salvataggio del feed.
+   * @param lessonId - Lezione interessata (`null` per l'elenco).
+   */
+  async record(userId: string, action: GenerationAction, lessonId: string | null): Promise<void> {
+    await this.db
+      .insert(generationEvents)
+      .values({ userId, action, lessonId, createdAt: this.now() });
   }
 }

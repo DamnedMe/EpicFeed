@@ -1,6 +1,7 @@
 import type { ConceptKey, LessonFeedDraft, LessonPartId } from '@study-feed/core';
 import { FEED_LIMITS, MAX_SLUG_LENGTH, SLUG_PATTERN } from '@study-feed/core';
 import { z } from 'zod';
+import { lessonPartContentSchema } from './import.js';
 
 /**
  * Contratti della generazione (M2, ADR 0011 e ADR 0013): il feed di una
@@ -195,3 +196,84 @@ export type StoredLessonFeed = z.infer<typeof storedLessonFeedSchema>;
  * 30–60 KB con le due lingue; il limite protegge l'API da richieste abnormi.
  */
 export const MAX_FEED_BODY_BYTES = 512 * 1024;
+
+// ---------------------------------------------------------------------------
+// API della generazione, chiamata dal server MCP con il token "genera"
+// ---------------------------------------------------------------------------
+
+/** Prefisso dei token di generazione del server MCP (ADR 0013). */
+export const GENERATE_TOKEN_PREFIX = 'sfg_';
+
+/** Token di generazione: prefisso + 43 caratteri base64url (32 byte casuali). */
+export const generateTokenSchema = z
+  .string()
+  .regex(/^sfg_[A-Za-z0-9_-]{43}$/, 'Token di generazione non valido');
+
+/** Risposta di `POST /api/generation/token`: il token in chiaro, mostrato una volta sola. */
+export const createGenerateTokenResponseSchema = z.strictObject({
+  token: generateTokenSchema,
+  expiresAt: z.iso.datetime(),
+});
+
+/** Risposta di `POST /api/generation/token`. */
+export type CreateGenerateTokenResponse = z.infer<typeof createGenerateTokenResponseSchema>;
+
+/** Risposta di `GET /api/generation/lessons`: lezioni da generare e totali. */
+export const lessonsToGenerateResponseSchema = z.strictObject({
+  lessons: z.array(
+    z.strictObject({
+      lessonId: z.uuid(),
+      lessonTitle: z.string(),
+      chapterTitle: z.string(),
+      subjectTitle: z.string(),
+      partCount: z.number().int().min(0),
+    }),
+  ),
+  totals: z.strictObject({
+    lessons: z.number().int().min(0),
+    ready: z.number().int().min(0),
+    toGenerate: z.number().int().min(0),
+  }),
+});
+
+/** Risposta di `GET /api/generation/lessons`. */
+export type LessonsToGenerateResponse = z.infer<typeof lessonsToGenerateResponseSchema>;
+
+/**
+ * Risposta di `GET /api/generation/lessons/:id`: le fonti della lezione per
+ * Claude. I sottotitoli **non** ci sono: nell'MVP schede e quiz nascono solo da
+ * riassunti, testi e slide (ADR 0006), e i sottotitoli servono all'API per i
+ * tempi. Si indica solo se una parte li ha.
+ */
+export const lessonSourcesResponseSchema = z.strictObject({
+  lessonId: z.uuid(),
+  sourcesHash: z.string().regex(/^[0-9a-f]{64}$/),
+  lessonTitle: z.string(),
+  chapterTitle: z.string(),
+  subjectTitle: z.string(),
+  parts: z.array(
+    z.strictObject({
+      lessonPartId: z.uuid(),
+      title: z.string(),
+      kind: z.enum(['video', 'reading']),
+      position: z.number().int().min(0),
+      hasSubtitles: z.boolean(),
+      content: lessonPartContentSchema,
+    }),
+  ),
+  glossary: z.array(glossaryEntrySchema),
+});
+
+/** Risposta di `GET /api/generation/lessons/:id`. */
+export type LessonSourcesResponse = z.infer<typeof lessonSourcesResponseSchema>;
+
+/** Risposta di `POST /api/generation/lessons/:id/feed`. */
+export const saveLessonFeedResponseSchema = z.strictObject({
+  feedId: z.uuid(),
+  created: z.boolean(),
+  cards: z.number().int().min(0),
+  alignedCards: z.number().int().min(0),
+});
+
+/** Risposta di `POST /api/generation/lessons/:id/feed`. */
+export type SaveLessonFeedResponse = z.infer<typeof saveLessonFeedResponseSchema>;

@@ -11,7 +11,10 @@ study_programs ─< editions ─< subjects ─< chapters ─< lessons ─< lesso
 auth.users ─────────────────────────────────────────────────< entitlements >────────────┘
      │ ├──< subtitle_access >── subtitle_tracks
      │ ├──< api_tokens
-     │ └──< import_events
+     │ ├──< import_events
+     │ └──< generation_events
+lessons ─< lesson_feeds (source_version_ids → content_versions)
+subjects ─< glossary_terms
 ```
 
 | Tabella | Contenuto | Chiavi e vincoli principali |
@@ -27,6 +30,9 @@ auth.users ───────────────────────
 | `subtitle_tracks` | Traccia di sottotitoli di una parte (righe in JSON) | (`lesson_part_id`, `content_hash`) univoci, lingua in formato BCP 47 semplificato, `auto_generated`, ≤ 2 MB |
 | `subtitle_access` | Accesso utente ↔ traccia | PK (`user_id`, `subtitle_track_id`), concesso per prova di possesso |
 | `api_tokens` | Token di import dell'estensione | solo lo SHA-256 del token (64 esadecimali), `scope` enum (`import`), scadenza, revoca |
+| `lesson_feeds` | Feed di una lezione (schede, quiz, concetti IT+EN) generato da Claude Desktop | (`lesson_id`, `sources_hash`) univoci, `source_version_ids` (1–40 versioni da cui è nato), `prompt_version` datata, ≤ 1 MB |
+| `glossary_terms` | Glossario bilingue della materia | (`subject_id`, `term_key`) univoci; termine inglese, traduzione, definizione `{ it, en }` |
+| `generation_events` | Registro delle chiamate del server MCP | utente, azione (`read`, `save`), lezione, data: serve al limite di frequenza (120/ora) |
 | `import_events` | Registro degli import | utente, lezione, numero di parti, data: serve al limite di frequenza (60/ora) |
 
 Vincoli `CHECK` replicano nel database le regole del core (titoli 1–300 caratteri, posizioni ≥ 0, id Epicode con soli caratteri sicuri), così un dato non valido non entra nemmeno per errore. Un indice parziale su `content_versions` (`pending`, `failed`) rende veloce la ricerca delle versioni da generare; gli indici su `entitlements` servono alle policy RLS e coprono la chiave esterna composta (versione, parte).
@@ -37,6 +43,8 @@ Vincoli `CHECK` replicano nel database le regole del core (titoli 1–300 caratt
   - `entitlements`: solo i propri permessi;
   - `content_versions` e `lesson_parts`: solo se esiste un proprio permesso su quella versione o parte;
   - `subtitle_tracks`: solo se esiste un proprio `subtitle_access`; `subtitle_access`, `api_tokens` e `import_events`: solo le proprie righe;
+  - `lesson_feeds`: solo se lo studente possiede **tutte** le versioni elencate in `source_version_ids`. Le versioni stanno nella riga e non in una tabella collegata, perché la policy deve vederle tutte: una tabella con la sua RLS mostrerebbe alla policy solo quelle dello studente, e il controllo passerebbe sempre;
+  - `glossary_terms`: se lo studente vede la materia; `generation_events`: solo le proprie righe;
   - `lessons` → `chapters` → `subjects` → `editions` → `study_programs`: visibili se è visibile almeno un elemento del livello sotto. Ogni policy guarda un solo livello e si appoggia alla RLS di quel livello, così la regola resta semplice da leggere e la visibilità risale da `entitlements` fino al corso.
 - Nessuna policy di scrittura, e in più le migrazioni `0001_harden_grants` e `0004_harden_grants_import` tolgono a `authenticated` i privilegi di insert/update/delete e ad `anon` ogni privilegio. Le scritture (import, generazione) le fa solo l'API sul server, dopo validazione e prova di possesso.
 - Le policy usano `(select auth.uid())`, che Postgres valuta una volta per query invece che per riga (raccomandazione di Supabase per la latenza).
@@ -53,6 +61,8 @@ Vincoli `CHECK` replicano nel database le regole del core (titoli 1–300 caratt
 
 L'ambiente di test (PGlite + shim) è esportato come `@study-feed/db/testing` e lo usano anche i test di `packages/adapters`.
 
+`test/rls-generation.test.ts` copre le tabelle di M2: il feed è visibile a chi possiede tutte le fonti e nascosto a chi ne possiede solo una parte, glossario visibile a chi vede la materia, nessuna scrittura dal client, unicità di feed e termini, nuovo ambito di token `generate`.
+
 Ogni nuova tabella deve aggiungere qui la sua policy e un test che verifica che un altro utente non la legga ([piano di sviluppo](../development-plan.md) §5).
 
 ## Migrazioni
@@ -68,6 +78,8 @@ Progetto: **EpicFeed** (`https://nxuysaeevxcncchqjtep.supabase.co`), creato il 1
 - Verifica dopo l'applicazione: RLS attiva e una policy su tutte le 8 tabelle, `anon` senza privilegi, `authenticated` con il solo `SELECT`, advisor di sicurezza di Supabase senza segnalazioni. L'advisor di performance ha segnalato la chiave esterna composta di `entitlements` senza indice, corretta con `0002_entitlements_fk_index`.
 
 - 15/11/2026 (M1): migrazioni `0003_import_subtitles_tokens` (tabelle nuove e `video_id`) e `0004_harden_grants_import` (permessi), solo aggiunte, applicate con il connettore e registrate nel log di drizzle. Verifica: RLS e una policy su tutte le 12 tabelle, `anon` senza `SELECT`, `authenticated` senza `INSERT`, advisor di sicurezza senza segnalazioni (quello di performance segnala solo indici non ancora usati, normale con il database vuoto).
+
+- M2 (PR 2 della generazione): migrazioni `0005_generation_feeds` (tabelle `lesson_feeds`, `glossary_terms`, `generation_events`, valore `generate` di `api_token_scope`) e `0006_harden_grants_generation` (permessi), solo aggiunte e quindi non distruttive: da applicare con il connettore dopo il merge.
 
 ### Applicare le migrazioni con Claude (connettore Supabase)
 Con il connettore Supabase collegato, Claude può applicare le migrazioni nuove con `apply_migration`, aggiungendo nella stessa migrazione la riga in `drizzle.__drizzle_migrations` (hash SHA-256 del file `.sql` e campo `when` del journal). Non serve la password del database.
