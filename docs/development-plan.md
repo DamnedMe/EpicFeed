@@ -15,7 +15,7 @@ Un solo utente reale (Damian). Il modello multi-utente (catalogo deduplicato, pr
 - Catalogo deduplicato per `contentHash`, permesso per lezione con prova di possesso, versioni datate.
 - Generazione di schede, quiz e concetti **dai soli riassunti**, con il glossario della materia, fatta da Claude Desktop tramite il server MCP (ADR 0007).
 - **Slide delle lezioni** dallo zip ufficiale del portale, lette sul PC dal server MCP, diagrammi compresi ([ADR 0012](decisions/0012-slide-dallo-zip-ufficiale.md)).
-- **Studio in italiano e in inglese**, perché l'esame è in inglese: come offrirlo è in [ADR 0011](decisions/0011-studio-bilingue-it-en.md), da decidere prima di M2.
+- **Studio in italiano e in inglese**, perché l'esame è in inglese: ogni scheda, quiz e concetto in tutte e due le lingue, con un pulsante IT/EN ([ADR 0011](decisions/0011-studio-bilingue-it-en.md)).
 - Allineamento delle schede al minuto del video ("Guarda sul portale"); se incerto, apre la parte video dall'inizio.
 - Feed verticale (PWA installabile), temi chiaro/scuro/auto, 5 accenti.
 - Quiz di fine capitolo, ripasso FSRS, risultati in IndexedDB, export/import del backup.
@@ -62,7 +62,7 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
 
 **M2 Generazione via MCP**
 - Ogni `ContentVersion` ha uno stato di generazione (`da_generare`, `in_corso`, `pronta`, `errore`). Nessuna coda di job sul server nell'MVP: il lavoro lo fa Claude Desktop.
-- **Primo punto da chiudere**: la lingua delle schede e dei quiz ([ADR 0011](decisions/0011-studio-bilingue-it-en.md)), perché decide lo schema dei contratti. Con l'opzione consigliata ogni testo è una coppia `{ it, en }` generata nella stessa passata.
+- **Contratti bilingui per primi** ([ADR 0011](decisions/0011-studio-bilingue-it-en.md)): ogni testo di schede, quiz e concetti è una coppia `{ it, en }` generata nella stessa passata; la validazione richiede entrambe le lingue e la stessa risposta corretta.
 - Server MCP locale (`apps/mcp`, stdio) con gli strumenti `lezioni_da_generare`, `leggi_lezione` (riassunti e sottotitoli in entrambe le lingue, slide, glossario della materia), `salva_feed_lezione`, `stato_generazione` e `importa_slide`. Le istruzioni di generazione stanno in un prompt MCP versionato nella repo, con la gerarchia delle fonti riassunti e slide > glossario > sottotitoli.
 - **Slide** ([ADR 0012](decisions/0012-slide-dallo-zip-ufficiale.md)): `importa_slide` legge sul PC lo zip scaricato con *Download all PDFs*, abbina ogni PDF alla lezione per nome e invia solo il testo come parte `slides` (migrazione non distruttiva); `leggi_lezione` aggiunge le immagini delle pagine con figure, prodotte al momento. I PDF restano sul PC.
 - Glossario della materia bilingue: termine inglese del corso e traduzione italiana.
@@ -74,7 +74,7 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
 **M3 Feed**
 - Feed con scroll-snap + Motion, virtualizzazione, precarico delle 2 schede successive.
 - Azioni: Salva, Chiedi (disattivata fino a M6, poi collegata), Quiz, Fonte.
-- Lingua di studio in *Io* e, con l'opzione consigliata dell'[ADR 0011](decisions/0011-studio-bilingue-it-en.md), pulsante IT/EN su ogni scheda (cambio locale, senza nuove richieste).
+- Lingua di studio in *Io* e pulsante IT/EN su ogni scheda, con cambio locale senza nuove richieste ([ADR 0011](decisions/0011-studio-bilingue-it-en.md)).
 - PWA installabile, funziona offline per le schede già scaricate.
 - Test Playwright del flusso import → feed su viewport mobile.
 
