@@ -74,6 +74,34 @@ Gli errori `INVALID_FEED` portano l'elenco completo dei problemi (`issues: [{ pa
 ## Token "genera"
 Pagina **Claude Desktop** della web app (`/claude-desktop`): *Crea token* mostra il token una sola volta, con il pulsante Copia; l'elenco dei token attivi evidenzia quelli che scadono entro una settimana e permette di revocarli. Implementazione: `GenerateTokenService` (`packages/adapters/src/import-tokens.ts`), stessa logica del token dell'estensione (`PersonalTokenService`: 256 bit casuali, solo SHA-256 nel database) con ambito `generate`, prefisso `sfg_` e durata di 90 giorni. Un token di import non vale per la generazione e viceversa, anche per elenco e revoca.
 
+## Server MCP (`apps/mcp`)
+Gira sul PC dello studente dentro Claude Desktop, come estensione `.mcpb`. Parla con EpicFeed **solo** attraverso l'API sopra (ESLint vieta di importare adapter, database o Supabase) e usa da `@study-feed/core` solo le regole pure del feed, per controllarlo prima di inviarlo.
+
+| File | Ruolo |
+|---|---|
+| `src/prompt.ts` | Istruzioni di generazione versionate (`PROMPT_VERSION`, formato `AAAA-MM-GG.n`): gerarchia delle fonti, tipi di scheda, quiz, concetti, glossario. Ogni feed salvato porta la versione: se le istruzioni cambiano si sa quali lezioni rigenerare. Cambiare il testo significa aumentare la versione. |
+| `src/api-client.ts` | `EpicFeedApi`: token solo nell'header `Authorization`, solo HTTPS (HTTP solo verso localhost), `redirect: 'error'`, timeout di 30 s, risposte validate con gli schemi di `@study-feed/contracts`. Errori come `ApiRequestError(status, code, message, issues)`. |
+| `src/server.ts` | `createEpicFeedServer(api)`: strumenti e prompt (sotto). Ricorda in memoria solo le parti delle lezioni lette, per il controllo locale. |
+| `src/config.ts` | Legge `EPICFEED_TOKEN` e `EPICFEED_API_URL` (dalle impostazioni dell'estensione). Senza token valido il server parte lo stesso e ogni strumento risponde come crearne uno. |
+| `src/main.ts` | Avvio su stdio; i log vanno solo su stderr (stdout è il canale MCP). |
+
+Strumenti (nomi in italiano, perché Claude li mostra allo studente):
+
+| Strumento | Cosa fa |
+|---|---|
+| `lezioni_da_generare { limite? }` | Lezioni senza feed, in ordine di studio, con i totali. |
+| `leggi_lezione { lessonId }` | Fonti in testo leggibile (ogni parte con `sourcePartId`, riassunti it/en o testo di lettura, glossario della materia), `sourcesHash` e le istruzioni complete. Segna le versioni come "in generazione". |
+| `salva_feed_lezione { lessonId, sourcesHash, feed }` | Controlla il feed in locale con `checkLessonFeed` (stesse regole dell'API, nessuna chiamata sprecata), poi lo invia con `PROMPT_VERSION`. I problemi, locali o dell'API, tornano a Claude come elenco da correggere. |
+| `stato_generazione` | Totali: importate, pronte, da generare. |
+
+Il prompt MCP `genera_lezioni` avvia la generazione di tutte le lezioni nuove. Le istruzioni del server (`SERVER_INSTRUCTIONS`) dicono a Claude l'ordine degli strumenti e di non chiedere conferma lezione per lezione. Un `409 CONFLICT` suggerisce di rileggere la lezione; un `401` di creare un nuovo token. Gli errori inattesi non mostrano dettagli.
+
+### Pacchetto `.mcpb`
+`pnpm --filter @study-feed/mcp build` compila e crea con esbuild un unico file `bundle/server/index.js` (dipendenze incluse, niente `node_modules` da installare), più `manifest.json` (versione presa da `package.json`) e `icon.png`. `pnpm --filter @study-feed/mcp run pack` produce `apps/mcp/epicfeed.mcpb` con lo strumento ufficiale `@anthropic-ai/mcpb`. Il manifest (versione 0.3) chiede due impostazioni: il token (campo `sensitive`, quindi salvato da Claude Desktop nel portachiavi del sistema) e l'indirizzo di EpicFeed (predefinito quello di produzione). Piattaforme: Windows e macOS; Node è quello incluso in Claude Desktop.
+
+Installazione (una volta): in EpicFeed, pagina **Claude**, *Crea token*; in Claude Desktop, Impostazioni › Estensioni, trascinare `epicfeed.mcpb`, incollare il token. Poi in una chat: "genera le lezioni nuove di EpicFeed". Per aggiornare il server basta installare il nuovo `.mcpb`.
+
+Test: `apps/mcp/src/*.test.ts` con un `fetch` finto (client) e il trasporto in memoria dell'SDK (server e strumenti).
+
 ## Prossimi passi (PR successive di M2)
-- Server MCP (`apps/mcp`) e pacchetto `.mcpb`.
 - Slide dallo zip (`importa_slide`).

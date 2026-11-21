@@ -56,7 +56,7 @@ export function createConfig({ tsconfigRootDir, extra = [] }) {
       rules: { 'jsdoc/require-jsdoc': 'off' },
     },
     {
-      files: ['**/*.js'],
+      files: ['**/*.{js,mjs}'],
       ...tseslint.configs.disableTypeChecked,
     },
     ...extra,

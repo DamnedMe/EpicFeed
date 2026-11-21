@@ -10,3 +10,5 @@ docs/design/
 .output/
 .next/
 apps/web/next-env.d.ts
+apps/mcp/bundle
+apps/mcp/*.mcpb
