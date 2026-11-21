@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { importLessonRequestSchema } from '@study-feed/contracts';
 import { DirectusClient } from './directus';
 import { buildLessonDraft } from './lesson';
+import type { CourseOutline } from './outline';
 
 // Risposte con la forma osservata nel file HAR del 14/11 (testi inventati).
 const responses: Record<string, unknown> = {
@@ -127,6 +128,81 @@ describe('DirectusClient + buildLessonDraft', () => {
       { partEpicodeId: '66866', videoId: '42' },
     ]);
     expect(draft.skipped).toBe(3);
+  });
+
+  it('con l’indice del corso legge solo le parti utili, con il ritmo indicato', async () => {
+    const paths: string[] = [];
+    const full = (
+      responses.activity as { data: { children: { id: number; visibility?: unknown }[] } }
+    ).data;
+    const outline: CourseOutline = {
+      courseId: '177',
+      chapters: [
+        {
+          id: '66855',
+          title: '3. Trees',
+          sort: 2,
+          unitId: '66424',
+          unitSort: 1,
+          lessons: [
+            {
+              id: '66863',
+              title: 'Binary trees',
+              sort: 1,
+              // L'indice contiene già solo le parti visibili.
+              parts: full.children
+                .filter((child) => !(child.visibility as { hidden?: boolean } | undefined)?.hidden)
+                .map((child) => {
+                  const c = child as unknown as {
+                    id: number;
+                    title: string;
+                    type: string;
+                    embed_type?: string;
+                    sort: number;
+                  };
+                  return {
+                    id: String(c.id),
+                    title: c.title,
+                    type: c.type,
+                    embedType: c.embed_type ?? null,
+                    sort: c.sort,
+                  };
+                }),
+            },
+          ],
+        },
+      ],
+    };
+    let waits = 0;
+    const client = new DirectusClient((path) => {
+      paths.push(decodeURIComponent(path));
+      const contentId = /\/items\/content\/(\d+)/.exec(path)?.[1] ?? '';
+      return Promise.resolve({ data: full.children.find((c) => String(c.id) === contentId) });
+    });
+    const activity = await client.activity('66863', {
+      outline,
+      beforePart: () => {
+        waits += 1;
+        return Promise.resolve();
+      },
+    });
+    const draft = buildLessonDraft(activity, {
+      id: '177',
+      title: 'DSA',
+      starts_at: null,
+      tenant: null,
+    });
+
+    // Solo le 3 parti utili: niente attività, modulo, unità.
+    expect(paths).toHaveLength(3);
+    expect(paths.every((path) => path.includes('fields[]=summary'))).toBe(true);
+    expect(waits).toBe(2);
+    expect(draft.request.path.chapter).toEqual({
+      epicodeId: '66855',
+      title: '3. Trees',
+      position: 1002,
+    });
+    expect(draft.request.parts.map((part) => part.epicodeId)).toEqual(['66864', '66866', '103064']);
   });
 
   it('senza istituto usa un corso di studi generico', () => {

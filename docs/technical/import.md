@@ -1,6 +1,6 @@
 # Import delle lezioni (M1)
 
-Come una lezione passa dal portale Epicode al catalogo di EpicFeed: estensione, collegamento con la web app, API di import e caso d'uso del core. Le scelte sono motivate in [ADR 0009](../decisions/0009-import-lezione-intera-e-sottotitoli.md).
+Come una lezione passa dal portale Epicode al catalogo di EpicFeed: estensione, collegamento con la web app, API di import e caso d'uso del core. Si importa una lezione, un capitolo o un corso intero. Le scelte sono motivate in [ADR 0009](../decisions/0009-import-lezione-intera-e-sottotitoli.md) e [ADR 0010](../decisions/0010-import-capitolo-e-corso.md).
 
 ```
  Portale Epicode (pagina della lezione, loggato)
@@ -19,11 +19,14 @@ Come una lezione passa dal portale Epicode al catalogo di EpicFeed: estensione, 
 ```
 
 ## Regole di comportamento verso il portale
-- L'estensione agisce **solo** su `https://learn.epicode.edu.mt/course/{courseId}/curriculum/{contentId}` e solo quando lo studente preme **Importa**.
-- Al CMS Directus (`cms.epicode.edu.mt`) fa le stesse letture che il portale fa aprendo una lezione: attività con l'elenco delle parti, modulo, unità, dettaglio delle sole parti utili (video e testi) e corso, una richiesta alla volta (circa 6–9 GET per lezione), sempre con l'elenco esplicito dei campi: mai `fields=*.*`, che restituisce anche le iscrizioni di altri studenti ([portal-recon.md](../portal-recon.md)).
-- **Sessione del portale** (verificata il 16/11/2026 sul portale rinnovato): il token di accesso al CMS sta solo nella memoria della pagina e viaggia come `Authorization: Bearer …`; storage e cookie non bastano. Lo script `portal-main.content.ts` gira nel mondo principale della pagina, ricorda l'header che il portale stesso usa verso il CMS ed esegue per l'estensione solo le GET di un elenco chiuso (`lib/cms-bridge.ts`: una voce di `content` o `courses` per id, campi ammessi, niente jolly né filtri). Il token resta in quella closure: non arriva al content script, al service worker né al nostro server. Se la pagina era aperta prima di installare l'estensione, basta ricaricarla.
+- L'estensione agisce **solo** su `https://learn.epicode.edu.mt/course/{courseId}/curriculum/{contentId}` e solo quando lo studente preme uno dei pulsanti di import.
+- **Indice del corso senza richieste in più**: a ogni pagina il portale scarica l'albero intero del corso per la barra laterale (`GET /items/content?filter[courses][course][_eq]={id}&filter[type]=unit`). Lo script nel mondo principale ne conserva una copia ridotta (`pruneTree`: solo id, titolo, tipo, `embed_type`, ordine e visibilità, fino alle parti) e la passa all'estensione (`parseOutline` in `lib/outline.ts`). Da lì l'estensione ricava capitoli, lezioni e parti.
+- Al CMS Directus (`cms.epicode.edu.mt`) chiede quindi solo il **dettaglio delle parti utili** (video Vimeo e testi), una GET per parte, più il corso una volta per pagina. Se l'indice manca (pagina aperta prima di installare l'estensione) legge come il portale: attività, modulo, unità e parti (circa 6–9 GET per lezione). Sempre una richiesta alla volta e con l'elenco esplicito dei campi: mai `fields=*.*`, che restituisce anche le iscrizioni di altri studenti ([portal-recon.md](../portal-recon.md)).
+- Solo contenuti **visibili adesso**: nascosti, non ancora aperti (`opens_at` futuro) o chiusi (`closes_at` passato) restano fuori, come nel portale.
+- **Sessione del portale** (verificata il 16/11/2026 sul portale rinnovato): il token di accesso al CMS sta solo nella memoria della pagina e viaggia come `Authorization: Bearer …`; storage e cookie non bastano. Lo script `portal-main.content.ts` gira nel mondo principale della pagina, ricorda l'header che il portale stesso usa verso il CMS ed esegue per l'estensione solo le GET di un elenco chiuso (`lib/cms-bridge.ts`: una voce di `content` o `courses` per id, campi ammessi, niente jolly né filtri). Il token resta in quella closure: non arriva al content script, al service worker né al nostro server. Se la pagina era aperta prima di installare l'estensione, basta ricaricarla. Il token ha una validità di 30 giorni (verificato il 21/11/2026 dalla scadenza del JWT, senza leggerne il contenuto altrove): anche un import di un corso intero non rischia che la sessione scada.
 - **Mai scritture** sul portale, in particolare sulle collezioni di progresso: nessun video risulta visto per effetto dell'estensione.
-- Per i sottotitoli monta nella pagina del portale un iframe del player Vimeo nascosto, senza autoplay e muto (`?autoplay=0&muted=1&dnt=1#sf-import`), **uno alla volta** e con una pausa di 1,5 s tra un video e l'altro, poi lo rimuove. Il player funziona solo dentro i domini Epicode, quindi non c'è alternativa senza scaricare i video.
+- Per i sottotitoli monta nella pagina del portale un iframe del player Vimeo nascosto, senza autoplay e muto (`?autoplay=0&muted=1&dnt=1#sf-import`), **uno alla volta** e con una pausa tra un video e l'altro (1,5 s per una lezione, 2,5–5,5 s casuali per capitolo e corso), poi lo rimuove. Il player funziona solo dentro i domini Epicode, quindi non c'è alternativa senza scaricare i video.
+- Non apre le lezioni nella scheda: aprirle registrerebbe un accesso (`POST /items/access_logs`), invierebbe analytics e potrebbe segnare contenuti come visti.
 - Le password Epicode non passano mai dall'estensione.
 
 ## Corrispondenza portale → catalogo
@@ -45,11 +48,11 @@ WXT 0.21 (Manifest V3), TypeScript, nessuna dipendenza nel content script del pl
 
 | File | Ruolo |
 |---|---|
-| `entrypoints/portal.content.ts` | Sul portale: legge la lezione (`lib/directus.ts`, `lib/lesson.ts`), monta e smonta il player nascosto |
-| `entrypoints/portal-main.content.ts` | Nel mondo principale della pagina: ponte verso il CMS con la sessione del portale (`lib/cms-bridge.ts`) |
+| `entrypoints/portal.content.ts` | Sul portale: legge la lezione aperta e l'indice del corso (`lib/directus.ts`, `lib/outline.ts`, `lib/lesson.ts`), legge le lezioni di un lotto con le pause, monta e smonta il player nascosto |
+| `entrypoints/portal-main.content.ts` | Nel mondo principale della pagina: ponte verso il CMS con la sessione del portale e copia ridotta dell'albero del corso (`lib/cms-bridge.ts`) |
 | `entrypoints/vimeo.content.ts` | Nel player, solo con `#sf-import`: legge `window.playerConfig.request.text_tracks` (`lib/player-config.ts`) |
-| `entrypoints/background.ts` | Riceve il collegamento dalla web app, esegue l'import (`lib/import-job.ts`), scarica i VTT (`lib/vtt.ts`) |
-| `entrypoints/popup/` | Anteprima della lezione, pulsante Importa, avanzamento ed esito |
+| `entrypoints/background.ts` | Riceve il collegamento dalla web app, esegue l'import di una lezione (`lib/import-job.ts`) o di un lotto (`lib/batch-job.ts`), scarica i VTT (`lib/vtt.ts`), ricorda le lezioni importate (`lib/imported.ts`) |
+| `entrypoints/popup/` | Anteprima della lezione, pulsanti lezione/capitolo/corso con la stima dei tempi (`lib/pacing.ts`), avanzamento, *Interrompi* ed esito |
 | `lib/connection.ts` | Accetta il token solo se il mittente è l'origine della web app e coincide con `apiBaseUrl` |
 
 Permessi del manifest: `storage`; host: portale, CMS, player e sottotitoli Vimeo, origine della web app. `externally_connectable` ammette solo l'origine della web app.
@@ -61,6 +64,39 @@ L'ID dell'estensione è fisso (`bchcghaegcogobjapblaanbpnkpkihdd`) grazie alla c
 WXT_APP_ORIGIN=https://<indirizzo-della-web-app> pnpm --filter @study-feed/extension build
 ```
 Poi in Chrome: `chrome://extensions` → *Modalità sviluppatore* → *Carica estensione non pacchettizzata* → cartella `apps/extension/.output/chrome-mv3`. Senza `WXT_APP_ORIGIN` l'origine predefinita è `https://study-feed.vercel.app`; `http://localhost:3000` è ammessa solo con `wxt` in modalità sviluppo.
+
+## Import di capitolo e corso
+Dal popup, oltre a *Importa la lezione*: **Importa il capitolo** (le lezioni del capitolo della lezione aperta) e **Importa tutto il corso**. Ogni pulsante mostra quante lezioni importerà e una stima della durata (`estimateMinutes`). Si propongono solo le lezioni con almeno un video o un testo; quelle già importate da questo browser si saltano, a meno di spuntare *Reimporta anche quelle già importate*.
+
+```
+ popup ── piano (lezioni in ordine) ──▶ service worker: runBatchJob
+                                          per ogni lezione:
+                                            pausa casuale (più lunga al cambio di capitolo)
+                                            sf/read-activity ──▶ script del portale
+                                                                  indice + GET delle parti, con pause
+                                            player nascosti uno alla volta, VTT
+                                            POST /api/import
+                                            ricorda la lezione (storage.local)
+```
+
+Ritmo (`BATCH_PACING` in `lib/pacing.ts`), sempre una richiesta alla volta e con durate casuali nell'intervallo:
+
+| Passo | Pausa |
+|---|---|
+| Tra una parte e l'altra della stessa lezione (GET del dettaglio) | 1,5–4 s |
+| Tra un player video e il successivo | 2,5–5,5 s |
+| Tra due lezioni dello stesso capitolo | 6–15 s |
+| Al cambio di capitolo | 20–40 s |
+
+Per il corso di Data Structures and Algorithms (30 lezioni con contenuti, 91 video, 30 riassunti) la stima è di circa 22 minuti e circa 120 GET al CMS: meno delle richieste che il portale fa aprendo una decina di pagine.
+
+Comportamento:
+- **Avanzamento**: lo stato (`reading`, `pause`, `subtitles`, `sending` con l'avanzamento del lotto, poi `batch-done`) va in `storage.session`. Il popup si può chiudere; riaperto chiede al service worker se c'è un import in corso (`sf/import-state`) e ne mostra l'avanzamento.
+- **Interrompi** (`sf/stop-import`): le pause finiscono subito e il job si ferma prima della lezione successiva.
+- **Errori**: ogni lezione è un import a sé. Una lezione rifiutata dal portale o vuota non ferma le altre. Il job si ferma se la scheda del portale non risponde, se la sessione del portale non c'è più, se il collegamento con EpicFeed non vale più (`UNAUTHORIZED`), dopo 3 errori di fila o su richiesta. L'esito elenca le lezioni non importate.
+- **Ripresa**: le lezioni importate si ricordano in `storage.local` (`importedLessons`, al massimo 3.000); rilanciando lo stesso import si riparte da quelle mancanti.
+- **Limite orario di EpicFeed**: su `RATE_LIMITED` il job attende `Retry-After` (al massimo 30 minuti, mostrato nel popup) e ritenta solo l'invio, senza rileggere portale e video.
+- **Service worker sempre attivo**: durante il job una chiamata `runtime.getPlatformInfo()` ogni 20 s evita che Chrome lo chiuda per inattività (30 s) durante le pause.
 
 ## Collegamento estensione ↔ web app
 1. Lo studente, loggato nella web app, apre **Estensione** e preme *Collega*.
@@ -103,5 +139,6 @@ Un secondo import identico non crea né versioni né permessi né tracce (`newVe
 - `packages/adapters`: repository, token, limite di frequenza e "Le mie lezioni" su PGlite con RLS attiva.
 - `packages/db`: `test/rls-import.test.ts`, un utente non vede tracce, token né cronologia di un altro.
 - `apps/web`: `handleImport` con servizi finti (ogni riga della tabella degli errori).
-- `apps/extension`: parsing di URL, VTT, `playerConfig`, costruzione della richiesta, collegamento (mittente falso rifiutato), job di import.
+- `apps/extension`: parsing di URL, VTT, `playerConfig`, costruzione della richiesta, collegamento (mittente falso rifiutato), job di import (anche limite orario), ponte (richieste ammesse, riconoscimento e riduzione dell'albero del corso), indice del corso (ordine, visibilità, programmati), lettura con l'indice (solo GET delle parti, pause), job a lotti (pause, vuote, errori gravi e non, interruzione, limite orario), stima dei tempi, memoria delle lezioni importate.
+- Prova sul portale reale (21/11/2026): lo script del ponte compilato, iniettato nella pagina del corso, ha riconosciuto la richiesta dell'albero e restituito l'indice ridotto (3 unità, 42 lezioni, 91 video, 30 riassunti, 46 KB) senza nessuna richiesta in più al CMS. Popup verificato con dati simulati (anteprima, avanzamento, esito).
 - Prova end-to-end in locale (15/11/2026): Postgres in memoria, `next start`, estensione compilata in Chromium con portale, CMS e Vimeo simulati. Esito: collegamento accettato, collegamento da un'origine falsa rifiutato, 3 GET al CMS, 2 video con sottotitoli `it` ed `en-x-autogen`, iframe rimossi, secondo import senza nuove versioni, permessi o tracce.

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { locate, type CourseOutline } from './outline';
 
 /**
  * Lettura dal CMS del portale (Directus su `cms.epicode.edu.mt`).
@@ -153,6 +154,50 @@ function fields(list: string[]): string {
   return list.map((field) => `fields[]=${encodeURIComponent(field)}`).join('&');
 }
 
+/** Opzioni di lettura di un'attività. */
+export interface ActivityReadOptions {
+  /**
+   * Indice del corso già scaricato dal portale: se contiene l'attività,
+   * struttura e titoli si prendono da lì e restano da leggere solo le parti.
+   */
+  readonly outline?: CourseOutline | null;
+  /** Attesa prima di ogni parte dopo la prima (ritmo dell'import a lotti). */
+  readonly beforePart?: () => Promise<void>;
+}
+
+/** Attività senza il contenuto delle parti. */
+type ActivityShell = Omit<Activity, 'type'>;
+
+/**
+ * Struttura dell'attività ricavata dall'indice del corso, senza richieste.
+ *
+ * @returns La struttura, oppure `null` se l'indice non contiene l'attività.
+ */
+function shellFromOutline(outline: CourseOutline, activityId: string): ActivityShell | null {
+  const found = locate(outline, activityId);
+  if (found?.lesson.id !== activityId) return null;
+  const { chapter, lesson } = found;
+  return {
+    id: lesson.id,
+    title: lesson.title,
+    sort: lesson.sort,
+    parent: {
+      id: chapter.id,
+      title: chapter.title,
+      type: 'module',
+      sort: chapter.sort,
+      parent: { id: chapter.unitId, sort: chapter.unitSort },
+    },
+    children: lesson.parts.map((part) => ({
+      id: part.id,
+      title: part.title,
+      type: part.type,
+      embed_type: part.embedType,
+      sort: part.sort,
+    })),
+  };
+}
+
 /** Client minimo del CMS con i soli campi che servono all'import. */
 export class DirectusClient {
   /**
@@ -176,23 +221,21 @@ export class DirectusClient {
   /**
    * Attività con modulo, unità e parti (riassunti e markdown inclusi).
    *
-   * Legge come fa il portale aprendo una lezione: prima l'attività con l'elenco
-   * delle parti, poi modulo e unità, poi il dettaglio delle sole parti utili
-   * (video Vimeo e testi), una richiesta alla volta.
+   * Con l'indice del corso legge solo il dettaglio delle parti utili (video
+   * Vimeo e testi). Senza, legge come fa il portale aprendo una lezione:
+   * prima l'attività con l'elenco delle parti, poi modulo e unità, poi le
+   * parti. Sempre una richiesta alla volta.
    *
    * @param activityId - Id dell'attività.
+   * @param options - Indice del corso e ritmo, se presenti.
    * @returns L'attività.
    */
-  async activity(activityId: string): Promise<Activity> {
-    const shell = activityShellSchema.parse(
-      await this.getJson(
-        `/items/content/${encodeURIComponent(activityId)}?${fields(ACTIVITY_FIELDS)}`,
-      ),
-    ).data;
-    const module = await this.node(shell.parent);
-    const unit = module.parent === null ? null : await this.node(module.parent);
+  async activity(activityId: string, options: ActivityReadOptions = {}): Promise<Activity> {
+    const fromOutline = options.outline ? shellFromOutline(options.outline, activityId) : null;
+    const shell = fromOutline ?? (await this.shellFromCms(activityId));
 
     const children: ActivityChild[] = [];
+    let first = true;
     for (const child of shell.children) {
       const useful =
         !child.visibility?.hidden &&
@@ -201,6 +244,8 @@ export class DirectusClient {
         children.push(child);
         continue;
       }
+      if (!first) await options.beforePart?.();
+      first = false;
       const detail = partSchema.parse(
         await this.getJson(`/items/content/${encodeURIComponent(child.id)}?${fields(PART_FIELDS)}`),
       ).data;
@@ -212,22 +257,31 @@ export class DirectusClient {
       });
     }
 
-    return activitySchema.parse({
-      data: {
-        id: shell.id,
-        title: shell.title,
-        type: 'activity',
-        sort: shell.sort,
-        parent: {
-          id: module.id,
-          title: module.title ?? '',
-          type: module.type,
-          sort: module.sort,
-          parent: unit ? { id: unit.id, sort: unit.sort } : null,
-        },
-        children,
+    return activitySchema.parse({ data: { ...shell, type: 'activity', children } }).data;
+  }
+
+  /** Struttura dell'attività letta dal CMS: attività, modulo e unità. */
+  private async shellFromCms(activityId: string): Promise<ActivityShell> {
+    const shell = activityShellSchema.parse(
+      await this.getJson(
+        `/items/content/${encodeURIComponent(activityId)}?${fields(ACTIVITY_FIELDS)}`,
+      ),
+    ).data;
+    const module = await this.node(shell.parent);
+    const unit = module.parent === null ? null : await this.node(module.parent);
+    return {
+      id: shell.id,
+      title: shell.title,
+      sort: shell.sort,
+      parent: {
+        id: module.id,
+        title: module.title ?? '',
+        type: module.type,
+        sort: module.sort,
+        parent: unit ? { id: unit.id, sort: unit.sort } : null,
       },
-    }).data;
+      children: shell.children,
+    };
   }
 
   private async node(nodeId: string): Promise<z.infer<typeof nodeSchema>['data']> {

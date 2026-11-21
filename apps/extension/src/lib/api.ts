@@ -10,10 +10,12 @@ export class ApiCallError extends Error {
   /**
    * @param message - Messaggio da mostrare.
    * @param code - Codice dell'API, se noto.
+   * @param retryAfterSeconds - Attesa suggerita dal server (`Retry-After`), se c'è.
    */
   constructor(
     message: string,
     readonly code?: string,
+    readonly retryAfterSeconds?: number,
   ) {
     super(message);
     this.name = 'ApiCallError';
@@ -50,9 +52,11 @@ export async function sendImport(
   const json: unknown = await response.json().catch(() => null);
   if (!response.ok) {
     const error = apiErrorSchema.safeParse(json);
+    const retryAfter = Number.parseInt(response.headers.get('retry-after') ?? '', 10);
     throw new ApiCallError(
       error.success ? error.data.error.message : `Errore del server (${response.status}).`,
       error.success ? error.data.error.code : undefined,
+      Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : undefined,
     );
   }
   const parsed = importLessonResponseSchema.safeParse(json);

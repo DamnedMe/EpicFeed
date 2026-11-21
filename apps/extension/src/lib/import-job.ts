@@ -1,5 +1,5 @@
 import type { ImportLessonRequest } from '@study-feed/contracts';
-import { sendImport } from './api';
+import { ApiCallError, sendImport } from './api';
 import type { Connection } from './connection';
 import type { ImportStatus, LessonPreview } from './messages';
 import type { PlayerTrack } from './player-config';
@@ -16,7 +16,17 @@ export interface ImportJobDeps {
   /** Aggiorna lo stato mostrato dal popup. */
   report(status: ImportStatus): Promise<void>;
   fetch: typeof fetch;
+  /** Durata della pausa tra due video (predefinita {@link PAUSE_BETWEEN_VIDEOS_MS}). */
+  videoPauseMs?: () => number;
+  /**
+   * Chiamata quando EpicFeed risponde "troppi import": attende e dice se
+   * riprovare. Senza, l'errore si mostra subito (import di una lezione).
+   */
+  waitForRateLimit?: (retryAfterSeconds: number) => Promise<boolean>;
 }
+
+/** Attesa predefinita se il server non indica `Retry-After`. */
+const DEFAULT_RETRY_AFTER_S = 600;
 
 /** Pausa tra la lettura di due video. */
 export const PAUSE_BETWEEN_VIDEOS_MS = 1500;
@@ -44,7 +54,7 @@ export async function runImportJob(
 
   for (const [index, video] of preview.videos.entries()) {
     await deps.report({ phase: 'subtitles', done: index, total: preview.videos.length });
-    if (index > 0) await deps.pause(PAUSE_BETWEEN_VIDEOS_MS);
+    if (index > 0) await deps.pause(deps.videoPauseMs?.() ?? PAUSE_BETWEEN_VIDEOS_MS);
     const tracks = (await deps.loadTracks(video.videoId)) ?? [];
     const loaded = [];
     for (const track of tracks.slice(0, 4)) {
@@ -75,33 +85,51 @@ export async function runImportJob(
     );
 
   if (parts.length === 0) {
-    const status: ImportStatus = { phase: 'error', message: 'Nessun contenuto da importare.' };
+    const status: ImportStatus = {
+      phase: 'error',
+      message: 'Nessun contenuto da importare.',
+      code: 'EMPTY',
+    };
     await deps.report(status);
     return status;
   }
 
-  await deps.report({ phase: 'sending' });
-  try {
-    const result = await sendImport(
-      connection.apiBaseUrl,
-      connection.token,
-      { ...preview.request, parts },
-      deps.fetch,
-    );
-    const status: ImportStatus = {
-      phase: 'done',
-      lessonTitle: preview.request.path.lesson.title,
-      result,
-      missingSubtitles: missing,
-    };
-    await deps.report(status);
-    return status;
-  } catch (error) {
-    const status: ImportStatus = {
-      phase: 'error',
-      message: error instanceof Error ? error.message : 'Import non riuscito.',
-    };
-    await deps.report(status);
-    return status;
+  for (let attempt = 0; ; attempt += 1) {
+    await deps.report({ phase: 'sending' });
+    try {
+      const result = await sendImport(
+        connection.apiBaseUrl,
+        connection.token,
+        { ...preview.request, parts },
+        deps.fetch,
+      );
+      const status: ImportStatus = {
+        phase: 'done',
+        lessonTitle: preview.request.path.lesson.title,
+        result,
+        missingSubtitles: missing,
+      };
+      await deps.report(status);
+      return status;
+    } catch (error) {
+      // Limite orario di EpicFeed: i sottotitoli sono già letti, quindi si
+      // attende e si ritenta solo l'invio (una volta).
+      if (
+        error instanceof ApiCallError &&
+        error.code === 'RATE_LIMITED' &&
+        attempt === 0 &&
+        deps.waitForRateLimit &&
+        (await deps.waitForRateLimit(error.retryAfterSeconds ?? DEFAULT_RETRY_AFTER_S))
+      ) {
+        continue;
+      }
+      const status: ImportStatus = {
+        phase: 'error',
+        message: error instanceof Error ? error.message : 'Import non riuscito.',
+        ...(error instanceof ApiCallError && error.code ? { code: error.code } : {}),
+      };
+      await deps.report(status);
+      return status;
+    }
   }
 }

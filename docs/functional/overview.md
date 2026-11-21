@@ -15,6 +15,11 @@ Lo studente apre una lezione nel portale Epicode come sempre e preme **Importa**
 
 Alla fine l'estensione dice com'è andata: quante parti sono nuove per lo studente, oppure "Era già tutto importato: nessun duplicato", ed eventualmente per quanti video non ha trovato i sottotitoli; un link apre Le mie lezioni. Gli elementi senza testo da studiare (slide, quiz, questionari) non vengono importati, e l'anteprima dice quanti sono. Se un altro studente l'aveva già importata, non viene duplicata. Ognuno vede solo le lezioni che ha importato dal proprio account: anche corsi, materie e capitoli compaiono solo se contengono almeno una parte importata. Se Epicode aggiorna una lezione, il nuovo import crea una nuova versione datata e quella vecchia resta consultabile. Importare di nuovo la stessa lezione non crea doppioni.
 
+### Importare un capitolo o il corso intero
+Sotto l'anteprima l'estensione propone anche **Importa il capitolo** (tutte le lezioni del capitolo della lezione aperta) e **Importa tutto il corso**, con il numero di lezioni e la durata stimata: un capitolo richiede 3–4 minuti, un corso di 30 lezioni circa 20 minuti. Le lezioni vengono importate una alla volta, con pause casuali tra una lettura e l'altra, per restare su un ritmo simile a quello di uno studente che consulta il portale: niente raffiche di richieste, nessun video riprodotto, nessuna lezione aperta o segnata come vista.
+
+Durante l'import basta tenere aperta la scheda del portale; il riquadro dell'estensione si può chiudere e, riaperto, mostra a che lezione è arrivato, le pause in corso e il pulsante **Interrompi**. Alla fine dice quante lezioni ha importato, quante erano nuove, quali non è riuscito a importare e perché. Le lezioni già importate da quel browser vengono saltate, così un import interrotto riprende da dove si era fermato; si possono reimportare tutte con l'apposita casella. Le lezioni senza nulla da studiare (solo quiz o slide) e i contenuti non ancora aperti dal portale non vengono toccati.
+
 ## Le mie lezioni
 Nell'app, **Le mie lezioni** elenca le lezioni importate raggruppate per materia e capitolo, con il numero di parti, quante hanno i sottotitoli e lo stato delle schede (da generare, in generazione, pronte). Le schede le genera Claude Desktop dalla milestone successiva.
 
