@@ -43,7 +43,7 @@ study-feed/
 ├─ docs/
 └─ .github/       CI e Dependabot
 ```
-`apps/mcp` arriva con la milestone M2 ([piano di sviluppo](../development-plan.md) §3).
+`apps/mcp` è il server MCP per Claude Desktop (M2): `pnpm --filter @study-feed/mcp run pack` crea il pacchetto `epicfeed.mcpb` ([generation.md](generation.md#server-mcp-appsmcp)).
 
 Ogni pacchetto ha gli stessi script (`build`, `lint`, `typecheck`, `test`) e Turborepo li esegue nell'ordine delle dipendenze, con cache: se un pacchetto non cambia, il suo risultato viene riusato.
 

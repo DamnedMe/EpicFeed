@@ -1,0 +1,29 @@
+{
+  "name": "@study-feed/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Server MCP di EpicFeed per Claude Desktop: genera schede, quiz e concetti delle lezioni importate (M2).",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node scripts/bundle.mjs",
+    "pack": "node scripts/pack.mjs",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "@study-feed/contracts": "workspace:*",
+    "@study-feed/core": "workspace:*",
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "@study-feed/config": "workspace:*",
+    "@types/node": "26.6.6",
+    "@vitest/coverage-v8": "5.1.0",
+    "esbuild": "0.28.2",
+    "eslint": "10.15.0",
+    "typescript": "6.0.3",
+    "vitest": "5.1.0"
+  }
+}

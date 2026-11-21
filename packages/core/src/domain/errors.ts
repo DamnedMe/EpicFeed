@@ -9,7 +9,10 @@ export type DomainErrorCode =
   | 'INVALID_CONTENT'
   | 'INVALID_HASH'
   | 'INVALID_STATUS_TRANSITION'
-  | 'ENTITLEMENT_MISMATCH';
+  | 'ENTITLEMENT_MISMATCH'
+  | 'NOT_FOUND'
+  | 'SOURCES_CHANGED'
+  | 'INVALID_FEED';
 
 /**
  * Violazione di una regola del dominio (dato non valido o operazione non

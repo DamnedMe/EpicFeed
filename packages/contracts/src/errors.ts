@@ -12,6 +12,9 @@ export const apiErrorCodeSchema = z.enum([
   'RATE_LIMITED',
   'INVALID_CONTENT',
   'ENTITLEMENT_MISMATCH',
+  'NOT_FOUND',
+  'CONFLICT',
+  'INVALID_FEED',
   'INTERNAL',
 ]);
 
@@ -23,6 +26,11 @@ export const apiErrorSchema = z.strictObject({
   error: z.strictObject({
     code: apiErrorCodeSchema,
     message: z.string(),
+    /** Problemi puntuali (solo `INVALID_FEED`): percorso dell'elemento e messaggio. */
+    issues: z
+      .array(z.strictObject({ path: z.string().max(200), message: z.string().max(500) }))
+      .max(200)
+      .optional(),
   }),
 });
 

@@ -3,12 +3,14 @@
  *
  * @packageDocumentation
  */
+export * from './alignment.js';
 export * from './catalog.js';
 export * from './content.js';
 export * from './content-hash.js';
 export * from './content-version.js';
 export * from './entitlement.js';
 export * from './errors.js';
+export * from './feed.js';
 export * from './import.js';
 export * from './ids.js';
 export * from './subtitles.js';

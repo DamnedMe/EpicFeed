@@ -1,0 +1,66 @@
+{
+  "manifest_version": "0.3",
+  "name": "epicfeed",
+  "display_name": "EpicFeed",
+  "version": "0.0.0",
+  "description": "Genera schede, quiz e concetti in italiano e in inglese delle lezioni Epicode importate in EpicFeed.",
+  "long_description": "Collega Claude Desktop a EpicFeed: chiedi \"genera le lezioni nuove di EpicFeed\" e Claude legge le lezioni che hai importato, crea il feed di schede, quiz e concetti nelle due lingue e lo salva nell'app. Il server gira sul tuo PC e parla solo con EpicFeed, con un token che permette solo la generazione.",
+  "author": { "name": "Damian" },
+  "icon": "icon.png",
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index.js"],
+      "env": {
+        "EPICFEED_TOKEN": "${user_config.api_token}",
+        "EPICFEED_API_URL": "${user_config.api_url}"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "lezioni_da_generare",
+      "description": "Elenca le lezioni importate ancora da generare."
+    },
+    {
+      "name": "leggi_lezione",
+      "description": "Fonti di una lezione e istruzioni per crearne il feed."
+    },
+    { "name": "salva_feed_lezione", "description": "Controlla e salva il feed di una lezione." },
+    {
+      "name": "stato_generazione",
+      "description": "Quante lezioni sono pronte e quante da generare."
+    }
+  ],
+  "prompts": [
+    {
+      "name": "genera_lezioni",
+      "description": "Genera schede, quiz e concetti per tutte le lezioni ancora da generare.",
+      "text": "Genera il feed di tutte le lezioni EpicFeed ancora da generare, una alla volta, con gli strumenti di EpicFeed."
+    }
+  ],
+  "user_config": {
+    "api_token": {
+      "type": "string",
+      "title": "Token di EpicFeed",
+      "description": "Crealo nella pagina Claude Desktop di EpicFeed (inizia con sfg_). Vale 90 giorni.",
+      "sensitive": true,
+      "required": true
+    },
+    "api_url": {
+      "type": "string",
+      "title": "Indirizzo di EpicFeed",
+      "description": "Lascia il valore predefinito.",
+      "default": "https://study-feed-steel.vercel.app",
+      "required": false
+    }
+  },
+  "compatibility": {
+    "platforms": ["win32", "darwin"],
+    "runtimes": { "node": ">=22.0.0" }
+  },
+  "keywords": ["epicode", "studio", "flashcard", "quiz"],
+  "license": "UNLICENSED"
+}

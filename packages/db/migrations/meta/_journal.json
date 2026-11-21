@@ -36,6 +36,20 @@
       "when": 1794756856317,
       "tag": "0004_harden_grants_import",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795287365130,
+      "tag": "0005_generation_feeds",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795287372578,
+      "tag": "0006_harden_grants_generation",
+      "breakpoints": true
     }
   ]
 }

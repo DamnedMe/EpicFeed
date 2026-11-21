@@ -8,8 +8,17 @@ const STATUS: Record<ApiErrorCode, number> = {
   RATE_LIMITED: 429,
   INVALID_CONTENT: 422,
   ENTITLEMENT_MISMATCH: 403,
+  NOT_FOUND: 404,
+  CONFLICT: 409,
+  INVALID_FEED: 422,
   INTERNAL: 500,
 };
+
+/** Problema puntuale allegato a un errore `INVALID_FEED`. */
+export interface ApiIssue {
+  readonly path: string;
+  readonly message: string;
+}
 
 /**
  * Risposta di errore nel formato comune delle API (`apiErrorSchema`).
@@ -17,15 +26,17 @@ const STATUS: Record<ApiErrorCode, number> = {
  * @param code - Codice stabile dell'errore.
  * @param message - Messaggio per l'utente (mai dettagli interni).
  * @param headers - Header aggiuntivi (es. `Retry-After`).
+ * @param issues - Problemi puntuali (solo per `INVALID_FEED`).
  * @returns La risposta HTTP.
  */
 export function apiError(
   code: ApiErrorCode,
   message: string,
   headers: Record<string, string> = {},
+  issues?: readonly ApiIssue[],
 ): Response {
   return Response.json(
-    { error: { code, message } },
+    { error: issues ? { code, message, issues } : { code, message } },
     { status: STATUS[code], headers: { 'Cache-Control': 'no-store', ...headers } },
   );
 }
@@ -68,4 +79,36 @@ export function bearerToken(request: Request): string | null {
   const header = request.headers.get('authorization');
   const match = header ? /^Bearer\s+(\S+)$/i.exec(header) : null;
   return match?.[1] ?? null;
+}
+
+/**
+ * Legge il corpo come testo fermandosi oltre `limit` byte, anche se
+ * `Content-Length` manca o mente.
+ *
+ * @param request - Richiesta in arrivo.
+ * @param limit - Massimo di byte accettati.
+ * @returns Il corpo, oppure `null` se supera il limite.
+ */
+export async function readLimited(request: Request, limit: number): Promise<string | null> {
+  if (!request.body) return '';
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > limit) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
 }
