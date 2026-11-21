@@ -10,6 +10,7 @@
 | [technical/setup.md](technical/setup.md) | Setup, comandi, struttura del monorepo, convenzioni e CI |
 | [technical/core.md](technical/core.md) | Dominio: entità, forma canonica e impronta del contenuto, sottotitoli, prova di possesso, ImportLesson |
 | [technical/database.md](technical/database.md) | Schema Postgres, RLS, migrazioni e collegamento a Supabase |
+| [technical/generation.md](technical/generation.md) | Generazione di schede e quiz via MCP: feed bilingue, controlli, allineamento al minuto |
 | [technical/import.md](technical/import.md) | Import delle lezioni: estensione, corrispondenza portale → catalogo, token, API |
 | [technical/web.md](technical/web.md) | Web app: pagine, accesso, sicurezza, variabili d'ambiente, messa online |
 | [technical/design-tokens.md](technical/design-tokens.md) | Token del design system: CSS, Tailwind, temi e accenti, test di contrasto |

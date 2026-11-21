@@ -74,6 +74,9 @@ pending ──▶ generating ──▶ ready (finale)
 
 `ready` è finale: il risultato si accetta una volta sola per versione; le correzioni passano da una nuova versione o da "Segnala errore". `transitionGeneration` rifiuta le transizioni non ammesse con `INVALID_STATUS_TRANSITION`.
 
+## Feed di una lezione e allineamento al minuto
+`feed.ts` definisce schede, quiz, concetti e glossario bilingui (`Bilingual<T>`), `checkLessonFeed` (regole tra elementi, restituisce tutti i problemi) e `computeLessonSourcesHash` (impronta delle fonti di una lezione). `alignment.ts` calcola il tratto di video di una scheda dai sottotitoli (`alignCard`), in modo deterministico. Dettagli in [generation.md](generation.md).
+
 ## Prova di possesso
 `grantByPossessionProof(user, version, presentedHash, now)` concede il permesso solo se l'impronta del contenuto presentato coincide con quella della versione. L'impronta va calcolata **dal server** sul contenuto ricevuto, mai presa dal client: non basta dichiarare di avere una lezione, bisogna inviarne il contenuto.
 
