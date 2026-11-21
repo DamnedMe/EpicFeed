@@ -1,5 +1,11 @@
 import type { ConceptKey, LessonFeedDraft, LessonPartId } from '@study-feed/core';
-import { FEED_LIMITS, MAX_SLUG_LENGTH, SLUG_PATTERN } from '@study-feed/core';
+import {
+  FEED_LIMITS,
+  MAX_PRESENTATIONS_PER_LESSON,
+  MAX_SLIDE_PAGES,
+  MAX_SLUG_LENGTH,
+  SLUG_PATTERN,
+} from '@study-feed/core';
 import { z } from 'zod';
 import { lessonPartContentSchema } from './import.js';
 
@@ -239,6 +245,25 @@ export const lessonsToGenerateResponseSchema = z.strictObject({
 /** Risposta di `GET /api/generation/lessons`. */
 export type LessonsToGenerateResponse = z.infer<typeof lessonsToGenerateResponseSchema>;
 
+/** Testo di una pagina di slide (limite per pagina, oltre a quello del totale). */
+const slidePageSchema = z.strictObject({
+  number: z.number().int().min(1).max(MAX_SLIDE_PAGES),
+  text: z.string().max(20_000),
+});
+
+/** Contenuto di una presentazione di slide: testo per pagina (ADR 0012). */
+export const slidesContentSchema = z.strictObject({
+  kind: z.literal('slides'),
+  fileName: z.string().min(1).max(255),
+  pages: z.array(slidePageSchema).min(1).max(MAX_SLIDE_PAGES),
+});
+
+/** Contenuto di una parte tra le fonti della generazione: video, testo o slide. */
+export const sourcePartContentSchema = z.discriminatedUnion('kind', [
+  ...lessonPartContentSchema.options,
+  slidesContentSchema,
+]);
+
 /**
  * Risposta di `GET /api/generation/lessons/:id`: le fonti della lezione per
  * Claude. I sottotitoli **non** ci sono: nell'MVP schede e quiz nascono solo da
@@ -255,10 +280,10 @@ export const lessonSourcesResponseSchema = z.strictObject({
     z.strictObject({
       lessonPartId: z.uuid(),
       title: z.string(),
-      kind: z.enum(['video', 'reading']),
+      kind: z.enum(['video', 'reading', 'slides']),
       position: z.number().int().min(0),
       hasSubtitles: z.boolean(),
-      content: lessonPartContentSchema,
+      content: sourcePartContentSchema,
     }),
   ),
   glossary: z.array(glossaryEntrySchema),
@@ -277,3 +302,63 @@ export const saveLessonFeedResponseSchema = z.strictObject({
 
 /** Risposta di `POST /api/generation/lessons/:id/feed`. */
 export type SaveLessonFeedResponse = z.infer<typeof saveLessonFeedResponseSchema>;
+
+/**
+ * Risposta di `GET /api/generation/catalog`: tutte le lezioni importate dallo
+ * studente, con quante presentazioni di slide hanno già. Serve a
+ * `importa_slide` per abbinare i PDF dello zip alle lezioni.
+ */
+export const ownedLessonsResponseSchema = z.strictObject({
+  lessons: z.array(
+    z.strictObject({
+      lessonId: z.uuid(),
+      lessonTitle: z.string(),
+      chapterTitle: z.string(),
+      subjectTitle: z.string(),
+      slides: z.number().int().min(0),
+    }),
+  ),
+});
+
+/** Risposta di `GET /api/generation/catalog`. */
+export type OwnedLessonsResponse = z.infer<typeof ownedLessonsResponseSchema>;
+
+/** Dimensione massima del corpo di `POST /api/generation/lessons/:id/slides`. */
+export const MAX_SLIDES_BODY_BYTES = 1024 * 1024;
+
+/**
+ * Corpo di `POST /api/generation/lessons/:id/slides`: le presentazioni di una
+ * lezione, con il numero preso dal nome del file (`…-2.pdf` → 2) e il testo
+ * di ogni pagina estratto sul PC.
+ */
+export const importSlidesRequestSchema = z.strictObject({
+  presentations: z
+    .array(
+      z.strictObject({
+        number: z.number().int().min(1).max(99),
+        fileName: z.string().min(1).max(255),
+        pages: z.array(slidePageSchema).min(1).max(MAX_SLIDE_PAGES),
+      }),
+    )
+    .min(1)
+    .max(MAX_PRESENTATIONS_PER_LESSON),
+});
+
+/** Corpo di `POST /api/generation/lessons/:id/slides`. */
+export type ImportSlidesRequest = z.infer<typeof importSlidesRequestSchema>;
+
+/** Risposta di `POST /api/generation/lessons/:id/slides`. */
+export const importSlidesResponseSchema = z.strictObject({
+  lessonId: z.uuid(),
+  presentations: z.array(
+    z.strictObject({
+      number: z.number().int(),
+      lessonPartId: z.uuid(),
+      newVersion: z.boolean(),
+      pages: z.number().int().min(0),
+    }),
+  ),
+});
+
+/** Risposta di `POST /api/generation/lessons/:id/slides`. */
+export type ImportSlidesResponse = z.infer<typeof importSlidesResponseSchema>;

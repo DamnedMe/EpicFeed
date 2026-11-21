@@ -1,11 +1,16 @@
 import type {
+  ImportSlidesRequest,
+  ImportSlidesResponse,
   LessonSourcesResponse,
   LessonsToGenerateResponse,
   SaveLessonFeedRequest,
+  OwnedLessonsResponse,
   SaveLessonFeedResponse,
 } from '@study-feed/contracts';
 import {
   apiErrorSchema,
+  importSlidesResponseSchema,
+  ownedLessonsResponseSchema,
   lessonSourcesResponseSchema,
   lessonsToGenerateResponseSchema,
   saveLessonFeedResponseSchema,
@@ -118,6 +123,30 @@ export class EpicFeedApi {
       `/api/generation/lessons/${encodeURIComponent(body.lessonId)}/feed`,
       { method: 'POST', body: JSON.stringify(body) },
       saveLessonFeedResponseSchema,
+    );
+  }
+
+  /**
+   * Tutte le lezioni importate, con le slide già presenti.
+   *
+   * @returns La risposta validata.
+   */
+  async listCatalog(): Promise<OwnedLessonsResponse> {
+    return this.request('/api/generation/catalog', { method: 'GET' }, ownedLessonsResponseSchema);
+  }
+
+  /**
+   * Invia il testo delle slide di una lezione.
+   *
+   * @param lessonId - Id della lezione.
+   * @param body - Presentazioni della lezione.
+   * @returns La risposta validata.
+   */
+  async importSlides(lessonId: string, body: ImportSlidesRequest): Promise<ImportSlidesResponse> {
+    return this.request(
+      `/api/generation/lessons/${encodeURIComponent(lessonId)}/slides`,
+      { method: 'POST', body: JSON.stringify(body) },
+      importSlidesResponseSchema,
     );
   }
 

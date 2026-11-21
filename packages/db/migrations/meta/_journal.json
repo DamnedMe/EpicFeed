@@ -50,6 +50,13 @@
       "when": 1795287372578,
       "tag": "0006_harden_grants_generation",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795289187648,
+      "tag": "0007_slides_part_kind",
+      "breakpoints": true
     }
   ]
 }

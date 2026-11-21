@@ -3,7 +3,9 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { LessonFeedDraft, LessonId, LessonImport, UserId } from '@study-feed/core';
 import {
   ImportLesson,
+  ImportLessonSlides,
   ListLessonsToGenerate,
+  ListOwnedLessons,
   PossessionProofVerifier,
   ReadLessonForGeneration,
   SaveLessonFeed,
@@ -208,5 +210,42 @@ describe('DrizzleGenerationRepository con i casi d’uso della generazione', () 
     await importLesson.execute(bruno as UserId, lesson('Riassunto AVL'));
     const forBruno = await new ListLessonsToGenerate(repository).execute(bruno as UserId, 10);
     expect(forBruno.totals).toEqual({ lessons: 1, ready: 1, toGenerate: 0 });
+  });
+
+  it('importa le slide di una lezione posseduta, senza doppioni, e le passa alla generazione', async () => {
+    const importSlides = new ImportLessonSlides({
+      catalog: new DrizzleCatalogRepository(db),
+      generation: repository,
+      verifier: new PossessionProofVerifier(clock),
+      clock,
+    });
+    const deck = {
+      number: 1,
+      content: {
+        kind: 'slides' as const,
+        fileName: 'AVL trees-1.pdf',
+        pages: [
+          { number: 1, text: 'AVL trees' },
+          { number: 2, text: '' },
+        ],
+      },
+    };
+    const first = await importSlides.execute(anna as UserId, lessonId, [deck]);
+    expect(first[0]).toMatchObject({ number: 1, newVersion: true, pages: 2 });
+    const again = await importSlides.execute(anna as UserId, lessonId, [deck]);
+    expect(again[0]?.newVersion).toBe(false);
+
+    const owned = await new ListOwnedLessons(repository).execute(anna as UserId);
+    expect(owned).toEqual([expect.objectContaining({ lessonId, slides: 1 })]);
+    const read = await new ReadLessonForGeneration(repository).execute(anna as UserId, lessonId);
+    const slidesPart = read.parts.find((part) => part.kind === 'slides');
+    expect(slidesPart?.content).toEqual(deck.content);
+    expect(read.parts.at(-1)?.kind).toBe('slides');
+
+    // Chi non ha importato la lezione non può aggiungerle slide.
+    const stranger = '0c0c0c0c-0000-4000-8000-00000000000c' as UserId;
+    await expect(importSlides.execute(stranger, lessonId, [deck])).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
   });
 });

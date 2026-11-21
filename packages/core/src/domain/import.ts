@@ -113,6 +113,10 @@ function normalizePart(part: ImportedPart): ImportedPart {
   if (part.kind !== part.content.kind) {
     throw new DomainError('INVALID_CONTENT', 'Il tipo della parte non corrisponde al contenuto');
   }
+  // Le slide non passano dall'estensione: arrivano dallo zip con Claude Desktop (ADR 0012).
+  if (part.kind === 'slides') {
+    throw new DomainError('INVALID_CONTENT', "Le slide non si importano dall'estensione");
+  }
   const subtitles = normalizeTracks(part.subtitles ?? []);
   if (part.kind === 'reading' && (part.videoId !== undefined || subtitles.length > 0)) {
     throw new DomainError('INVALID_CONTENT', 'Una parte di testo non ha video né sottotitoli');

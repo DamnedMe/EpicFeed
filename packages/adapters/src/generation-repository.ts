@@ -72,6 +72,7 @@ export class DrizzleGenerationRepository implements GenerationRepository {
       lesson.sources.push({
         lessonPartId: parseId(row.lessonPartId, 'LessonPartId'),
         contentHash: parseContentHash(row.contentHash),
+        kind: row.kind,
       });
     }
     return [...byLesson.values()];

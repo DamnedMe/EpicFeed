@@ -1,13 +1,17 @@
 import { describe, expect, it, vi } from 'vitest';
 import type {
+  ContentVersionId,
   LessonForGeneration,
+  LessonPartId,
   LessonId,
   LessonsToGenerateResult,
   SaveLessonFeedResult,
 } from '@study-feed/core';
 import { DomainError, FeedValidationError } from '@study-feed/core';
-import { MAX_FEED_BODY_BYTES } from '@study-feed/contracts';
+import { MAX_FEED_BODY_BYTES, MAX_SLIDES_BODY_BYTES } from '@study-feed/contracts';
 import {
+  handleImportSlides,
+  handleListCatalog,
   handleListLessons,
   handleReadLesson,
   handleSaveFeed,
@@ -100,6 +104,26 @@ function deps(overrides: Partial<GenerationHandlerDeps> = {}): GenerationHandler
     listLessons: () => Promise.resolve(listResult),
     readLesson: () => Promise.resolve(lesson),
     saveFeed: () => Promise.resolve(saveResult),
+    listOwnedLessons: () =>
+      Promise.resolve([
+        {
+          lessonId: lessonId as LessonId,
+          lessonTitle: 'Binary trees',
+          chapterTitle: 'Trees',
+          subjectTitle: 'DSA',
+          slides: 1,
+        },
+      ]),
+    importSlides: (_user, _lesson, presentations) =>
+      Promise.resolve(
+        presentations.map((p) => ({
+          number: p.number,
+          lessonPartId: partId as LessonPartId,
+          contentVersionId: '30000000-0000-4000-8000-000000000009' as ContentVersionId,
+          newVersion: true,
+          pages: p.content.pages.length,
+        })),
+      ),
     logError,
     ...overrides,
   };
@@ -257,5 +281,99 @@ describe('POST /api/generation/lessons/:id/feed', () => {
     expect((await handleSaveFeed(declared, lessonId, deps())).status).toBe(413);
     const huge = post('x'.repeat(MAX_FEED_BODY_BYTES + 10));
     expect((await handleSaveFeed(huge, lessonId, deps())).status).toBe(413);
+  });
+});
+
+describe('GET /api/generation/catalog', () => {
+  it('elenca le lezioni importate con le slide', async () => {
+    const response = await handleListCatalog(request('/api/generation/catalog'), deps());
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      lessons: [
+        {
+          lessonId,
+          lessonTitle: 'Binary trees',
+          chapterTitle: 'Trees',
+          subjectTitle: 'DSA',
+          slides: 1,
+        },
+      ],
+    });
+    const failing = await handleListCatalog(
+      request('/api/generation/catalog'),
+      deps({ listOwnedLessons: () => Promise.reject(new Error('db')) }),
+    );
+    expect(failing.status).toBe(500);
+    const anonymous = await handleListCatalog(request('/api/generation/catalog', {}, 'x'), deps());
+    expect(anonymous.status).toBe(401);
+  });
+});
+
+describe('POST /api/generation/lessons/:id/slides', () => {
+  const slidesBody = {
+    presentations: [
+      { number: 1, fileName: 'Binary trees-1.pdf', pages: [{ number: 1, text: 'Trees' }] },
+    ],
+  };
+  const postSlides = (payload: unknown, id = lessonId) =>
+    request(`/api/generation/lessons/${id}/slides`, {
+      method: 'POST',
+      body: typeof payload === 'string' ? payload : JSON.stringify(payload),
+    });
+
+  it('importa le slide e registra la chiamata', async () => {
+    const base = deps();
+    const importSlides = vi.fn((...args: Parameters<GenerationHandlerDeps['importSlides']>) =>
+      base.importSlides(...args),
+    );
+    const response = await handleImportSlides(
+      postSlides(slidesBody),
+      lessonId,
+      deps({ importSlides }),
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      lessonId,
+      presentations: [{ number: 1, lessonPartId: partId, newVersion: true, pages: 1 }],
+    });
+    expect(record).toHaveBeenCalledWith(user, 'slides', lessonId);
+    expect(importSlides.mock.calls[0]?.[2]).toEqual([
+      {
+        number: 1,
+        content: {
+          kind: 'slides',
+          fileName: 'Binary trees-1.pdf',
+          pages: [{ number: 1, text: 'Trees' }],
+        },
+      },
+    ]);
+  });
+
+  it('rifiuta id, JSON e forme non valide, lezioni non importate e corpi troppo grandi', async () => {
+    expect((await handleImportSlides(postSlides(slidesBody, 'x'), 'x', deps())).status).toBe(400);
+    expect((await handleImportSlides(postSlides('{'), lessonId, deps())).status).toBe(400);
+    const invalid = await handleImportSlides(postSlides({ presentations: [] }), lessonId, deps());
+    expect(invalid.status).toBe(400);
+    expect(((await invalid.json()) as { error: { issues: unknown[] } }).error.issues.length).toBe(
+      1,
+    );
+    const missing = await handleImportSlides(
+      postSlides(slidesBody),
+      lessonId,
+      deps({ importSlides: () => Promise.reject(new DomainError('NOT_FOUND', 'no')) }),
+    );
+    expect(missing.status).toBe(404);
+    const big = request(`/api/generation/lessons/${lessonId}/slides`, {
+      method: 'POST',
+      body: '{}',
+      headers: { 'content-length': String(MAX_SLIDES_BODY_BYTES + 1) },
+    });
+    expect((await handleImportSlides(big, lessonId, deps())).status).toBe(413);
+    const anonymous = request(
+      `/api/generation/lessons/${lessonId}/slides`,
+      { method: 'POST' },
+      'x',
+    );
+    expect((await handleImportSlides(anonymous, lessonId, deps())).status).toBe(401);
   });
 });

@@ -8,32 +8,44 @@ import { z } from 'zod';
 import type { EpicFeedApi } from './api-client.js';
 import { ApiRequestError } from './api-client.js';
 import { GENERATION_INSTRUCTIONS, PROMPT_VERSION, SERVER_INSTRUCTIONS } from './prompt.js';
+import type { SlidesToolkit } from './slides/toolkit.js';
+import { defaultSlidesToolkit } from './slides/toolkit.js';
+import { importSlides, slideImagesFor } from './slides/tools.js';
 
 /** Versione del server MCP, mostrata a Claude Desktop. */
 export const SERVER_VERSION = '0.1.0';
 
 /** Operazioni dell'API usate dagli strumenti (sostituibili nei test). */
-export type GenerationApi = Pick<EpicFeedApi, 'listLessons' | 'readLesson' | 'saveFeed'>;
+export type GenerationApi = Pick<
+  EpicFeedApi,
+  'listLessons' | 'readLesson' | 'saveFeed' | 'listCatalog' | 'importSlides'
+>;
 
 /**
  * Crea il server MCP di EpicFeed con gli strumenti di generazione (M2):
  * `lezioni_da_generare`, `leggi_lezione`, `salva_feed_lezione`,
- * `stato_generazione` e il prompt `genera_lezioni`.
+ * `stato_generazione`, `importa_slide` e il prompt `genera_lezioni`.
  *
  * Il server non tiene segreti oltre al token (dentro `api`) e ricorda solo,
  * in memoria, le parti delle lezioni lette, per controllare il feed prima di
  * inviarlo.
  *
  * @param api - Client dell'API di EpicFeed.
+ * @param slides - Operazioni sui PDF delle slide (sostituibili nei test).
  * @returns Il server, da collegare a un trasporto (stdio in produzione).
  */
-export function createEpicFeedServer(api: GenerationApi): McpServer {
+export function createEpicFeedServer(
+  api: GenerationApi,
+  slides: SlidesToolkit = defaultSlidesToolkit(),
+): McpServer {
   const server = new McpServer(
     { name: 'epicfeed', title: 'EpicFeed', version: SERVER_VERSION },
     { instructions: SERVER_INSTRUCTIONS },
   );
   // Parti di ogni lezione letta in questa sessione: servono al controllo locale.
   const partsByLesson = new Map<string, ReadonlySet<string>>();
+  // Lezioni le cui slide sono già state importate in questa sessione (per riprendere).
+  const slidesDone = new Set<string>();
 
   server.registerTool(
     'lezioni_da_generare',
@@ -83,7 +95,7 @@ export function createEpicFeedServer(api: GenerationApi): McpServer {
     {
       title: 'Leggi lezione',
       description:
-        'Restituisce le fonti di una lezione (riassunti in italiano e inglese, testi di lettura, glossario della materia), la sua impronta (sourcesHash) e le istruzioni per crearne il feed. Da chiamare prima di salva_feed_lezione.',
+        'Restituisce le fonti di una lezione (riassunti in italiano e inglese, testi di lettura, testo e immagini delle slide, glossario della materia), la sua impronta (sourcesHash) e le istruzioni per crearne il feed. Da chiamare prima di salva_feed_lezione.',
       inputSchema: {
         lessonId: z.uuid().describe('Id della lezione, da lezioni_da_generare.'),
       },
@@ -93,7 +105,19 @@ export function createEpicFeedServer(api: GenerationApi): McpServer {
       withErrors(async () => {
         const lesson = await api.readLesson(lessonId);
         partsByLesson.set(lesson.lessonId, new Set(lesson.parts.map((part) => part.lessonPartId)));
-        return text(`${formatLesson(lesson)}\n\n---\n\n${GENERATION_INSTRUCTIONS}`);
+        const { images, note } = await slideImagesFor(lesson, slides);
+        const content: CallToolResult['content'] = [{ type: 'text', text: formatLesson(lesson) }];
+        if (note) content.push({ type: 'text', text: note });
+        for (const image of images) {
+          content.push({ type: 'text', text: `Figura: ${image.label}` });
+          content.push({
+            type: 'image',
+            data: image.png.toString('base64'),
+            mimeType: 'image/png',
+          });
+        }
+        content.push({ type: 'text', text: GENERATION_INSTRUCTIONS });
+        return { content };
       }),
   );
 
@@ -154,6 +178,60 @@ export function createEpicFeedServer(api: GenerationApi): McpServer {
       }),
   );
 
+  server.registerTool(
+    'importa_slide',
+    {
+      title: 'Importa slide',
+      description:
+        'Importa le slide delle lezioni dallo zip "Download all PDFs" della pagina Course downloads del portale (o dalla cartella in cui è estratto). Abbina ogni PDF alla sua lezione già importata, legge il testo sul PC e lo invia a EpicFeed; i PDF restano sul PC.',
+      inputSchema: {
+        percorso: z
+          .string()
+          .min(1)
+          .max(1024)
+          .describe(
+            'Percorso dello zip o della cartella sul PC, es. C:\\Users\\…\\Downloads\\slides.zip',
+          ),
+        materia: z
+          .string()
+          .max(200)
+          .optional()
+          .describe('Materia a cui limitare l’abbinamento, se due lezioni hanno lo stesso titolo.'),
+        aggiorna: z
+          .boolean()
+          .optional()
+          .describe('Rilegge anche le lezioni che hanno già le slide (zip aggiornato).'),
+      },
+      annotations: { readOnlyHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async ({ percorso, materia, aggiorna }, extra) =>
+      withErrors(async () => {
+        const progressToken = extra._meta?.progressToken;
+        try {
+          const outcome = await importSlides(api, slides, slidesDone, {
+            path: percorso.trim(),
+            subject: materia,
+            refresh: aggiorna,
+            onProgress:
+              progressToken === undefined
+                ? undefined
+                : (progress, total) =>
+                    extra.sendNotification({
+                      method: 'notifications/progress',
+                      params: { progressToken, progress, total },
+                    }),
+          });
+          return { isError: outcome.isError, content: [{ type: 'text', text: outcome.text }] };
+        } catch (error) {
+          if (error instanceof ApiRequestError) throw error;
+          // Errori dei file (percorso inesistente, zip rovinato): messaggio già leggibile.
+          const message =
+            error instanceof Error ? error.message : 'Errore nella lettura delle slide.';
+          return { isError: true, content: [{ type: 'text', text: message }] };
+        }
+      }),
+  );
+
   server.registerPrompt(
     'genera_lezioni',
     {
@@ -211,8 +289,13 @@ export function formatLesson(lesson: LessonSourcesResponse): string {
         '### Summary (en)',
         en ?? '(missing)',
       );
-    } else {
+    } else if (part.content.kind === 'reading') {
       out.push('Tipo: testo di lettura (origin "reading")', '', part.content.markdown);
+    } else {
+      out.push(`Tipo: slide (origin "slides"), file ${part.content.fileName}`);
+      for (const page of part.content.pages) {
+        out.push('', `### Pagina ${String(page.number)}`, page.text || '(solo figura)');
+      }
     }
   }
   out.push('', '## Glossario della materia');

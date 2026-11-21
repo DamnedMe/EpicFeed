@@ -1,18 +1,28 @@
 import type {
+  ImportedSlidesResult,
   LessonForGeneration,
   LessonId,
   LessonsToGenerateResult,
+  OwnedLessonSummary,
+  SlidesPresentationInput,
   SaveLessonFeedInput,
   SaveLessonFeedResult,
   UserId,
 } from '@study-feed/core';
 import { DomainError, FeedValidationError, parseId } from '@study-feed/core';
 import type {
+  ImportSlidesResponse,
   LessonSourcesResponse,
   LessonsToGenerateResponse,
+  OwnedLessonsResponse,
   SaveLessonFeedResponse,
 } from '@study-feed/contracts';
-import { MAX_FEED_BODY_BYTES, saveLessonFeedRequestSchema } from '@study-feed/contracts';
+import {
+  MAX_FEED_BODY_BYTES,
+  MAX_SLIDES_BODY_BYTES,
+  importSlidesRequestSchema,
+  saveLessonFeedRequestSchema,
+} from '@study-feed/contracts';
 import { z } from 'zod';
 import { apiError, apiOk, bearerToken, readLimited } from './http';
 
@@ -30,10 +40,20 @@ export interface GenerationHandlerDeps {
   /** Dice se l'utente è sotto il limite di frequenza. */
   isAllowed(userId: string): Promise<boolean>;
   /** Registra una chiamata per il limite di frequenza. */
-  record(userId: string, action: 'read' | 'save', lessonId: string | null): Promise<void>;
+  record(
+    userId: string,
+    action: 'read' | 'save' | 'slides',
+    lessonId: string | null,
+  ): Promise<void>;
   listLessons(userId: UserId, limit: number): Promise<LessonsToGenerateResult>;
   readLesson(userId: UserId, lessonId: LessonId): Promise<LessonForGeneration>;
   saveFeed(userId: UserId, input: SaveLessonFeedInput): Promise<SaveLessonFeedResult>;
+  listOwnedLessons(userId: UserId): Promise<OwnedLessonSummary[]>;
+  importSlides(
+    userId: UserId,
+    lessonId: LessonId,
+    presentations: readonly SlidesPresentationInput[],
+  ): Promise<ImportedSlidesResult[]>;
   /** Registra un errore inatteso (senza contenuti). */
   logError(error: unknown): void;
 }
@@ -83,6 +103,30 @@ function domainErrorResponse(error: unknown, deps: GenerationHandlerDeps): Respo
   }
   deps.logError(error);
   return apiError('INTERNAL', 'Errore del server. Riprova più tardi.');
+}
+
+/** Legge un corpo JSON entro il limite di dimensione, o restituisce l'errore. */
+async function readJsonBody(
+  request: Request,
+  maxBytes: number,
+  tooLarge: string,
+): Promise<{ readonly json: unknown } | Response> {
+  const declared = Number(request.headers.get('content-length') ?? '0');
+  const raw = declared > maxBytes ? null : await readLimited(request, maxBytes);
+  if (raw === null) return apiError('PAYLOAD_TOO_LARGE', tooLarge);
+  try {
+    return { json: JSON.parse(raw) as unknown };
+  } catch {
+    return apiError('INVALID_REQUEST', 'Il corpo della richiesta non è JSON valido.');
+  }
+}
+
+/** Tutti i problemi di forma, come per le regole: Claude li corregge in una volta. */
+function zodIssues(error: z.ZodError): { path: string; message: string }[] {
+  return error.issues.slice(0, 200).map((issue) => ({
+    path: issue.path.join('.').slice(0, 200),
+    message: issue.message.slice(0, 500),
+  }));
 }
 
 const limitSchema = z.coerce.number().int().min(1).max(100).catch(20);
@@ -153,7 +197,11 @@ export async function handleReadLesson(
         kind: part.kind,
         position: part.position,
         hasSubtitles: part.subtitles.length > 0,
-        content: part.content,
+        // Copia mutabile per il tipo della risposta (le pagine del dominio sono readonly).
+        content:
+          part.content.kind === 'slides'
+            ? { ...part.content, pages: part.content.pages.map((page) => ({ ...page })) }
+            : part.content,
       })),
       glossary: lesson.glossary.map((entry) => ({ ...entry })),
     };
@@ -182,25 +230,11 @@ export async function handleSaveFeed(
   if (!lessonId) return apiError('INVALID_REQUEST', 'Id della lezione non valido.');
 
   await deps.record(auth.userId, 'save', lessonId);
-  const declared = Number(request.headers.get('content-length') ?? '0');
-  const raw =
-    declared > MAX_FEED_BODY_BYTES ? null : await readLimited(request, MAX_FEED_BODY_BYTES);
-  if (raw === null) return apiError('PAYLOAD_TOO_LARGE', 'Il feed è troppo grande.');
-
-  let json: unknown;
-  try {
-    json = JSON.parse(raw);
-  } catch {
-    return apiError('INVALID_REQUEST', 'Il corpo della richiesta non è JSON valido.');
-  }
-  const parsed = saveLessonFeedRequestSchema.safeParse(json);
+  const body = await readJsonBody(request, MAX_FEED_BODY_BYTES, 'Il feed è troppo grande.');
+  if (body instanceof Response) return body;
+  const parsed = saveLessonFeedRequestSchema.safeParse(body.json);
   if (!parsed.success) {
-    // Tutti i problemi di forma, come per le regole: Claude li corregge in una volta.
-    const issues = parsed.error.issues.slice(0, 200).map((issue) => ({
-      path: issue.path.join('.').slice(0, 200),
-      message: issue.message.slice(0, 500),
-    }));
-    return apiError('INVALID_FEED', 'Il feed non ha la forma attesa.', {}, issues);
+    return apiError('INVALID_FEED', 'Il feed non ha la forma attesa.', {}, zodIssues(parsed.error));
   }
   if (parsed.data.lessonId.toLowerCase() !== lessonId) {
     return apiError('INVALID_REQUEST', 'La lezione del feed non corrisponde al percorso.');
@@ -208,8 +242,87 @@ export async function handleSaveFeed(
 
   try {
     const result = await deps.saveFeed(auth.userId, { ...parsed.data, lessonId });
-    const body: SaveLessonFeedResponse = { ...result };
-    return apiOk(body, result.created ? 201 : 200);
+    const response: SaveLessonFeedResponse = { ...result };
+    return apiOk(response, result.created ? 201 : 200);
+  } catch (error) {
+    return domainErrorResponse(error, deps);
+  }
+}
+
+/**
+ * `GET /api/generation/catalog`: tutte le lezioni importate, con il numero di
+ * presentazioni di slide (per abbinare lo zip alle lezioni).
+ *
+ * @param request - Richiesta HTTP.
+ * @param deps - Servizi.
+ * @returns La risposta HTTP.
+ */
+export async function handleListCatalog(
+  request: Request,
+  deps: GenerationHandlerDeps,
+): Promise<Response> {
+  const auth = await authorize(request, deps);
+  if ('response' in auth) return auth.response;
+  try {
+    const lessons = await deps.listOwnedLessons(auth.userId);
+    const body: OwnedLessonsResponse = { lessons: lessons.map((lesson) => ({ ...lesson })) };
+    return apiOk(body);
+  } catch (error) {
+    return domainErrorResponse(error, deps);
+  }
+}
+
+/**
+ * `POST /api/generation/lessons/:id/slides`: aggiunge alla lezione le sue
+ * presentazioni di slide, lette sul PC dallo zip ufficiale (ADR 0012).
+ *
+ * @param request - Richiesta HTTP (corpo: `importSlidesRequestSchema`).
+ * @param rawLessonId - Id della lezione dal percorso.
+ * @param deps - Servizi.
+ * @returns La risposta HTTP.
+ */
+export async function handleImportSlides(
+  request: Request,
+  rawLessonId: string,
+  deps: GenerationHandlerDeps,
+): Promise<Response> {
+  const auth = await authorize(request, deps);
+  if ('response' in auth) return auth.response;
+  const lessonId = lessonIdFrom(rawLessonId);
+  if (!lessonId) return apiError('INVALID_REQUEST', 'Id della lezione non valido.');
+
+  await deps.record(auth.userId, 'slides', lessonId);
+  const body = await readJsonBody(request, MAX_SLIDES_BODY_BYTES, 'Le slide sono troppo grandi.');
+  if (body instanceof Response) return body;
+  const parsed = importSlidesRequestSchema.safeParse(body.json);
+  if (!parsed.success) {
+    return apiError(
+      'INVALID_REQUEST',
+      'Le slide non hanno la forma attesa.',
+      {},
+      zodIssues(parsed.error),
+    );
+  }
+
+  try {
+    const results = await deps.importSlides(
+      auth.userId,
+      lessonId,
+      parsed.data.presentations.map(({ number, fileName, pages }) => ({
+        number,
+        content: { kind: 'slides', fileName, pages },
+      })),
+    );
+    const response: ImportSlidesResponse = {
+      lessonId,
+      presentations: results.map((result) => ({
+        number: result.number,
+        lessonPartId: result.lessonPartId,
+        newVersion: result.newVersion,
+        pages: result.pages,
+      })),
+    };
+    return apiOk(response);
   } catch (error) {
     return domainErrorResponse(error, deps);
   }

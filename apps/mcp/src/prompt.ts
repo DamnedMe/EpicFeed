@@ -8,7 +8,7 @@
  */
 
 /** Versione delle istruzioni di generazione (`AAAA-MM-GG.n`). */
-export const PROMPT_VERSION = '2026-11-21.1';
+export const PROMPT_VERSION = '2026-11-21.2';
 
 /**
  * Istruzioni brevi per Claude Desktop, inviate all'avvio del server: dicono
@@ -20,7 +20,8 @@ Quando lo studente chiede di generare le lezioni (es. "genera le lezioni nuove d
 2. per ogni lezione, una alla volta: leggi_lezione, poi crea il feed seguendo le istruzioni che leggi_lezione restituisce, poi salva_feed_lezione;
 3. se salva_feed_lezione elenca problemi, correggili e salva di nuovo (non ricominciare da capo);
 4. alla fine riassumi in due righe: lezioni generate, schede e domande create.
-Non inventare contenuti che non sono nelle fonti. Non chiedere conferma per ogni lezione: lo studente ha già chiesto di generarle.`;
+Non inventare contenuti che non sono nelle fonti. Non chiedere conferma per ogni lezione: lo studente ha già chiesto di generarle.
+Quando lo studente indica lo zip delle slide del portale ("Download all PDFs" in Course downloads) o la cartella in cui l'ha estratto, chiama importa_slide con quel percorso; se risponde che restano lezioni, richiamalo con lo stesso percorso finché ha finito. Le lezioni con slide nuove tornano tra quelle da generare.`;
 
 /**
  * Istruzioni complete per creare il feed di una lezione. Le restituisce
@@ -31,7 +32,8 @@ export const GENERATION_INSTRUCTIONS = `# Come creare il feed di una lezione Epi
 Lo studente studia sul telefono, scorrendo schede brevi come in un feed. L'esame è in inglese: ogni testo va scritto in italiano (it) e in inglese (en), nella stessa passata, con la stessa struttura.
 
 ## Fonti e loro affidabilità
-1. Riassunti delle parti video (summaries.it e summaries.en) e testi di lettura (markdown): sono la base. Scrivi la versione italiana dalle fonti italiane e quella inglese dalle fonti inglesi; traduci solo ciò che esiste in una lingua sola (di solito i testi di lettura, in inglese).
+1. Riassunti delle parti video (summaries.it e summaries.en), testi di lettura (markdown) e slide: sono la base, allo stesso livello. Scrivi la versione italiana dalle fonti italiane e quella inglese dalle fonti inglesi; traduci solo ciò che esiste in una lingua sola (di solito testi di lettura e slide, in inglese).
+   Le slide sono la fonte migliore per la terminologia inglese dell'esame. Se arrivano immagini di slide ("Figura: Slide n, pagina p"), usa i diagrammi per spiegare a parole il concetto (es. come cambia l'albero in una rotazione); non descrivere l'immagine in sé.
 2. Glossario della materia: usa i termini esattamente in quella forma.
 3. Niente altro. Se un dettaglio non è nelle fonti, non scriverlo: meglio una scheda in meno che una scheda sbagliata. Non aggiungere esempi, numeri o complessità che le fonti non danno.
 I riassunti italiani a volte sono tradotti male ("le sotto-alberi"): correggi la lingua, non il contenuto.
@@ -50,7 +52,7 @@ Campi di ogni scheda:
 - terms: i termini del glossario citati, nella forma inglese del corso.
 - conceptKeys: 1-2 concetti della lezione a cui la scheda appartiene.
 - sourcePartId: l'id della parte da cui viene la scheda (esattamente come in leggi_lezione).
-- origin: "summary" se dal riassunto di un video, "reading" se da un testo di lettura.
+- origin: "summary" se dal riassunto di un video, "reading" se da un testo di lettura, "slides" se dalle slide.
 Nomi di API, funzioni, strutture dati e simboli restano nella forma originale in entrambe le lingue (es. HashMap, O(log n), "AVL tree" può diventare "albero AVL" ma il termine inglese va in terms).
 
 ## Quiz: 6-8 domande per lezione

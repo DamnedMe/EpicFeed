@@ -66,6 +66,17 @@ describe('normalizeLessonImport', () => {
     expect(() => normalizeLessonImport(lesson([wrong]))).toThrow(/non corrisponde/);
   });
 
+  it("rifiuta le slide, che non arrivano dall'estensione", () => {
+    const slides: ImportedPart = {
+      epicodeId: '8',
+      title: 'Slide',
+      position: 0,
+      kind: 'slides',
+      content: { kind: 'slides', fileName: 'a-1.pdf', pages: [{ number: 1, text: 'x' }] },
+    };
+    expect(() => normalizeLessonImport(lesson([slides]))).toThrow(/estensione/);
+  });
+
   it('rifiuta un video su una parte di testo', () => {
     const wrong: ImportedPart = {
       epicodeId: '9',

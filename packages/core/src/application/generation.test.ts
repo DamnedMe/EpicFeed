@@ -15,7 +15,12 @@ import type {
   NewLessonFeed,
   OwnedLesson,
 } from './generation.js';
-import { ListLessonsToGenerate, ReadLessonForGeneration, SaveLessonFeed } from './generation.js';
+import {
+  ListLessonsToGenerate,
+  ListOwnedLessons,
+  ReadLessonForGeneration,
+  SaveLessonFeed,
+} from './generation.js';
 
 const user = '0a0a0a0a-0000-4000-8000-00000000000a' as UserId;
 const lessonId = '10000000-0000-4000-8000-000000000001' as LessonId;
@@ -160,10 +165,33 @@ class FakeRepository implements GenerationRepository {
   }
 }
 
+describe('ListOwnedLessons', () => {
+  it('elenca le lezioni importate con il numero di presentazioni di slide', async () => {
+    const repo = new FakeRepository();
+    repo.owned = [
+      {
+        lessonId,
+        lessonTitle: 'AVL trees',
+        chapterTitle: 'Trees',
+        subjectTitle: 'DSA',
+        sources: [
+          { lessonPartId: videoPart, contentHash: hash('a'), kind: 'video' },
+          { lessonPartId: readingPart, contentHash: hash('b'), kind: 'slides' },
+        ],
+      },
+    ];
+    expect(await new ListOwnedLessons(repo).execute(user)).toEqual([
+      { lessonId, lessonTitle: 'AVL trees', chapterTitle: 'Trees', subjectTitle: 'DSA', slides: 1 },
+    ]);
+  });
+});
+
 describe('ListLessonsToGenerate', () => {
   it('elenca solo le lezioni senza un feed per le fonti attuali, con i totali', async () => {
     const repo = new FakeRepository();
-    const lessonSources = [{ lessonPartId: videoPart, contentHash: hash('a') }];
+    const lessonSources = [
+      { lessonPartId: videoPart, contentHash: hash('a'), kind: 'video' as const },
+    ];
     const base = { chapterTitle: 'Trees', subjectTitle: 'DSA', sources: lessonSources };
     repo.owned = [
       { ...base, lessonId, lessonTitle: 'Generata' },

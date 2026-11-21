@@ -28,9 +28,10 @@ export interface Lesson {
 /**
  * Tipo di parte di lezione:
  * - `video`: parte con video Vimeo, riassunti e sottotitoli;
- * - `reading`: testo da leggere (riassunto di capitolo in markdown, documento).
+ * - `reading`: testo da leggere (riassunto di capitolo in markdown, documento);
+ * - `slides`: presentazione dallo zip ufficiale, importata con Claude Desktop (ADR 0012).
  */
-export type LessonPartKind = 'video' | 'reading';
+export type LessonPartKind = 'video' | 'reading' | 'slides';
 
 /**
  * Parte di una lezione (in Directus: contenuto vimeo, markdown o googledocs).
@@ -87,7 +88,7 @@ export function createLessonPart(input: LessonPart): LessonPart {
   });
 }
 
-const PART_KINDS: readonly string[] = ['video', 'reading'] satisfies LessonPartKind[];
+const PART_KINDS: readonly string[] = ['video', 'reading', 'slides'] satisfies LessonPartKind[];
 
 // Gli id Directus sono interi o UUID: accettiamo solo caratteri sicuri, così
 // l'id si può usare senza escaping in URL e log.
