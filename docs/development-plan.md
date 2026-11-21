@@ -14,6 +14,8 @@ Un solo utente reale (Damian). Il modello multi-utente (catalogo deduplicato, pr
 - Import di una lezione dall'estensione (riassunti delle parti video, riassunto di capitolo, sottotitoli per i tempi, metadati del corso).
 - Catalogo deduplicato per `contentHash`, permesso per lezione con prova di possesso, versioni datate.
 - Generazione di schede, quiz e concetti **dai soli riassunti**, con il glossario della materia, fatta da Claude Desktop tramite il server MCP (ADR 0007).
+- **Slide delle lezioni** dallo zip ufficiale del portale, lette sul PC dal server MCP, diagrammi compresi ([ADR 0012](decisions/0012-slide-dallo-zip-ufficiale.md)).
+- **Studio in italiano e in inglese**, perché l'esame è in inglese: come offrirlo è in [ADR 0011](decisions/0011-studio-bilingue-it-en.md), da decidere prima di M2.
 - Allineamento delle schede al minuto del video ("Guarda sul portale"); se incerto, apre la parte video dall'inizio.
 - Feed verticale (PWA installabile), temi chiaro/scuro/auto, 5 accenti.
 - Quiz di fine capitolo, ripasso FSRS, risultati in IndexedDB, export/import del backup.
@@ -51,7 +53,7 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
 - `packages/ui`: token CSS dei colori, temi e accenti dal [design system](design-system.md); font self-hosted.
 - Supabase (regione UE): schema iniziale con Drizzle, RLS attiva su ogni tabella dal primo giorno.
 
-**M1 Import e catalogo**: realizzata il 15/11/2026 ([import.md](technical/import.md), [web.md](technical/web.md), [ADR 0009](decisions/0009-import-lezione-intera-e-sottotitoli.md)). Su scelta di Damian l'estensione importa la lezione intera con un clic, compresi i sottotitoli di tutte le parti video, salvati come tracce separate dalle versioni. App online su Vercel dal 15/11/2026 ([web.md](technical/web.md#messa-online-vercel)); resta la prima prova di import sul portale reale. Il 21/11/2026, su richiesta di Damian, si aggiungono l'import di un capitolo o del corso intero a ritmo prudente ([ADR 0010](decisions/0010-import-capitolo-e-corso.md)).
+**M1 Import e catalogo**: realizzata il 15/11/2026 ([import.md](technical/import.md), [web.md](technical/web.md), [ADR 0009](decisions/0009-import-lezione-intera-e-sottotitoli.md)). Su scelta di Damian l'estensione importa la lezione intera con un clic, compresi i sottotitoli di tutte le parti video, salvati come tracce separate dalle versioni. App online su Vercel dal 15/11/2026 ([web.md](technical/web.md#messa-online-vercel)); resta la prima prova di import sul portale reale. Il 21/11/2026, su richiesta di Damian, si aggiungono l'import di un capitolo o del corso intero a ritmo prudente ([ADR 0010](decisions/0010-import-capitolo-e-corso.md)); primo import reale riuscito lo stesso giorno (corso intero, 31 lezioni in circa 20 minuti). Le slide non passano dall'estensione: arrivano in M2 dallo zip ufficiale ([ADR 0012](decisions/0012-slide-dallo-zip-ufficiale.md)).
 - Estensione: si attiva solo su `learn.epicode.edu.mt`, legge ciò che la pagina della lezione ha già caricato, chiede a Directus solo i campi necessari, mostra un'anteprima e invia con un clic. Mai scritture sulle collezioni di progresso.
 - Login nella web app (ADR 0007): primo accesso con codice via email, poi l'utente imposta una password; da lì entra con email e password.
 - Accesso dell'estensione: l'utente fa login nella web app, che passa all'estensione un token di sessione a scadenza breve (niente password nell'estensione).
@@ -60,7 +62,10 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
 
 **M2 Generazione via MCP**
 - Ogni `ContentVersion` ha uno stato di generazione (`da_generare`, `in_corso`, `pronta`, `errore`). Nessuna coda di job sul server nell'MVP: il lavoro lo fa Claude Desktop.
-- Server MCP locale (`apps/mcp`, stdio) con gli strumenti `lezioni_da_generare`, `leggi_lezione` (riassunti, sottotitoli, glossario della materia), `salva_feed_lezione` e `stato_generazione`. Le istruzioni di generazione stanno in un prompt MCP versionato nella repo, con la gerarchia delle fonti riassunti > glossario > sottotitoli.
+- **Primo punto da chiudere**: la lingua delle schede e dei quiz ([ADR 0011](decisions/0011-studio-bilingue-it-en.md)), perché decide lo schema dei contratti. Con l'opzione consigliata ogni testo è una coppia `{ it, en }` generata nella stessa passata.
+- Server MCP locale (`apps/mcp`, stdio) con gli strumenti `lezioni_da_generare`, `leggi_lezione` (riassunti e sottotitoli in entrambe le lingue, slide, glossario della materia), `salva_feed_lezione`, `stato_generazione` e `importa_slide`. Le istruzioni di generazione stanno in un prompt MCP versionato nella repo, con la gerarchia delle fonti riassunti e slide > glossario > sottotitoli.
+- **Slide** ([ADR 0012](decisions/0012-slide-dallo-zip-ufficiale.md)): `importa_slide` legge sul PC lo zip scaricato con *Download all PDFs*, abbina ogni PDF alla lezione per nome e invia solo il testo come parte `slides` (migrazione non distruttiva); `leggi_lezione` aggiunge le immagini delle pagine con figure, prodotte al momento. I PDF restano sul PC.
+- Glossario della materia bilingue: termine inglese del corso e traduzione italiana.
 - `salva_feed_lezione` valida il risultato con gli schemi zod di `packages/contracts` prima di inviarlo all'API; l'API lo rivalida e lo accetta una volta sola per `contentHash` (il primo che genera una versione la rende pronta per tutti quelli che la possiedono).
 - L'allineamento al minuto (`AlignClipsToSubtitles`) è codice deterministico nel `core` (parole chiave e soglia di confidenza), non una chiamata a Claude: più veloce, ripetibile e testabile.
 - Accesso del server MCP all'API con un **token personale** creato dalla sezione Io: limitato agli strumenti di generazione, revocabile, conservato solo sul PC.
@@ -69,12 +74,14 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
 **M3 Feed**
 - Feed con scroll-snap + Motion, virtualizzazione, precarico delle 2 schede successive.
 - Azioni: Salva, Chiedi (disattivata fino a M6, poi collegata), Quiz, Fonte.
+- Lingua di studio in *Io* e, con l'opzione consigliata dell'[ADR 0011](decisions/0011-studio-bilingue-it-en.md), pulsante IT/EN su ogni scheda (cambio locale, senza nuove richieste).
 - PWA installabile, funziona offline per le schede già scaricate.
 - Test Playwright del flusso import → feed su viewport mobile.
 
 **M4 Quiz e ripasso**
 - `AnswerQuiz`, `ScheduleReview` con `ts-fsrs`; `IndexedDbProgressStore`.
-- Schermate Quiz e Ripasso, sezione Io (tema, accento, export/import backup).
+- Schermate Quiz e Ripasso, sezione Io (tema, accento, lingua dei quiz, export/import backup).
+- Quiz nella lingua scelta (proposta: inglese, per l'esame); il ripasso è unico per concetto, qualunque sia la lingua; i risultati ricordano la lingua usata ([ADR 0011](decisions/0011-studio-bilingue-it-en.md)).
 - Budget Lighthouse in CI (LCP < 2,5 s mobile).
 
 ## 3. Struttura della repo

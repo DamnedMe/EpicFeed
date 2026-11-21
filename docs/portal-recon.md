@@ -121,10 +121,20 @@ Altri endpoint visti: `/items/courses`, `/items/courses/{id}`, `/items/folders`,
 - L'importazione può avvenire dal browser di Damian mentre usa il portale (estensione): legge solo il contenuto aperto, con le stesse richieste che l'app fa già. Zero traffico in più, nessun crawling.
 - I quiz di capitolo (`quiz`) esistono già sul portale: li possiamo usare come riferimento, ma i nostri quiz saranno generati dai riassunti, per non leggere le risposte degli esami.
 
+### Verifiche del 21/11/2026 (primo import reale)
+
+Dati dal corso *Data Structures and Algorithms* importato per intero (31 lezioni con materiale), più una visita alla pagina dei download. Nessuna richiesta aggiuntiva al CMS.
+
+- **Riassunti delle parti video**: presenti per tutti i 91 video, sia in italiano sia in inglese.
+- **Sottotitoli**: per tutti i 91 video una traccia `it` caricata sul portale (non auto-generata) e una `en-x-autogen` auto-generata, con gli stessi tempi.
+- **Riassunti di capitolo** (markdown "- Summary"): in inglese, circa 10.000 caratteri.
+- **Slide**: la pagina *Course downloads* (`/course/{id}/downloads`) elenca un PDF per presentazione, con nome `{titolo lezione}-{n}.pdf`, e ha il pulsante *Download all PDFs* (zip). I PDF sono l'esportazione di Google Slides (`docs.google.com/presentation/d/{id}/export/pdf`, lo stesso link di *Download Attachment* nella lezione) e sono in inglese, con diagrammi. Si importano dallo zip con Claude Desktop ([ADR 0012](decisions/0012-slide-dallo-zip-ufficiale.md)).
+- L'esame è in inglese: le fonti in due lingue permettono lo studio bilingue ([ADR 0011](decisions/0011-studio-bilingue-it-en.md)).
+
 ## 6. Domande aperte
 
 - Testo dei termini d'uso studenti / regolamento (onboarding o contratto).
 - Cosa espone la Student API e se ha limiti d'uso.
 - ~~Formato dei riassunti e dei capitoli~~: risolto, vedi sezione 5.
-- Verificare che i sottotitoli italiani ci siano per tutte le parti video, non solo per la prima.
-- Verificare che il riassunto `summary` ci sia per tutte le parti video: se manca, la scheda si basa sul riassunto di capitolo e i passaggi da sottotitoli vanno trattati con più cautela.
+- ~~Verificare che i sottotitoli italiani ci siano per tutte le parti video~~: verificato il 21/11/2026 (91 su 91).
+- ~~Verificare che il riassunto `summary` ci sia per tutte le parti video~~: verificato il 21/11/2026 (91 su 91, in italiano e in inglese).

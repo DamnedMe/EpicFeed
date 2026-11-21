@@ -39,7 +39,7 @@ Come una lezione passa dal portale Epicode al catalogo di EpicFeed: estensione, 
 | `activity` | `lessons` | |
 | `embed` Vimeo | `lesson_parts` `video` | riassunti `summary.it` / `summary.en`, id del video, sottotitoli |
 | `markdown` (es. "- Summary") | `lesson_parts` `reading` | testo markdown |
-| `embed` Google Docs, `quiz`, `nps`, `article`, elementi nascosti | esclusi | non sono materiale testuale dell'attività o non servono al feed |
+| `embed` Google Docs, `quiz`, `nps`, `article`, elementi nascosti | esclusi | non sono materiale testuale dell'attività o non servono al feed; le slide (`googledocs`) arriveranno in M2 dallo zip ufficiale del corso, letto da Claude Desktop ([ADR 0012](../decisions/0012-slide-dallo-zip-ufficiale.md)) |
 
 Una parte video senza riassunti e senza sottotitoli viene scartata (l'anteprima lo dice).
 
