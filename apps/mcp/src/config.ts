@@ -43,5 +43,11 @@ function missingTokenApi(): GenerationApi {
         'Token di EpicFeed mancante o non valido (deve iniziare con sfg_).',
       ),
     );
-  return { listLessons: fail, readLesson: fail, saveFeed: fail };
+  return {
+    listLessons: fail,
+    readLesson: fail,
+    saveFeed: fail,
+    listCatalog: fail,
+    importSlides: fail,
+  };
 }

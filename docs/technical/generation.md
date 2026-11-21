@@ -52,6 +52,8 @@ I parametri (`DEFAULT_ALIGNMENT_OPTIONS`) si tarano sul set di valutazione di M2
 |---|---|
 | `ListLessonsToGenerate` | Lezioni dello studente senza un feed per le fonti attuali: calcola l'impronta di ogni lezione con la stessa funzione del salvataggio e la confronta con i feed visibili. Restituisce anche i totali (lezioni, pronte, da generare) |
 | `ReadLessonForGeneration` | Fonti di una lezione posseduta (versione più recente di ogni parte, sottotitoli accessibili, glossario della materia) con la loro impronta; segna le versioni `generating` |
+| `ListOwnedLessons` | Tutte le lezioni importate, con il numero di presentazioni di slide già presenti: serve a `importa_slide` per abbinare lo zip |
+| `ImportLessonSlides` (`slides.ts`) | Aggiunge a una lezione posseduta le sue presentazioni: una parte `slides` per presentazione (id stabile `slides-{n}`, posizione 10.000 + n, dopo le parti del portale), versione per impronta del testo, permesso per prova di possesso come per l'estensione. Stesso testo, nessun doppione; testo cambiato, nuova versione e lezione di nuovo da generare. `NOT_FOUND` se lo studente non ha importato la lezione |
 | `SaveLessonFeed` | Ricarica le fonti con i permessi dello studente, rifiuta se l'impronta è cambiata (`SOURCES_CHANGED`), applica `checkLessonFeed` (`FeedValidationError` con tutti i problemi), allinea le schede tratte da parti video, salva feed, glossario e stato `ready` in una transazione. Il primo feed per le stesse fonti vince: un secondo salvataggio non sovrascrive |
 
 La porta `GenerationRepository` è implementata da `DrizzleGenerationRepository` (`packages/adapters`): le letture passano dalla RLS dello studente (`withUserRls`), le scritture usano la connessione del server dopo i controlli del caso d'uso.
@@ -64,7 +66,9 @@ Chiamata dal server MCP con `Authorization: Bearer sfg_…` (token "genera"). Ne
 | Metodo e percorso | Corpo / risposta | Errori |
 |---|---|---|
 | `GET /api/generation/lessons?limit=20` | `lessonsToGenerateResponseSchema`: lezioni da generare (max 100) e totali | `401`, `429` |
-| `GET /api/generation/lessons/{id}` | `lessonSourcesResponseSchema`: titoli, `sourcesHash`, parti con il contenuto (riassunti IT/EN o markdown) e `hasSubtitles`, glossario della materia | `400` id non valido, `404` lezione non posseduta |
+| `GET /api/generation/lessons/{id}` | `lessonSourcesResponseSchema`: titoli, `sourcesHash`, parti con il contenuto (riassunti IT/EN, markdown o testo delle slide per pagina) e `hasSubtitles`, glossario della materia | `400` id non valido, `404` lezione non posseduta |
+| `GET /api/generation/catalog` | `ownedLessonsResponseSchema`: tutte le lezioni importate con il numero di slide | `401`, `429` |
+| `POST /api/generation/lessons/{id}/slides` | corpo `importSlidesRequestSchema` (max 1 MB: fino a 20 presentazioni, ognuna con numero, nome del file e testo per pagina); risposta `importSlidesResponseSchema` | `413`, `400` forma non valida (con `issues`), `404` lezione non posseduta |
 | `POST /api/generation/lessons/{id}/feed` | corpo `saveLessonFeedRequestSchema` (max 512 KB); risposta `saveLessonFeedResponseSchema`, `201` se creato, `200` se esisteva già | `413`, `400` JSON non valido o lezione diversa dal percorso, `422 INVALID_FEED` con `issues` (forma o regole), `409 CONFLICT` fonti cambiate, `404` |
 
 **I sottotitoli non vanno a Claude**: nell'MVP schede e quiz nascono solo da riassunti, testi e slide (ADR 0006, piano §1); i sottotitoli restano sul server e servono solo all'allineamento. Questo riduce anche il testo da leggere per ogni lezione.
@@ -93,15 +97,28 @@ Strumenti (nomi in italiano, perché Claude li mostra allo studente):
 | `leggi_lezione { lessonId }` | Fonti in testo leggibile (ogni parte con `sourcePartId`, riassunti it/en o testo di lettura, glossario della materia), `sourcesHash` e le istruzioni complete. Segna le versioni come "in generazione". |
 | `salva_feed_lezione { lessonId, sourcesHash, feed }` | Controlla il feed in locale con `checkLessonFeed` (stesse regole dell'API, nessuna chiamata sprecata), poi lo invia con `PROMPT_VERSION`. I problemi, locali o dell'API, tornano a Claude come elenco da correggere. |
 | `stato_generazione` | Totali: importate, pronte, da generare. |
+| `importa_slide { percorso, materia?, aggiorna? }` | Slide dallo zip "Download all PDFs" o dalla cartella estratta (sezione sotto). |
 
 Il prompt MCP `genera_lezioni` avvia la generazione di tutte le lezioni nuove. Le istruzioni del server (`SERVER_INSTRUCTIONS`) dicono a Claude l'ordine degli strumenti e di non chiedere conferma lezione per lezione. Un `409 CONFLICT` suggerisce di rileggere la lezione; un `401` di creare un nuovo token. Gli errori inattesi non mostrano dettagli.
 
+### Slide dallo zip (`importa_slide`, ADR 0012)
+Tutto avviene sul PC; a EpicFeed arriva solo il testo.
+
+1. **Elenco dei PDF** (`src/slides/archive.ts`): legge l'indice dello zip con `yauzl` (o la cartella, anche nelle sottocartelle), ignora le voci `__MACOSX` e tutto ciò che non è `.pdf`. Ogni PDF si legge in memoria solo quando serve, con un tetto di 60 MB (controllato anche sui byte davvero letti, non solo sulla dimensione dichiarata dallo zip). Nulla viene scritto su disco.
+2. **Abbinamento** (`src/slides/match.ts`): dal nome `{titolo lezione}-{n}.pdf` si ricavano titolo e numero; i titoli si confrontano senza maiuscole, accenti e punteggiatura (i nomi dei file perdono caratteri come `&`, `/`, `?`). Un file senza lezione, con più lezioni dello stesso titolo (si risolve con `materia`) o con un numero ripetuto resta fuori e viene elencato con il motivo.
+3. **Testo** (`src/slides/pdf.ts`): pdf.js (build `legacy` per Node, font standard e decodificatori dal pacchetto) estrae il testo di ogni pagina; le pagine senza testo restano, perché possono contenere solo un diagramma.
+4. **Invio**: una chiamata `POST …/slides` per lezione. Si saltano le lezioni che hanno già tante presentazioni quanti i PDF abbinati, salvo `aggiorna: true` (zip scaricato di nuovo). Una chiamata lavora al massimo 40 secondi e poi dice quante lezioni restano: Claude la richiama con lo stesso percorso e riprende (le lezioni già fatte nella sessione si saltano). Durante il lavoro il server manda a Claude Desktop l'avanzamento (`notifications/progress`). Un token non valido ferma tutto; gli altri errori riguardano una lezione sola e finiscono nel riepilogo.
+5. **Indice locale** (`src/slides/store.ts`): per ogni lezione, dove sono i suoi PDF (zip e voce), in `%APPDATA%\EpicFeed\slides.json` su Windows (`~/Library/Application Support/EpicFeed` su macOS). Solo id e percorsi, scritto in modo atomico.
+
+**Figure durante la generazione**: `leggi_lezione` cerca nell'indice i PDF delle presentazioni della lezione, sceglie le pagine con figure e le disegna in PNG larghi 1.280 pixel con `@napi-rs/canvas`, al massimo 8 per lezione, le più ricche prima e poi in ordine di lettura. Ogni immagine arriva a Claude come contenuto `image`, preceduta da "Figura: Slide n, pagina p". Pagina con figura: punteggio ≥ 6, dove il punteggio conta i tracciati vettoriali oltre il minimo comune a tutte le pagine (sfondi, barre del modello) più 6 per ogni immagine che non compare con le stesse dimensioni in più di metà delle pagine (loghi del modello). Soglia e tetto sono da tarare sulle slide reali del corso DSA. Se i PDF non si trovano più (zip spostato), `leggi_lezione` lo dice e la generazione continua con il solo testo.
+
 ### Pacchetto `.mcpb`
-`pnpm --filter @study-feed/mcp build` compila e crea con esbuild un unico file `bundle/server/index.js` (dipendenze incluse, niente `node_modules` da installare), più `manifest.json` (versione presa da `package.json`) e `icon.png`. `pnpm --filter @study-feed/mcp run pack` produce `apps/mcp/epicfeed.mcpb` con lo strumento ufficiale `@anthropic-ai/mcpb`. Il manifest (versione 0.3) chiede due impostazioni: il token (campo `sensitive`, quindi salvato da Claude Desktop nel portachiavi del sistema) e l'indirizzo di EpicFeed (predefinito quello di produzione). Piattaforme: Windows e macOS; Node è quello incluso in Claude Desktop.
+`pnpm --filter @study-feed/mcp build` compila e crea con esbuild `bundle/server/index.js`, un unico file con tutte le dipendenze JavaScript, più `manifest.json` (versione presa da `package.json`) e `icon.png`. Restano fuori dal file solo pdf.js e `@napi-rs/canvas` (worker, font, WebAssembly e libreria nativa), copiati in `bundle/server/node_modules` con il binario del sistema su cui si compila. `pnpm --filter @study-feed/mcp run pack` aggiunge i binari di `@napi-rs/canvas` per Windows x64 e macOS (scaricati da npm con la stessa versione), toglie quelli degli altri sistemi e produce `apps/mcp/epicfeed.mcpb` (circa 45 MB) con lo strumento ufficiale `@anthropic-ai/mcpb`. pdf.js si carica solo quando servono le slide: se la libreria nativa non partisse, il resto della generazione funziona lo stesso. Il manifest (versione 0.3) chiede due impostazioni: il token (campo `sensitive`, quindi salvato da Claude Desktop nel portachiavi del sistema) e l'indirizzo di EpicFeed (predefinito quello di produzione). Piattaforme: Windows e macOS; Node è quello incluso in Claude Desktop.
 
 Installazione (una volta): in EpicFeed, pagina **Claude**, *Crea token*; in Claude Desktop, Impostazioni › Estensioni, trascinare `epicfeed.mcpb`, incollare il token. Poi in una chat: "genera le lezioni nuove di EpicFeed". Per aggiornare il server basta installare il nuovo `.mcpb`.
 
-Test: `apps/mcp/src/*.test.ts` con un `fetch` finto (client) e il trasporto in memoria dell'SDK (server e strumenti).
+Test: `apps/mcp/src/*.test.ts` con un `fetch` finto (client) e il trasporto in memoria dell'SDK (server e strumenti); le slide con PDF e zip veri in `apps/mcp/test/fixtures` (testo, diagramma, logo del modello) e con un toolkit in memoria per gli strumenti.
 
-## Prossimi passi (PR successive di M2)
-- Slide dallo zip (`importa_slide`).
+## Prossimi passi
+- Prova su 2–3 lezioni DSA reali, valutata da Damian; taratura di soglia e tetto delle figure.
+- Verificare che i nomi dentro lo zip reale coincidano con quelli della pagina Course downloads (punto aperto dell'ADR 0012).

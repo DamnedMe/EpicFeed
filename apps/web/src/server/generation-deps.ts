@@ -18,6 +18,9 @@ export function generationDeps(): GenerationHandlerDeps {
     listLessons: (userId, limit) => services.listLessonsToGenerate.execute(userId, limit),
     readLesson: (userId, lessonId) => services.readLessonForGeneration.execute(userId, lessonId),
     saveFeed: (userId, input) => services.saveLessonFeed.execute(userId, input),
+    listOwnedLessons: (userId) => services.listOwnedLessons.execute(userId),
+    importSlides: (userId, lessonId, presentations) =>
+      services.importLessonSlides.execute(userId, lessonId, presentations),
     logError: (error) => {
       console.error('Generazione fallita', error instanceof Error ? error.message : typeof error);
     },

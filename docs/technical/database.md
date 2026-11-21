@@ -24,7 +24,7 @@ subjects ─< glossary_terms
 | `subjects` | Materia (corso Epicode, Directus `courses`) | (`edition_id`, `epicode_id`) univoci |
 | `chapters` | Capitolo (Directus `module`) | (`subject_id`, `epicode_id`) univoci |
 | `lessons` | Lezione (Directus `activity`) | (`chapter_id`, `epicode_id`) univoci |
-| `lesson_parts` | Parte video o testo | (`lesson_id`, `epicode_id`) univoci, `kind` enum, `video_id` (Vimeo, solo per i video) |
+| `lesson_parts` | Parte video, testo o slide | (`lesson_id`, `epicode_id`) univoci, `kind` enum, `video_id` (Vimeo, solo per i video) |
 | `content_versions` | Contenuto canonico (JSON) e impronta | (`lesson_part_id`, `content_hash`) univoci, hash di 64 caratteri esadecimali, ≤ 2 MB, `generation_status` |
 | `entitlements` | Permesso utente ↔ versione | PK (`user_id`, `content_version_id`); FK composta (versione, parte) per coerenza; cancellazione a cascata con l'utente |
 | `subtitle_tracks` | Traccia di sottotitoli di una parte (righe in JSON) | (`lesson_part_id`, `content_hash`) univoci, lingua in formato BCP 47 semplificato, `auto_generated`, ≤ 2 MB |
@@ -32,7 +32,7 @@ subjects ─< glossary_terms
 | `api_tokens` | Token di import dell'estensione | solo lo SHA-256 del token (64 esadecimali), `scope` enum (`import`), scadenza, revoca |
 | `lesson_feeds` | Feed di una lezione (schede, quiz, concetti IT+EN) generato da Claude Desktop | (`lesson_id`, `sources_hash`) univoci, `source_version_ids` (1–40 versioni da cui è nato), `prompt_version` datata, ≤ 1 MB |
 | `glossary_terms` | Glossario bilingue della materia | (`subject_id`, `term_key`) univoci; termine inglese, traduzione, definizione `{ it, en }` |
-| `generation_events` | Registro delle chiamate del server MCP | utente, azione (`read`, `save`), lezione, data: serve al limite di frequenza (120/ora) |
+| `generation_events` | Registro delle chiamate del server MCP | utente, azione (`read`, `save`, `slides`), lezione, data: serve al limite di frequenza (120/ora) |
 | `import_events` | Registro degli import | utente, lezione, numero di parti, data: serve al limite di frequenza (60/ora) |
 
 Vincoli `CHECK` replicano nel database le regole del core (titoli 1–300 caratteri, posizioni ≥ 0, id Epicode con soli caratteri sicuri), così un dato non valido non entra nemmeno per errore. Un indice parziale su `content_versions` (`pending`, `failed`) rende veloce la ricerca delle versioni da generare; gli indici su `entitlements` servono alle policy RLS e coprono la chiave esterna composta (versione, parte).
@@ -80,6 +80,7 @@ Progetto: **EpicFeed** (`https://nxuysaeevxcncchqjtep.supabase.co`), creato il 1
 - 15/11/2026 (M1): migrazioni `0003_import_subtitles_tokens` (tabelle nuove e `video_id`) e `0004_harden_grants_import` (permessi), solo aggiunte, applicate con il connettore e registrate nel log di drizzle. Verifica: RLS e una policy su tutte le 12 tabelle, `anon` senza `SELECT`, `authenticated` senza `INSERT`, advisor di sicurezza senza segnalazioni (quello di performance segnala solo indici non ancora usati, normale con il database vuoto).
 
 - M2 (PR 2 della generazione): migrazioni `0005_generation_feeds` (tabelle `lesson_feeds`, `glossary_terms`, `generation_events`, valore `generate` di `api_token_scope`) e `0006_harden_grants_generation` (permessi), solo aggiunte e quindi non distruttive: da applicare con il connettore dopo il merge.
+- M2 (PR 4, slide): migrazione `0007_slides_part_kind`, che aggiunge il valore `slides` a `lesson_part_kind` e a `generation_action`. Non distruttiva.
 
 ### Applicare le migrazioni con Claude (connettore Supabase)
 Con il connettore Supabase collegato, Claude può applicare le migrazioni nuove con `apply_migration`, aggiungendo nella stessa migrazione la riga in `drizzle.__drizzle_migrations` (hash SHA-256 del file `.sql` e campo `when` del journal). Non serve la password del database.

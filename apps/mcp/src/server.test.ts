@@ -6,6 +6,8 @@ import { ApiRequestError } from './api-client.js';
 import type { GenerationApi } from './server.js';
 import { createEpicFeedServer, formatLesson } from './server.js';
 import { PROMPT_VERSION } from './prompt.js';
+import type { SlidesToolkit } from './slides/toolkit.js';
+import { memorySlidesToolkit } from './slides/testing.js';
 
 const lessonId = '10000000-0000-4000-8000-000000000001';
 const partId = '20000000-0000-4000-8000-000000000002';
@@ -71,7 +73,10 @@ function feed(sourcePartId = partId) {
   };
 }
 
-async function connect(overrides: Partial<GenerationApi> = {}) {
+async function connect(
+  overrides: Partial<GenerationApi> = {},
+  slides: SlidesToolkit = memorySlidesToolkit().kit,
+) {
   const api: GenerationApi = {
     listLessons: vi.fn(() =>
       Promise.resolve({
@@ -91,16 +96,39 @@ async function connect(overrides: Partial<GenerationApi> = {}) {
     saveFeed: vi.fn(() =>
       Promise.resolve({ feedId: lessonId, created: true, cards: 3, alignedCards: 2 }),
     ),
+    listCatalog: vi.fn(() =>
+      Promise.resolve({
+        lessons: [
+          {
+            lessonId,
+            lessonTitle: 'Alberi AVL',
+            chapterTitle: 'Alberi',
+            subjectTitle: 'DSA',
+            slides: 0,
+          },
+        ],
+      }),
+    ),
+    importSlides: vi.fn((id: string) =>
+      Promise.resolve({
+        lessonId: id,
+        presentations: [{ number: 1, lessonPartId: partId, newVersion: true, pages: 2 }],
+      }),
+    ),
     ...overrides,
   };
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
-  await createEpicFeedServer(api).connect(serverSide);
+  await createEpicFeedServer(api, slides).connect(serverSide);
   const client = new Client({ name: 'test', version: '1.0.0' });
   await client.connect(clientSide);
   const call = async (name: string, args: Record<string, unknown> = {}) => {
     const result = await client.callTool({ name, arguments: args });
-    const content = result.content as { type: string; text: string }[];
-    return { isError: result.isError === true, text: content.map((c) => c.text).join('\n') };
+    const content = result.content as { type: string; text?: string; data?: string }[];
+    return {
+      isError: result.isError === true,
+      text: content.flatMap((c) => (c.text === undefined ? [] : [c.text])).join('\n'),
+      images: content.filter((c) => c.type === 'image').map((c) => c.data),
+    };
   };
   return { api, client, call };
 }
@@ -110,6 +138,7 @@ describe('server MCP di EpicFeed', () => {
     const { client } = await connect();
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
+      'importa_slide',
       'leggi_lezione',
       'lezioni_da_generare',
       'salva_feed_lezione',
@@ -221,6 +250,92 @@ describe('server MCP di EpicFeed', () => {
     const result = await call('stato_generazione');
     expect(result.isError).toBe(true);
     expect(result.text).not.toContain('segreto');
+  });
+});
+
+describe('slide', () => {
+  const slidesLesson = {
+    ...lesson,
+    parts: [
+      ...lesson.parts,
+      {
+        lessonPartId: '20000000-0000-4000-8000-000000000004',
+        title: 'Slide 1',
+        kind: 'slides',
+        position: 10_001,
+        hasSubtitles: false,
+        content: {
+          kind: 'slides',
+          fileName: 'Alberi AVL-1.pdf',
+          pages: [
+            { number: 1, text: 'AVL trees' },
+            { number: 2, text: '' },
+          ],
+        },
+      },
+    ],
+  } as unknown as LessonSourcesResponse;
+
+  it('importa_slide abbina lo zip, importa e manda l’avanzamento', async () => {
+    const { kit } = memorySlidesToolkit({ 'Alberi AVL-1.pdf': 'AVL trees\n[figura]Rotazione' });
+    const { api, client, call } = await connect({}, kit);
+    const progress = vi.fn();
+    const result = await client.callTool(
+      { name: 'importa_slide', arguments: { percorso: ' C:\\slides.zip ' } },
+      undefined,
+      { onprogress: progress },
+    );
+    expect(result.isError).not.toBe(true);
+    expect(JSON.stringify(result.content)).toContain('Slide importate per 1 lezioni');
+    expect(api.importSlides).toHaveBeenCalledWith(lessonId, expect.anything());
+    expect(progress).toHaveBeenCalledWith(expect.objectContaining({ progress: 1, total: 1 }));
+    expect((await call('importa_slide', { percorso: 'C:\\slides.zip' })).text).toContain(
+      'Nessuna lezione da aggiornare',
+    );
+  });
+
+  it('importa_slide spiega gli errori dei file e del token', async () => {
+    const { kit } = memorySlidesToolkit();
+    kit.listFiles = () => Promise.reject(new Error('Non trovo "x" sul PC.'));
+    const missing = await connect({}, kit);
+    const result = await missing.call('importa_slide', { percorso: 'x' });
+    expect(result).toMatchObject({ isError: true, text: 'Non trovo "x" sul PC.' });
+    kit.listFiles = () => Promise.reject(new Error());
+    expect((await missing.call('importa_slide', { percorso: 'x' })).text).toBe('');
+    // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- caso di un valore che non è un Error
+    kit.listFiles = () => Promise.reject('x');
+    expect((await missing.call('importa_slide', { percorso: 'x' })).text).toContain(
+      'Errore nella lettura delle slide',
+    );
+
+    const { kit: withFiles } = memorySlidesToolkit({ 'Alberi AVL-1.pdf': 'x' });
+    const unauthorized = await connect(
+      {
+        listCatalog: () =>
+          Promise.reject(new ApiRequestError(401, 'UNAUTHORIZED', 'Token scaduto.')),
+      },
+      withFiles,
+    );
+    expect((await unauthorized.call('importa_slide', { percorso: 'z' })).text).toContain(
+      'Crea un nuovo token',
+    );
+  });
+
+  it('leggi_lezione aggiunge le figure delle slide come immagini', async () => {
+    const { kit } = memorySlidesToolkit({ 'Alberi AVL-1.pdf': 'AVL trees\n[figura]' });
+    const { call } = await connect({ readLesson: () => Promise.resolve(slidesLesson) }, kit);
+    await call('importa_slide', { percorso: 'z' });
+    const result = await call('leggi_lezione', { lessonId });
+    expect(result.text).toContain('Figura: Slide 1, pagina 2');
+    expect(result.images).toEqual([Buffer.from('png-2').toString('base64')]);
+    expect(result.text).toContain('### Pagina 2\n(solo figura)');
+  });
+
+  it('leggi_lezione avvisa se le slide non sono su questo PC', async () => {
+    const { call } = await connect({ readLesson: () => Promise.resolve(slidesLesson) });
+    const result = await call('leggi_lezione', { lessonId });
+    expect(result.text).toContain('non sono disponibili su questo PC');
+    expect(result.images).toEqual([]);
   });
 });
 

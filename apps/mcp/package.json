@@ -13,13 +13,17 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",
+    "@napi-rs/canvas": "1.1.0",
     "@study-feed/contracts": "workspace:*",
     "@study-feed/core": "workspace:*",
+    "pdfjs-dist": "6.5.438",
+    "yauzl": "3.4.0",
     "zod": "4.6.6"
   },
   "devDependencies": {
     "@study-feed/config": "workspace:*",
     "@types/node": "26.6.6",
+    "@types/yauzl": "3.4.0",
     "@vitest/coverage-v8": "5.1.0",
     "esbuild": "0.28.2",
     "eslint": "10.15.0",

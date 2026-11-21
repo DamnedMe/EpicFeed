@@ -11,7 +11,9 @@ import {
 } from '@study-feed/adapters';
 import {
   ImportLesson,
+  ImportLessonSlides,
   ListLessonsToGenerate,
+  ListOwnedLessons,
   PossessionProofVerifier,
   ReadLessonForGeneration,
   SaveLessonFeed,
@@ -36,6 +38,8 @@ export interface Services {
   readonly listLessonsToGenerate: ListLessonsToGenerate;
   readonly readLessonForGeneration: ReadLessonForGeneration;
   readonly saveLessonFeed: SaveLessonFeed;
+  readonly listOwnedLessons: ListOwnedLessons;
+  readonly importLessonSlides: ImportLessonSlides;
 }
 
 let services: Services | undefined;
@@ -62,12 +66,10 @@ export function getServices(): Services {
   });
   const db = drizzle(client, { schema }) as unknown as Database;
   const generation = new DrizzleGenerationRepository(db);
+  const catalog = new DrizzleCatalogRepository(db);
+  const verifier = new PossessionProofVerifier(systemClock);
   services = {
-    importLesson: new ImportLesson({
-      catalog: new DrizzleCatalogRepository(db),
-      verifier: new PossessionProofVerifier(systemClock),
-      clock: systemClock,
-    }),
+    importLesson: new ImportLesson({ catalog, verifier, clock: systemClock }),
     tokens: new ImportTokenService(db),
     rateLimiter: new ImportRateLimiter(db),
     myLessons: new MyLessonsQuery(db),
@@ -76,6 +78,13 @@ export function getServices(): Services {
     listLessonsToGenerate: new ListLessonsToGenerate(generation),
     readLessonForGeneration: new ReadLessonForGeneration(generation),
     saveLessonFeed: new SaveLessonFeed({ repository: generation, clock: systemClock }),
+    listOwnedLessons: new ListOwnedLessons(generation),
+    importLessonSlides: new ImportLessonSlides({
+      catalog,
+      generation,
+      verifier,
+      clock: systemClock,
+    }),
   };
   return services;
 }

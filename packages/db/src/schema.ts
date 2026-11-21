@@ -43,7 +43,7 @@ import { authUid, authUsers, authenticatedRole } from 'drizzle-orm/supabase';
 // ---------------------------------------------------------------------------
 
 /** Tipo di parte di lezione: video (riassunti + sottotitoli) o testo da leggere. */
-export const lessonPartKind = pgEnum('lesson_part_kind', ['video', 'reading']);
+export const lessonPartKind = pgEnum('lesson_part_kind', ['video', 'reading', 'slides']);
 
 /** Stato di generazione di schede e quiz di una versione (ADR 0007). */
 export const generationStatus = pgEnum('generation_status', [
@@ -63,7 +63,7 @@ export const entitlementBasis = pgEnum('entitlement_basis', ['possession_proof']
 export const apiTokenScope = pgEnum('api_token_scope', ['import', 'generate']);
 
 /** Azione registrata per il limite di frequenza della generazione. */
-export const generationAction = pgEnum('generation_action', ['read', 'save']);
+export const generationAction = pgEnum('generation_action', ['read', 'save', 'slides']);
 
 // ---------------------------------------------------------------------------
 // Colonne comuni

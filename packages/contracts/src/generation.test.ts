@@ -1,6 +1,9 @@
 import { checkLessonFeed } from '@study-feed/core';
 import { describe, expect, it } from 'vitest';
 import {
+  importSlidesRequestSchema,
+  ownedLessonsResponseSchema,
+  sourcePartContentSchema,
   lessonFeedDraftSchema,
   saveLessonFeedRequestSchema,
   storedLessonFeedSchema,
@@ -211,5 +214,34 @@ describe('contratti dell’API di generazione', () => {
         alignedCards: 7,
       }).success,
     ).toBe(true);
+  });
+});
+
+describe('schemi delle slide', () => {
+  const presentation = {
+    number: 1,
+    fileName: 'AVL trees-1.pdf',
+    pages: [{ number: 1, text: 'AVL trees' }],
+  };
+
+  it('accetta un import di slide valido e lo rifiuta se malformato', () => {
+    expect(importSlidesRequestSchema.safeParse({ presentations: [presentation] }).success).toBe(
+      true,
+    );
+    expect(importSlidesRequestSchema.safeParse({ presentations: [] }).success).toBe(false);
+    expect(
+      importSlidesRequestSchema.safeParse({ presentations: [{ ...presentation, number: 0 }] })
+        .success,
+    ).toBe(false);
+  });
+
+  it('le fonti della generazione possono contenere slide', () => {
+    const parsed = sourcePartContentSchema.safeParse({
+      kind: 'slides',
+      fileName: 'a-1.pdf',
+      pages: [{ number: 1, text: '' }],
+    });
+    expect(parsed.success).toBe(true);
+    expect(ownedLessonsResponseSchema.safeParse({ lessons: [] }).success).toBe(true);
   });
 });

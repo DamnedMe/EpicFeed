@@ -71,7 +71,7 @@ export const DEFAULT_GENERATION_RATE_LIMIT: RateLimitRule = {
 };
 
 /** Azione registrata dal limite della generazione. */
-export type GenerationAction = 'read' | 'save';
+export type GenerationAction = 'read' | 'save' | 'slides';
 
 /**
  * Limite di frequenza delle chiamate del server MCP, sul registro
@@ -108,7 +108,7 @@ export class GenerationRateLimiter {
    * Registra una chiamata.
    *
    * @param userId - Utente autenticato.
-   * @param action - Lettura delle fonti o salvataggio del feed.
+   * @param action - Lettura delle fonti, salvataggio del feed o import di slide.
    * @param lessonId - Lezione interessata (`null` per l'elenco).
    */
   async record(userId: string, action: GenerationAction, lessonId: string | null): Promise<void> {

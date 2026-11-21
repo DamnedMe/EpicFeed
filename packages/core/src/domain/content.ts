@@ -24,8 +24,29 @@ export interface ReadingPartContent {
   readonly markdown: string;
 }
 
+/** Una pagina di una presentazione: numero (da 1) e testo estratto sul PC. */
+export interface SlidePage {
+  readonly number: number;
+  readonly text: string;
+}
+
+/**
+ * Contenuto di una presentazione di slide (ADR 0012): il testo di ogni pagina,
+ * estratto sul PC dal PDF dello zip ufficiale. Le immagini e il PDF non
+ * arrivano al server. `fileName` è il nome del PDF nello zip, utile allo
+ * studente per riconoscerlo.
+ */
+export interface SlidesPartContent {
+  readonly kind: 'slides';
+  readonly fileName: string;
+  readonly pages: readonly SlidePage[];
+}
+
 /** Contenuto importato di una parte di lezione, prima di diventare una versione. */
-export type LessonPartContent = VideoPartContent | ReadingPartContent;
+export type LessonPartContent = VideoPartContent | ReadingPartContent | SlidesPartContent;
+
+/** Massimo di pagine per presentazione (le slide Epicode ne hanno 10–60). */
+export const MAX_SLIDE_PAGES = 300;
 
 /** Limite di sicurezza sulla dimensione di un singolo testo (circa 200 KB). */
 export const MAX_TEXT_LENGTH = 200_000;
@@ -43,7 +64,14 @@ export const MAX_TEXT_LENGTH = 200_000;
  *   o troppo grande.
  */
 export function normalizeContent(content: LessonPartContent): LessonPartContent {
-  return content.kind === 'video' ? normalizeVideo(content) : normalizeReading(content);
+  switch (content.kind) {
+    case 'video':
+      return normalizeVideo(content);
+    case 'reading':
+      return normalizeReading(content);
+    case 'slides':
+      return normalizeSlides(content);
+  }
 }
 
 /**
@@ -73,6 +101,29 @@ function normalizeReading(content: ReadingPartContent): ReadingPartContent {
     throw new DomainError('INVALID_CONTENT', 'Il testo è vuoto');
   }
   return { kind: 'reading', markdown };
+}
+
+function normalizeSlides(content: SlidesPartContent): SlidesPartContent {
+  const fileName = normalizeText(content.fileName);
+  if (fileName.length === 0 || fileName.length > 255 || fileName.includes('\n')) {
+    throw new DomainError('INVALID_CONTENT', 'Nome del file delle slide non valido');
+  }
+  if (content.pages.length === 0 || content.pages.length > MAX_SLIDE_PAGES) {
+    throw new DomainError('INVALID_CONTENT', 'Numero di pagine delle slide non valido');
+  }
+  const seen = new Set<number>();
+  const pages = content.pages.map((page) => {
+    if (!Number.isInteger(page.number) || page.number < 1 || seen.has(page.number)) {
+      throw new DomainError('INVALID_CONTENT', 'Numero di pagina non valido');
+    }
+    seen.add(page.number);
+    // Una pagina può restare senza testo (solo un diagramma): conta comunque,
+    // perché Claude ne riceve l'immagine durante la generazione.
+    return { number: page.number, text: normalizeText(page.text) };
+  });
+  pages.sort((a, b) => a.number - b.number);
+  limitLength(pages.map((page) => page.text).join('\n'), 'Testo delle slide');
+  return { kind: 'slides', fileName, pages };
 }
 
 /**

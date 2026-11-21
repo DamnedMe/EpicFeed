@@ -65,7 +65,8 @@ export interface OwnedLesson {
   readonly lessonTitle: string;
   readonly chapterTitle: string;
   readonly subjectTitle: string;
-  readonly sources: readonly LessonSource[];
+  /** Versione più recente di ogni parte, con il tipo di parte. */
+  readonly sources: readonly (LessonSource & { readonly kind: LessonPartKind })[];
 }
 
 /** Feed da salvare, già controllato e allineato. */
@@ -156,6 +157,42 @@ export interface LessonsToGenerateResult {
     readonly ready: number;
     readonly toGenerate: number;
   };
+}
+
+/** Lezione importata, con quante presentazioni di slide ha. */
+export interface OwnedLessonSummary {
+  readonly lessonId: LessonId;
+  readonly lessonTitle: string;
+  readonly chapterTitle: string;
+  readonly subjectTitle: string;
+  readonly slides: number;
+}
+
+/**
+ * Caso d'uso: tutte le lezioni importate dallo studente, in ordine di studio,
+ * con il numero di presentazioni di slide già importate. Serve al server MCP
+ * per abbinare i PDF dello zip alle lezioni (ADR 0012).
+ */
+export class ListOwnedLessons {
+  /**
+   * @param repository - Persistenza della generazione.
+   */
+  constructor(private readonly repository: Pick<GenerationRepository, 'listOwnedLessons'>) {}
+
+  /**
+   * @param userId - Studente.
+   * @returns Le lezioni importate.
+   */
+  async execute(userId: UserId): Promise<OwnedLessonSummary[]> {
+    const owned = await this.repository.listOwnedLessons(userId);
+    return owned.map((lesson) => ({
+      lessonId: lesson.lessonId,
+      lessonTitle: lesson.lessonTitle,
+      chapterTitle: lesson.chapterTitle,
+      subjectTitle: lesson.subjectTitle,
+      slides: lesson.sources.filter((source) => source.kind === 'slides').length,
+    }));
+  }
 }
 
 /**
