@@ -9,8 +9,9 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = new URL('../', import.meta.url).pathname;
+const root = fileURLToPath(new URL('../', import.meta.url));
 const napi = join(root, 'bundle/server/node_modules/@napi-rs');
 const version = JSON.parse(readFileSync(join(napi, 'canvas/package.json'), 'utf8')).version;
 const PLATFORMS = ['win32-x64-msvc', 'darwin-arm64', 'darwin-x64'];

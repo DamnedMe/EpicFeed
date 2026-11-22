@@ -6,7 +6,7 @@
  */
 
 import { createRequire } from 'node:module';
-import { dirname, join, sep } from 'node:path';
+import { dirname, join } from 'node:path';
 import type * as PdfJsModule from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 /** Pagina letta da un PDF. */
@@ -106,10 +106,25 @@ function presentAsMainProcess(): () => void {
   };
 }
 
-/** Percorso (con separatore finale, come vuole pdf.js) di una cartella di pdf.js. */
+/**
+ * Forma che pdf.js vuole per le cartelle delle sue risorse ("factory url"):
+ * barre `/` e una `/` finale, anche su Windows. pdf.js in Node legge i file
+ * con `fs.readFile(cartella + nome)`, e su Windows `fs` accetta `C:/…/cmaps/`;
+ * un URL `file:///` invece non funzionerebbe, perché arriva a `readFile`
+ * come semplice stringa.
+ *
+ * @param dir - Percorso della cartella sul sistema, anche con `\`.
+ * @returns Il percorso con `/` e la barra finale.
+ */
+export function toFactoryUrl(dir: string): string {
+  const slashed = dir.replaceAll('\\', '/');
+  return slashed.endsWith('/') ? slashed : `${slashed}/`;
+}
+
+/** Percorso, nella forma di {@link toFactoryUrl}, di una cartella di pdf.js. */
 function pdfJsAssets(): (folder: string) => string {
   const root = dirname(createRequire(import.meta.url).resolve('pdfjs-dist/package.json'));
-  return (folder) => join(root, folder) + sep;
+  return (folder) => toFactoryUrl(join(root, folder));
 }
 
 /**

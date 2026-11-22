@@ -1,0 +1,91 @@
+# Prova il pacchetto del server MCP (epicfeed.mcpb) come lo usa Claude
+# Desktop su Windows: estratto in una cartella con spazi nel nome e avviato
+# in un "utility process" di Electron, con la stessa versione di Electron di
+# Claude Desktop. Importa le slide di uno zip di prova e ne disegna le figure.
+# Gira solo quando cambia qualcosa che finisce nel pacchetto.
+name: Server MCP su Windows
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/mcp/**'
+      - 'packages/core/**'
+      - 'packages/contracts/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/mcp-windows.yml'
+  pull_request:
+    paths:
+      - 'apps/mcp/**'
+      - 'packages/core/**'
+      - 'packages/contracts/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/mcp-windows.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mcp-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Versione di Electron di Claude Desktop (Node 24), da aggiornare con l'app.
+  ELECTRON_VERSION: 45.3.3
+
+jobs:
+  pack:
+    name: Pacchetto .mcpb (come quello consegnato)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Installa le dipendenze (lockfile bloccato)
+        run: pnpm install --frozen-lockfile
+
+      - name: Compila e impacchetta
+        run: |
+          pnpm turbo run build --filter=@study-feed/mcp
+          pnpm --filter @study-feed/mcp run pack
+          node apps/mcp/scripts/smoke/build.mjs
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mcpb-smoke
+          path: |
+            apps/mcp/epicfeed.mcpb
+            apps/mcp/smoke-kit/
+          retention-days: 3
+
+  windows:
+    name: Prova in Electron su Windows
+    needs: pack
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: mcpb-smoke
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: Installa Electron
+        shell: bash
+        run: npm install --prefix "$RUNNER_TEMP/electron" "electron@$ELECTRON_VERSION" --no-audit --no-fund
+
+      - name: Importa e disegna le slide dentro Electron
+        shell: bash
+        run: node smoke-kit/run.mjs epicfeed.mcpb "$RUNNER_TEMP/electron"

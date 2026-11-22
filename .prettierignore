@@ -11,4 +11,5 @@ docs/design/
 .next/
 apps/web/next-env.d.ts
 apps/mcp/bundle
+apps/mcp/smoke-kit
 apps/mcp/*.mcpb

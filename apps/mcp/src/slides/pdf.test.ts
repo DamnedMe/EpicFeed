@@ -6,6 +6,7 @@ import {
   pickFigurePages,
   readPdfPages,
   renderPdfPages,
+  toFactoryUrl,
 } from './pdf.js';
 
 const fixture = (name: string) =>
@@ -51,5 +52,17 @@ describe('pickFigurePages', () => {
       { deck: 1, page: 3 },
       { deck: 2, page: 1 },
     ]);
+  });
+});
+
+describe('toFactoryUrl', () => {
+  it('usa le barre / con la barra finale, anche per i percorsi di Windows', () => {
+    expect(
+      toFactoryUrl(
+        'C:\\Users\\Mario Rossi\\AppData\\Roaming\\Claude\\node_modules\\pdfjs-dist\\cmaps',
+      ),
+    ).toBe('C:/Users/Mario Rossi/AppData/Roaming/Claude/node_modules/pdfjs-dist/cmaps/');
+    expect(toFactoryUrl('C:\\pdfjs\\cmaps\\')).toBe('C:/pdfjs/cmaps/');
+    expect(toFactoryUrl('/opt/pdfjs/cmaps')).toBe('/opt/pdfjs/cmaps/');
   });
 });
