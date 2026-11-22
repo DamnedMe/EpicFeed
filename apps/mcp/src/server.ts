@@ -196,7 +196,9 @@ export function createEpicFeedServer(
           .string()
           .max(200)
           .optional()
-          .describe('Materia a cui limitare l’abbinamento, se due lezioni hanno lo stesso titolo.'),
+          .describe(
+            'Materia a cui limitare l’abbinamento, se due materie hanno lezioni con lo stesso titolo. Le omonime nello stesso corso si distinguono da sole con l’ordine dello zip.',
+          ),
         aggiorna: z
           .boolean()
           .optional()

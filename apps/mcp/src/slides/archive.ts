@@ -8,6 +8,12 @@ export interface SlideFile {
   readonly fileName: string;
   /** Percorso dentro lo zip, o percorso del file nella cartella. */
   readonly entry: string;
+  /**
+   * Posizione della voce nello zip (da 0). Lo zip del portale elenca i PDF
+   * nell'ordine del corso, e serve a distinguere lezioni con lo stesso titolo.
+   * Manca per i file di una cartella, dove l'ordine originale è perso.
+   */
+  readonly archiveOrder?: number;
   /** Legge il contenuto del PDF. */
   read(): Promise<Uint8Array>;
 }
@@ -26,17 +32,18 @@ export const MAX_PDF_FILES = 500;
  * Il server non scrive mai i file dello zip su disco: li legge in memoria.
  *
  * @param path - Percorso dello zip o della cartella, sul PC dello studente.
- * @returns I PDF trovati, in ordine di nome.
+ * @returns I PDF trovati: nell'ordine dello zip, o per nome se è una cartella.
  * @throws Error con un messaggio leggibile se il percorso non esiste o non è
  *   uno zip valido.
  */
 export async function listSlideFiles(path: string): Promise<SlideFile[]> {
   const info = await stat(path).catch(() => null);
   if (!info) throw new Error(`Non trovo "${path}" sul PC.`);
-  const files = info.isDirectory() ? await listFolder(path) : await listZip(path);
+  const files = info.isDirectory()
+    ? (await listFolder(path)).sort((a, b) => a.fileName.localeCompare(b.fileName))
+    : await listZip(path);
   return files
     .filter((file) => !file.entry.split(/[\\/]/).some((part) => part.startsWith('__MACOSX')))
-    .sort((a, b) => a.fileName.localeCompare(b.fileName))
     .slice(0, MAX_PDF_FILES);
 }
 
@@ -86,9 +93,10 @@ async function listZip(zipPath: string): Promise<SlideFile[]> {
       });
       zip.readEntry();
     });
-    return names.map((name) => ({
+    return names.map((name, archiveOrder) => ({
       fileName: basename(name),
       entry: name,
+      archiveOrder,
       read: () => readZipEntry(zipPath, name),
     }));
   } finally {
