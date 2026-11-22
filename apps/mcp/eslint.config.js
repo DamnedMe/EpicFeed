@@ -9,7 +9,7 @@ export default createConfig({
   tsconfigRootDir: import.meta.dirname,
   extra: [
     // Il pacchetto generato (bundle/) non è codice sorgente.
-    { ignores: ['bundle/**'] },
+    { ignores: ['bundle/**', 'smoke-kit/**'] },
     {
       files: ['src/**/*.ts'],
       rules: {

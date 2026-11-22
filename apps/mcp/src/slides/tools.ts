@@ -226,10 +226,12 @@ export async function slideImagesFor(
       }
     }
     return { images, note: null };
-  } catch {
+  } catch (error) {
+    // Il motivo aiuta a capire se lo zip è sparito o se il disegno non parte.
+    const reason = error instanceof Error ? error.message.slice(0, 200) : 'errore inatteso';
     return {
       images: [],
-      note: 'Non riesco a leggere i PDF delle slide (lo zip è stato spostato o cancellato?): usa solo il testo. Per avere le immagini, importa di nuovo lo zip con importa_slide.',
+      note: `Non riesco a leggere o disegnare i PDF delle slide (${reason}). Lo zip è stato spostato o cancellato? Usa solo il testo; per avere le immagini, importa di nuovo lo zip con importa_slide.`,
     };
   }
 }
