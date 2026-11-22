@@ -37,17 +37,12 @@ describe('parseSlideFileName e normalizeTitle', () => {
 
 describe('matchSlideFiles', () => {
   it('abbina per titolo e lascia fuori i casi dubbi, con il motivo', () => {
-    const lessons = [
-      lesson('l1', 'Binary trees & AVL trees'),
-      lesson('l2', 'Introduction'),
-      lesson('l3', 'Introduction', 'Web'),
-    ];
+    const lessons = [lesson('l1', 'Binary trees & AVL trees')];
     const result = matchSlideFiles(
       [
         file('Binary trees  AVL trees-2.pdf'),
         file('Binary trees & AVL trees-1.pdf'),
         file('Binary trees & AVL trees-01.pdf'),
-        file('Introduction-1.pdf'),
         file('Graphs-1.pdf'),
         file('notes.pdf'),
       ],
@@ -60,12 +55,22 @@ describe('matchSlideFiles', () => {
     ]);
     expect(result.unmatched.map((u) => [u.fileName, u.reason])).toEqual([
       ['Binary trees & AVL trees-01.pdf', 'numero di presentazione ripetuto'],
-      [
-        'Introduction-1.pdf',
-        '2 lezioni con questo titolo: usa lo zip scaricato dal portale, non la cartella estratta',
-      ],
       ['Graphs-1.pdf', 'nessuna lezione importata con questo titolo'],
       ['notes.pdf', 'il nome non è "titolo-numero.pdf"'],
+    ]);
+  });
+
+  it('dalla cartella estratta lascia fuori i titoli ripetuti', () => {
+    const result = matchSlideFiles(
+      [file('Introduction-1.pdf')],
+      [lesson('l2', 'Introduction', 'DSA', 'A'), lesson('l3', 'Introduction', 'DSA', 'B')],
+    );
+    expect(result.unmatched).toEqual([
+      {
+        fileName: 'Introduction-1.pdf',
+        reason:
+          '2 lezioni con questo titolo: usa lo zip scaricato dal portale, non la cartella estratta',
+      },
     ]);
   });
 
@@ -78,69 +83,108 @@ describe('matchSlideFiles', () => {
     expect([...result.matched.keys()]).toEqual(['l3']);
   });
 
-  it('distingue le lezioni omonime con l’ordine dello zip e rinumera da 1', () => {
-    // Estratto reale del corso DSA: la numerazione prosegue tra lezioni omonime.
+  it('tra omonime di materie diverse sceglie la materia dello zip', () => {
     const lessons = [
-      lesson('onb', 'Introduction', 'DSA', 'Onboarding & Guidelines'),
-      lesson('intro1', 'Introduction', 'DSA', '1. Big O notation, arrays and linked lists'),
-      lesson('arrays', 'Arrays', 'DSA', '1. Big O notation, arrays and linked lists'),
-      lesson('ops', 'Operations', 'DSA', '2. Stacks and queues'),
-      lesson('ex2', 'Examples', 'DSA', '2. Stacks and queues'),
-      lesson('apps', 'Examples of applications', 'DSA', '3. Trees'),
-      lesson('mst', 'Minimum spanning tree', 'DSA', '4. Graphs'),
-      lesson('ex4', 'Examples', 'DSA', '4. Graphs'),
+      lesson('l1', 'Heaps'),
+      lesson('l2', 'Introduction'),
+      lesson('l3', 'Arrays'),
+      lesson('w1', 'Introduction', 'Web'),
     ];
-    const names = [
-      'Introduction-1.pdf',
-      'Introduction-2.pdf',
-      'Introduction-3.pdf',
-      'Arrays-1.pdf',
-      'Operations-1.pdf',
-      'Examples-1.pdf',
-      'Examples-2.pdf',
-      'Examples-3.pdf',
-      'Examples of applications-1.pdf',
-      'Minimum spanning tree-1.pdf',
-      'Examples-4.pdf',
-      'Examples-5.pdf',
-      'Examples-6.pdf',
-      'Exam Prep-1.pdf',
-    ];
-    const result = matchSlideFiles(zipped(names), lessons);
-    const decks = (id: string) =>
-      result.matched.get(id)?.files.map((f) => `${String(f.number)}:${f.file.fileName}`);
-    expect(decks('intro1')).toEqual([
+    const result = matchSlideFiles(
+      zipped(['Introduction-1.pdf', 'Heaps-1.pdf', 'Arrays-1.pdf']),
+      lessons,
+    );
+    expect([...result.matched.keys()].sort()).toEqual(['l1', 'l2', 'l3']);
+    expect(result.unmatched).toEqual([]);
+  });
+
+  // Catalogo e nomi reali del corso DSA: la numerazione prosegue tra lezioni omonime.
+  const dsa = [
+    lesson('onb', 'Introduction', 'DSA', 'Onboarding & Guidelines'),
+    lesson('intro1', 'Introduction', 'DSA', '1. Big O notation, arrays and linked lists'),
+    lesson('arrays', 'Arrays', 'DSA', '1. Big O notation, arrays and linked lists'),
+    lesson('ops', 'Operations', 'DSA', '2. Stacks and queues'),
+    lesson('ex2', 'Examples', 'DSA', '2. Stacks and queues'),
+    lesson('tree', 'Tree structure and properties', 'DSA', '3. Trees'),
+    lesson('mst', 'Minimum spanning tree algorithms', 'DSA', '4. Graphs'),
+    lesson('ex4', 'Examples', 'DSA', '4. Graphs'),
+    lesson('hash', 'Hash functions', 'DSA', '5. Hashing'),
+  ];
+  const dsaZip = [
+    'Introduction-1.pdf',
+    'Introduction-2.pdf',
+    'Introduction-3.pdf',
+    'Arrays-1.pdf',
+    'Operations-1.pdf',
+    'Examples-1.pdf',
+    'Examples-2.pdf',
+    'Examples-3.pdf',
+    'Tree structure and properties-1.pdf',
+    'Minimum spanning tree algorithms-1.pdf',
+    'Examples-4.pdf',
+    'Examples-5.pdf',
+    'Examples-6.pdf',
+    'Hash functions-1.pdf',
+    'Exam Prep-1.pdf',
+  ];
+  const decksOf = (result: ReturnType<typeof matchSlideFiles>, id: string) =>
+    result.matched.get(id)?.files.map((f) => `${String(f.number)}:${f.file.fileName}`);
+
+  it('distingue le lezioni omonime con i blocchi dello zip e rinumera da 1', () => {
+    const result = matchSlideFiles(zipped(dsaZip), dsa);
+    expect(decksOf(result, 'intro1')).toEqual([
       '1:Introduction-1.pdf',
       '2:Introduction-2.pdf',
       '3:Introduction-3.pdf',
     ]);
-    expect(decks('ex2')).toEqual(['1:Examples-1.pdf', '2:Examples-2.pdf', '3:Examples-3.pdf']);
-    expect(decks('ex4')).toEqual(['1:Examples-4.pdf', '2:Examples-5.pdf', '3:Examples-6.pdf']);
-    expect(decks('onb')).toBeUndefined();
+    expect(decksOf(result, 'ex2')).toEqual([
+      '1:Examples-1.pdf',
+      '2:Examples-2.pdf',
+      '3:Examples-3.pdf',
+    ]);
+    expect(decksOf(result, 'ex4')).toEqual([
+      '1:Examples-4.pdf',
+      '2:Examples-5.pdf',
+      '3:Examples-6.pdf',
+    ]);
+    expect(decksOf(result, 'onb')).toBeUndefined();
     expect(result.unmatched.map((u) => u.fileName)).toEqual(['Exam Prep-1.pdf']);
   });
 
-  it('lascia fuori un titolo omonimo quando i vicini non bastano a scegliere', () => {
-    const lessons = [
-      lesson('a', 'Examples', 'DSA', 'Capitolo A'),
-      lesson('b', 'Examples', 'DSA', 'Capitolo B'),
-    ];
-    const result = matchSlideFiles(zipped(['Examples-1.pdf']), lessons);
-    expect(result.unmatched).toEqual([
-      {
-        fileName: 'Examples-1.pdf',
-        reason: "2 lezioni con questo titolo e l'ordine dello zip non basta a scegliere",
-      },
+  it('con il catalogo incompleto non abbina a caso le lezioni omonime', () => {
+    // Importata solo la lezione "Examples" del capitolo 4, senza le lezioni vicine.
+    const partial = dsa.filter((l) => !['ex2', 'mst', 'hash'].includes(l.lessonId));
+    const result = matchSlideFiles(zipped(dsaZip), partial);
+    expect(decksOf(result, 'ex4')).toBeUndefined();
+    expect(result.unmatched.map((u) => u.fileName)).toEqual([
+      'Examples-1.pdf',
+      'Examples-2.pdf',
+      'Examples-3.pdf',
+      'Minimum spanning tree algorithms-1.pdf',
+      'Examples-4.pdf',
+      'Examples-5.pdf',
+      'Examples-6.pdf',
+      'Hash functions-1.pdf',
+      'Exam Prep-1.pdf',
     ]);
+    expect(result.unmatched[0]?.reason).toBe(
+      '1 lezioni importate con questo titolo e 2 gruppi di PDF nello zip: non so con certezza a quale vada',
+    );
   });
 
-  it('usa il capitolo del vicino quando più omonime stanno tra i vicini', () => {
-    const lessons = [
-      lesson('x', 'Intro', 'DSA', 'Capitolo A'),
-      lesson('y', 'Intro', 'DSA', 'Capitolo B'),
-      lesson('z', 'Heaps', 'DSA', 'Capitolo B'),
-    ];
-    const result = matchSlideFiles(zipped(['Intro-1.pdf', 'Heaps-1.pdf']), lessons);
-    expect(result.matched.get('y')?.files.map((f) => f.file.fileName)).toEqual(['Intro-1.pdf']);
+  it('con il catalogo incompleto abbina il blocco accanto alla sua lezione vicina', () => {
+    // Importate "Examples" del capitolo 4 e la lezione che la precede.
+    const partial = dsa.filter((l) => l.lessonId !== 'ex2');
+    const result = matchSlideFiles(zipped(dsaZip), partial);
+    expect(decksOf(result, 'ex4')).toEqual([
+      '1:Examples-4.pdf',
+      '2:Examples-5.pdf',
+      '3:Examples-6.pdf',
+    ]);
+    expect(result.unmatched.map((u) => u.fileName).slice(0, 3)).toEqual([
+      'Examples-1.pdf',
+      'Examples-2.pdf',
+      'Examples-3.pdf',
+    ]);
   });
 });

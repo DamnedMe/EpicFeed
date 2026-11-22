@@ -3,7 +3,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { ApiRequestError } from '../api-client.js';
 import { memorySlidesToolkit } from './testing.js';
 import type { SlidesApi } from './tools.js';
-import { IMPORT_TIME_BUDGET_MS, importSlides, slideImagesFor } from './tools.js';
+import {
+  IMPORT_TIME_BUDGET_MS,
+  RESUME_WINDOW_MS,
+  importSlides,
+  newImportSession,
+  slideImagesFor,
+} from './tools.js';
 
 const catalog = [
   {
@@ -48,7 +54,7 @@ describe('importSlides', () => {
     const { kit, stored } = memorySlidesToolkit(pdfs);
     const { value, importMock } = api();
     const progress = vi.fn(() => Promise.resolve());
-    const outcome = await importSlides(value, kit, new Set(), {
+    const outcome = await importSlides(value, kit, newImportSession(), {
       path: 'C:\\slides.zip',
       onProgress: progress,
     });
@@ -74,14 +80,56 @@ describe('importSlides', () => {
     expect(progress).toHaveBeenCalledWith(1, 1);
   });
 
-  it('con aggiorna rilegge tutto; una seconda chiamata nella sessione non ripete', async () => {
+  it('con aggiorna rilegge tutto; una seconda chiamata subito dopo non ripete', async () => {
     const { kit } = memorySlidesToolkit(pdfs);
-    const done = new Set<string>();
+    const session = newImportSession();
     const { value, importMock } = api();
-    await importSlides(value, kit, done, { path: 'z', refresh: true });
+    await importSlides(value, kit, session, { path: 'z', refresh: true });
     expect(importMock).toHaveBeenCalledTimes(2);
-    const again = await importSlides(value, kit, done, { path: 'z', refresh: true });
-    expect(again.text).toContain('Nessuna lezione da aggiornare');
+    const again = await importSlides(value, kit, session, { path: 'z', refresh: true });
+    expect(again.text).toContain('importate negli ultimi minuti');
+    expect(importMock).toHaveBeenCalledTimes(2);
+    // Più tardi, aggiorna rilegge di nuovo.
+    kit.tick(RESUME_WINDOW_MS + 1);
+    await importSlides(value, kit, session, { path: 'z', refresh: true });
+    expect(importMock).toHaveBeenCalledTimes(4);
+  });
+
+  it('una lezione fallita non conta come fatta: si riprova, dopo le altre', async () => {
+    const { kit } = memorySlidesToolkit(pdfs);
+    const session = newImportSession();
+    const order: string[] = [];
+    let failAvl = true;
+    const { value } = api({
+      importSlides: (lessonId, body) => {
+        order.push(lessonId);
+        if (lessonId === 'l1' && failAvl) return Promise.reject(new Error('lettura fallita'));
+        return Promise.resolve({
+          lessonId,
+          presentations: body.presentations.map((p) => ({
+            number: p.number,
+            lessonPartId: '20000000-0000-4000-8000-000000000001',
+            newVersion: true,
+            pages: p.pages.length,
+          })),
+        });
+      },
+    });
+    const first = await importSlides(value, kit, session, { path: 'z', refresh: true });
+    expect(first.text).toContain('AVL trees: lettura fallita');
+    expect(first.text).not.toContain('Restano');
+    failAvl = false;
+    order.length = 0;
+    const retry = await importSlides(value, kit, session, { path: 'z' });
+    expect(order).toEqual(['l1']);
+    expect(retry.text).toContain('Slide importate per 1 lezioni');
+
+    // Con più lezioni da fare, quella già fallita passa in fondo.
+    const other = newImportSession();
+    other.failed.add('z|l1');
+    order.length = 0;
+    await importSlides(value, kit, other, { path: 'z', refresh: true });
+    expect(order).toEqual(['l2', 'l1']);
   });
 
   it('si ferma dopo il tempo massimo e dice di continuare', async () => {
@@ -92,7 +140,10 @@ describe('importSlides', () => {
         return Promise.resolve({ lessonId, presentations: [] });
       },
     });
-    const outcome = await importSlides(value, kit, new Set(), { path: 'z', refresh: true });
+    const outcome = await importSlides(value, kit, newImportSession(), {
+      path: 'z',
+      refresh: true,
+    });
     expect(outcome.text).toContain('Restano 1 lezioni');
   });
 
@@ -101,37 +152,37 @@ describe('importSlides', () => {
     const failing = api({
       importSlides: () => Promise.reject(new ApiRequestError(404, 'NOT_FOUND', 'Lezione sparita.')),
     });
-    const outcome = await importSlides(failing.value, kit, new Set(), { path: 'z' });
+    const outcome = await importSlides(failing.value, kit, newImportSession(), { path: 'z' });
     expect(outcome.isError).toBe(true);
     expect(outcome.text).toContain('AVL trees: Lezione sparita.');
 
     const odd = api({ importSlides: () => Promise.reject(new Error('boom')) });
-    const oddOutcome = await importSlides(odd.value, kit, new Set(), { path: 'z' });
+    const oddOutcome = await importSlides(odd.value, kit, newImportSession(), { path: 'z' });
     expect(oddOutcome.text).toContain('AVL trees: boom');
     // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors -- caso di un valore che non è un Error
     const strange = api({ importSlides: () => Promise.reject('x') });
-    expect((await importSlides(strange.value, kit, new Set(), { path: 'z' })).text).toContain(
-      'errore inatteso',
-    );
+    expect(
+      (await importSlides(strange.value, kit, newImportSession(), { path: 'z' })).text,
+    ).toContain('errore inatteso');
 
     const unauthorized = api({
       importSlides: () => Promise.reject(new ApiRequestError(401, 'UNAUTHORIZED', 'Token.')),
     });
-    await expect(importSlides(unauthorized.value, kit, new Set(), { path: 'z' })).rejects.toThrow(
-      'Token.',
-    );
+    await expect(
+      importSlides(unauthorized.value, kit, newImportSession(), { path: 'z' }),
+    ).rejects.toThrow('Token.');
   });
 
   it('dice quando non ci sono PDF e tronca un elenco lungo di esclusi', async () => {
     const empty = memorySlidesToolkit({});
     expect(
-      (await importSlides(api().value, empty.kit, new Set(), { path: 'vuota' })).text,
+      (await importSlides(api().value, empty.kit, newImportSession(), { path: 'vuota' })).text,
     ).toContain('non ci sono PDF');
     const many = Object.fromEntries(
       Array.from({ length: 35 }, (_, i) => [`Other ${String(i)}-1.pdf`, 'x']),
     );
     const { kit } = memorySlidesToolkit(many);
-    const outcome = await importSlides(api().value, kit, new Set(), { path: 'z' });
+    const outcome = await importSlides(api().value, kit, newImportSession(), { path: 'z' });
     expect(outcome.text).toContain('… e altri 5.');
   });
 });
@@ -147,7 +198,7 @@ const lesson = (fileNames: string[]): LessonSourcesResponse =>
 describe('slideImagesFor', () => {
   it('disegna solo le pagine con figure delle presentazioni della lezione', async () => {
     const { kit } = memorySlidesToolkit(pdfs);
-    await importSlides(api().value, kit, new Set(), { path: 'z' });
+    await importSlides(api().value, kit, newImportSession(), { path: 'z' });
     const { images, note } = await slideImagesFor(
       lesson(['AVL trees-1.pdf', 'AVL trees-2.pdf']),
       kit,
