@@ -9,17 +9,19 @@ import { build } from 'esbuild';
 import { cpSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, relative, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const root = new URL('../', import.meta.url);
 const out = new URL('bundle/', root);
-const serverDir = new URL('server/', out).pathname;
+// fileURLToPath e non `.pathname`: su Windows `.pathname` dà `/C:/…`.
+const serverDir = fileURLToPath(new URL('server/', out));
 rmSync(out, { recursive: true, force: true });
 mkdirSync(serverDir, { recursive: true });
 
 const EXTERNAL = ['pdfjs-dist', '@napi-rs/canvas'];
 
 await build({
-  entryPoints: [new URL('src/main.ts', root).pathname],
+  entryPoints: [fileURLToPath(new URL('src/main.ts', root))],
   outfile: join(serverDir, 'index.js'),
   bundle: true,
   platform: 'node',
