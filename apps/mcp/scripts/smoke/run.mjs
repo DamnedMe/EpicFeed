@@ -35,10 +35,12 @@ mkdirSync(extensionDir, { recursive: true });
 if (statSync(mcpb).isDirectory()) {
   cpSync(mcpb, extensionDir, { recursive: true });
 } else {
-  // tar di Windows (bsdtar) apre anche gli zip; su Linux serve unzip.
+  // Il tar di Windows (bsdtar, in System32) apre anche gli zip; quello di
+  // Git Bash no, e scambia "D:" per un host remoto. Su Linux serve unzip.
+  const windowsTar = join(process.env.SystemRoot ?? 'C:\\Windows', 'System32', 'tar.exe');
   const unpack =
     process.platform === 'win32'
-      ? spawnSync('tar', ['-xf', mcpb, '-C', extensionDir], { stdio: 'inherit' })
+      ? spawnSync(windowsTar, ['-xf', mcpb, '-C', extensionDir], { stdio: 'inherit' })
       : spawnSync('unzip', ['-q', mcpb, '-d', extensionDir], { stdio: 'inherit' });
   if (unpack.status !== 0) throw new Error('Non riesco a estrarre il pacchetto.');
 }
