@@ -1,6 +1,6 @@
 # ADR 0014: Preparazione all'esame (M4): esercizi aperti, timer, correzione di Claude, codice eseguibile
 
-- Stato: accettata (con due punti da confermare, vedi in fondo)
+- Stato: accettata
 - Data: 22/11/2026
 - Decisa da: Damian ("A (+ timer) + C + D + E, tutto in inglese, suggerimenti attivabili con lingua a scelta, in M4", 22/11/2026, sul documento *EpicFeed: preparazione all'esame*); Claude per i dettagli tecnici
 
@@ -54,6 +54,6 @@ Dalla sezione **Esame** del corso si sceglie uno o più esercizi (per argomento,
 - Nuovi strumenti nel pacchetto `.mcpb` (con la prova Windows verde prima di ogni consegna).
 - Nuove tabelle additive (banca esercizi per corso, coda delle risposte da correggere) con RLS: ognuno vede solo le proprie.
 
-## Da confermare con Damian
-1. **Dove stanno le risposte da correggere.** I risultati restano sul dispositivo ([ADR 0003](0003-risultati-sul-dispositivo.md)), ma Claude Desktop può leggere solo dal server. Proposta: va sul server, nell'area privata, **solo** la risposta inviata con *Fai correggere a Claude*; l'app scarica la correzione e la copia sul server si cancella subito dopo (o al massimo dopo 30 giorni). Alternativa senza server: l'app copia testo, risposta e griglia negli appunti da incollare in Claude Desktop.
-2. **Formato dell'esame vero** (al PC o su carta, durata, numero di esercizi, codice eseguibile o no), per tarare timer, varianti e griglie.
+## Punti confermati dopo la decisione (22/11/2026)
+1. **Risposte da correggere sul server**: Damian approva. Va nell'area privata **solo** la risposta inviata con *Fai correggere a Claude*; l'app scarica la correzione e la copia sul server si cancella subito dopo (al massimo dopo 30 giorni se non viene mai scaricata). È un'eccezione limitata all'[ADR 0003](0003-risultati-sul-dispositivo.md): punteggi e storico restano sul dispositivo.
+2. **Formato dell'esame del corso DSA**, dalle slide della lezione *Introduction* (zip ufficiale, `Introduction-1.pdf`): un'**autovalutazione di 50 domande a scelta multipla per ognuno dei 6 moduli** (300 in tutto, circa 10 per lezione) e un **esame finale come colloquio online di 20 minuti** su tutto il corso, da PC. La durata varia da corso a corso: va letta dal materiale di ciascuno (slide introduttive o linee guida d'esame).
