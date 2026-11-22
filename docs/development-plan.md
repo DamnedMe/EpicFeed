@@ -38,7 +38,7 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
 | M1 | **Import e catalogo** | L'estensione importa la lezione aperta; nell'app compare in "Le mie lezioni"; un secondo import uguale non crea duplicati | M |
 | M2 | **Generazione via MCP** | Da Claude Desktop: "genera le lezioni nuove" crea schede, quiz, concetti e glossario per le versioni importate, con l'intervallo di video di ogni scheda | M |
 | M3 | **Feed** | Feed verticale sul telefono, swipe fluido, "Guarda sul portale" al minuto giusto, temi e accenti | M |
-| M4 | **Quiz e ripasso** | Quiz di fine capitolo, ripasso giornaliero FSRS, backup esportabile. **Fine MVP** | M |
+| M4 | **Quiz, ripasso ed esame** | Quiz di fine capitolo, ripasso giornaliero FSRS, backup esportabile; sezione Esame con esercizi aperti in inglese, timer, correzione di Claude e codice eseguibile ([ADR 0014](decisions/0014-preparazione-esame.md)). **Fine MVP** | L |
 | M5 | Segnala errore | Correzioni salvate nell'area privata e riapplicate alle nuove versioni | S |
 | M6 | Assistente di studio MCP | Strumenti di studio per Claude Desktop: cerca lezione, concetti deboli, quiz al volo, segnala errore | M |
 | M7 | Libri | Libreria, import PDF/EPUB via MCP, modalità Studiare/Solo leggere | L |
@@ -82,6 +82,12 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
 - `AnswerQuiz`, `ScheduleReview` con `ts-fsrs`; `IndexedDbProgressStore`.
 - Schermate Quiz e Ripasso, sezione Io (tema, accento, lingua dei quiz, export/import backup).
 - Quiz nella lingua scelta (proposta: inglese, per l'esame); il ripasso è unico per concetto, qualunque sia la lingua; i risultati ricordano la lingua usata ([ADR 0011](decisions/0011-studio-bilingue-it-en.md)).
+- **Preparazione all'esame** ([ADR 0014](decisions/0014-preparazione-esame.md)), tutto in inglese:
+  - materiale d'esame del corso dallo zip (es. *Exam Prep*) e strumento MCP `genera_esercizi_esame`: esercizi ufficiali + varianti, con soluzione modello, griglia, concetti e test;
+  - sezione Esame con esercitazione e timer facoltativo, suggerimenti attivabili con lingua a scelta (IT/EN);
+  - autovalutazione con griglia e correzione di Claude via MCP (`risposte_da_correggere`, `salva_correzione`), punteggio collegato al ripasso FSRS;
+  - test del codice Python nel browser con Pyodide in un Web Worker;
+  - 1–2 domande aperte stile esame nel feed di ogni lezione (campo facoltativo `examQuestions`, dopo la chiusura di M2).
 - Budget Lighthouse in CI (LCP < 2,5 s mobile).
 
 ## 3. Struttura della repo
