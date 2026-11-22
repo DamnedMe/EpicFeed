@@ -35,8 +35,40 @@ let pdfjs: Promise<PdfJs> | undefined;
 
 /** Carica pdf.js una volta sola, solo quando servono le slide. */
 function loadPdfJs(): Promise<PdfJs> {
-  pdfjs ??= import('pdfjs-dist/legacy/build/pdf.mjs');
+  pdfjs ??= importPdfJsAsNode();
   return pdfjs;
+}
+
+/**
+ * Importa pdf.js facendogli riconoscere Node anche dentro Claude Desktop.
+ *
+ * Claude Desktop avvia il server in un processo figlio di Electron
+ * (`process.type` diverso da `'browser'`): pdf.js lo scambia per una pagina
+ * web e cerca `document`, un worker web e i font del browser. pdf.js decide
+ * una volta sola, al caricamento del modulo, quindi basta presentare il
+ * processo come principale durante l'import e ripristinarlo subito dopo.
+ * Il worker si carica in anticipo nello stesso processo (`globalThis.pdfjsWorker`),
+ * così pdf.js non ha bisogno di `GlobalWorkerOptions.workerSrc`.
+ */
+async function importPdfJsAsNode(): Promise<PdfJs> {
+  const proc = process as NodeJS.Process & { type?: string };
+  const electronChild =
+    typeof proc.versions.electron === 'string' &&
+    typeof proc.type === 'string' &&
+    proc.type !== 'browser';
+  const originalType = proc.type ?? '';
+  if (electronChild) {
+    proc.type = 'browser';
+  }
+  try {
+    const worker = await import('pdfjs-dist/legacy/build/pdf.worker.mjs');
+    (globalThis as { pdfjsWorker?: unknown }).pdfjsWorker ??= worker;
+    return await import('pdfjs-dist/legacy/build/pdf.mjs');
+  } finally {
+    if (electronChild) {
+      proc.type = originalType;
+    }
+  }
 }
 
 /** Percorso (con separatore finale, come vuole pdf.js) di una cartella di pdf.js. */

@@ -31,6 +31,7 @@ Verifiche sul portale (21/11/2026, profilo Chrome loggato):
 - **Limite delle immagini**: per non appesantire la generazione, solo le pagine con figure o con poco testo passano come immagine, con un tetto per lezione da tarare sul set di valutazione di M2.
 
 ## Punti aperti
-- Verificare all'avvio di M2 che i nomi dentro lo zip coincidano con quelli della pagina *Course downloads* (finora visti solo nella pagina).
+- ~~Verificare all'avvio di M2 che i nomi dentro lo zip coincidano con quelli della pagina *Course downloads* (finora visti solo nella pagina).~~ Verificato il 22/11/2026 sullo zip DSA (91 PDF): nomi `{titolo}-{n}.pdf` senza cartelle, nell'ordine del corso; per lezioni con lo stesso titolo la numerazione prosegue (`Examples-1…6`), e l'abbinamento usa l'ordine dello zip (vedi `docs/technical/generation.md`).
+- Le lezioni fatte solo di slide (es. "Exam Prep") non vengono importate dall'estensione, quindi le loro slide restano fuori: da decidere se importarle come lezioni senza video.
 - Testo delle slide nel catalogo condiviso: con un solo utente va bene; prima di aprire l'app ad altri studenti (M8) serve una verifica, perché il testo arriva da un file sul PC e non dal portale (stesso tema dei metadati condivisi in [import.md](../technical/import.md#limiti-noti)).
 - Schede con il diagramma come immagine: possibile più avanti, richiederebbe di salvare immagini sul server.
