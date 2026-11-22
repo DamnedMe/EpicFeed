@@ -12,6 +12,30 @@ export type SlidesApi = Pick<EpicFeedApi, 'listCatalog' | 'importSlides'>;
 /** Tempo massimo di lavoro di una chiamata a `importa_slide`, poi si riprende. */
 export const IMPORT_TIME_BUDGET_MS = 40_000;
 
+/**
+ * Per quanto una lezione importata resta "fatta" ai fini della ripresa: le
+ * chiamate successive entro questo tempo la saltano, anche con `aggiorna`.
+ */
+export const RESUME_WINDOW_MS = 10 * 60_000;
+
+/**
+ * Avanzamento di `importa_slide` nella sessione di Claude Desktop, per
+ * riprendere da dove si era arrivati quando un import supera il tempo di una
+ * chiamata. Solo le lezioni riuscite contano come fatte; quelle fallite si
+ * riprovano, dopo le altre.
+ */
+export interface ImportSession {
+  /** Lezioni importate (percorso|lezione) e quando. */
+  readonly done: Map<string, number>;
+  /** Lezioni fallite nella sessione (percorso|lezione). */
+  readonly failed: Set<string>;
+}
+
+/** Nuova sessione di import, vuota. */
+export function newImportSession(): ImportSession {
+  return { done: new Map(), failed: new Set() };
+}
+
 /** Esito di una chiamata a `importa_slide`, già in parole per Claude. */
 export interface ImportSlidesOutcome {
   readonly text: string;
@@ -34,18 +58,19 @@ export interface ImportSlidesOptions {
  *
  * Una chiamata lavora al massimo {@link IMPORT_TIME_BUDGET_MS}: se restano
  * lezioni, lo dice e la chiamata successiva con lo stesso percorso riprende
- * da lì (le lezioni già fatte in questa sessione si saltano).
+ * da lì (le lezioni importate negli ultimi {@link RESUME_WINDOW_MS} si
+ * saltano; quelle fallite si riprovano per ultime).
  *
  * @param api - API di EpicFeed.
  * @param kit - Operazioni sui file.
- * @param done - Lezioni già importate in questa sessione, per percorso.
+ * @param session - Avanzamento nella sessione, per riprendere.
  * @param options - Percorso, materia e opzioni.
  * @returns Il riepilogo per Claude.
  */
 export async function importSlides(
   api: SlidesApi,
   kit: SlidesToolkit,
-  done: Set<string>,
+  session: ImportSession,
   options: ImportSlidesOptions,
 ): Promise<ImportSlidesOutcome> {
   const started = kit.now();
@@ -56,19 +81,32 @@ export async function importSlides(
   const { lessons } = await api.listCatalog();
   const { matched, unmatched } = matchSlideFiles(files, lessons, options.subject);
 
-  const todo = [...matched.values()].filter(({ lesson, files: decks }) => {
-    if (done.has(`${options.path}|${lesson.lessonId}`)) return false;
-    const known = lessons.find((l) => l.lessonId === lesson.lessonId)?.slides ?? 0;
-    return options.refresh === true || known < decks.length;
-  });
+  const keyOf = (lessonId: string) => `${options.path}|${lessonId}`;
+  const recentlyDone = (lessonId: string) =>
+    started - (session.done.get(keyOf(lessonId)) ?? -Infinity) < RESUME_WINDOW_MS;
+  const todo = [...matched.values()]
+    .filter(({ lesson, files: decks }) => {
+      if (recentlyDone(lesson.lessonId)) return false;
+      const known = lessons.find((l) => l.lessonId === lesson.lessonId)?.slides ?? 0;
+      return options.refresh === true || known < decks.length;
+    })
+    // Le lezioni già fallite in questa sessione si riprovano per ultime.
+    .sort(
+      (a, b) =>
+        Number(session.failed.has(keyOf(a.lesson.lessonId))) -
+        Number(session.failed.has(keyOf(b.lesson.lessonId))),
+    );
 
   const indexed = new Map<string, StoredDeck[]>();
   let imported = 0;
   let presentations = 0;
   let changed = 0;
   const failures: string[] = [];
+  let attempted = 0;
   for (const [position, { lesson, files: decks }] of todo.entries()) {
     if (kit.now() - started > IMPORT_TIME_BUDGET_MS) break;
+    attempted += 1;
+    const key = keyOf(lesson.lessonId);
     try {
       const payload = [];
       for (const deck of decks) {
@@ -91,21 +129,26 @@ export async function importSlides(
           entry: deck.file.entry,
         })),
       );
+      // Solo una lezione davvero importata conta come fatta.
+      session.done.set(key, kit.now());
+      session.failed.delete(key);
     } catch (error) {
       // Un token non valido ferma tutto; gli altri errori riguardano una lezione sola.
       if (error instanceof ApiRequestError && error.code === 'UNAUTHORIZED') throw error;
       const reason = error instanceof Error ? error.message : 'errore inatteso';
       failures.push(`${lesson.lessonTitle}: ${reason}`);
+      session.failed.add(key);
     }
-    done.add(`${options.path}|${lesson.lessonId}`);
     await options.onProgress?.(position + 1, todo.length);
   }
   if (indexed.size > 0) await kit.index.setMany(indexed);
 
-  const remaining = todo.filter((t) => !done.has(`${options.path}|${t.lesson.lessonId}`)).length;
+  const remaining = todo.length - attempted;
   const lines = [
     imported === 0 && todo.length === 0
-      ? `Nessuna lezione da aggiornare: le ${String(matched.size)} lezioni abbinate hanno già le slide. Per rileggerle comunque usa aggiorna: true.`
+      ? options.refresh === true
+        ? `Nessuna lezione da aggiornare: le ${String(matched.size)} lezioni abbinate sono state importate negli ultimi minuti.`
+        : `Nessuna lezione da aggiornare: le ${String(matched.size)} lezioni abbinate hanno già le slide. Per rileggerle comunque usa aggiorna: true.`
       : `Slide importate per ${String(imported)} lezioni: ${String(presentations)} presentazioni, di cui ${String(changed)} nuove o cambiate.`,
   ];
   if (changed > 0) {

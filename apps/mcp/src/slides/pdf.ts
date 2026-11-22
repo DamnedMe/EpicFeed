@@ -35,7 +35,11 @@ let pdfjs: Promise<PdfJs> | undefined;
 
 /** Carica pdf.js una volta sola, solo quando servono le slide. */
 function loadPdfJs(): Promise<PdfJs> {
-  pdfjs ??= importPdfJsAsNode();
+  pdfjs ??= importPdfJsAsNode().catch((error: unknown) => {
+    // Un caricamento fallito non resta in memoria: la chiamata dopo riprova.
+    pdfjs = undefined;
+    throw error;
+  });
   return pdfjs;
 }
 
@@ -45,30 +49,61 @@ function loadPdfJs(): Promise<PdfJs> {
  * Claude Desktop avvia il server in un processo figlio di Electron
  * (`process.type` diverso da `'browser'`): pdf.js lo scambia per una pagina
  * web e cerca `document`, un worker web e i font del browser. pdf.js decide
- * una volta sola, al caricamento del modulo, quindi basta presentare il
- * processo come principale durante l'import e ripristinarlo subito dopo.
+ * una volta sola, al caricamento del modulo, quindi basta presentargli un
+ * processo "principale" durante l'import (vedi {@link presentAsMainProcess}).
  * Il worker si carica in anticipo nello stesso processo (`globalThis.pdfjsWorker`),
  * così pdf.js non ha bisogno di `GlobalWorkerOptions.workerSrc`.
  */
 async function importPdfJsAsNode(): Promise<PdfJs> {
-  const proc = process as NodeJS.Process & { type?: string };
-  const electronChild =
-    typeof proc.versions.electron === 'string' &&
-    typeof proc.type === 'string' &&
-    proc.type !== 'browser';
-  const originalType = proc.type ?? '';
-  if (electronChild) {
-    proc.type = 'browser';
-  }
+  const restore = presentAsMainProcess();
   try {
     const worker = await import('pdfjs-dist/legacy/build/pdf.worker.mjs');
     (globalThis as { pdfjsWorker?: unknown }).pdfjsWorker ??= worker;
     return await import('pdfjs-dist/legacy/build/pdf.mjs');
   } finally {
-    if (electronChild) {
-      proc.type = originalType;
-    }
+    restore();
   }
+}
+
+/**
+ * In un processo figlio di Electron sostituisce per poco `globalThis.process`
+ * con una vista che risponde `type: 'browser'` e inoltra tutto il resto al
+ * processo vero. `process.type` in Electron è di sola lettura, quindi non si
+ * può cambiare direttamente. La vista ha un bersaglio vuoto, così le regole
+ * dei Proxy sulle proprietà non modificabili non scattano, e le funzioni
+ * restano legate al processo vero.
+ *
+ * @returns La funzione che rimette il `process` originale.
+ */
+function presentAsMainProcess(): () => void {
+  const real = process as NodeJS.Process & { type?: unknown };
+  const electronChild =
+    typeof real.versions.electron === 'string' &&
+    typeof real.type === 'string' &&
+    real.type !== 'browser';
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'process');
+  if (!electronChild || !descriptor?.configurable) return () => undefined;
+
+  const view = new Proxy({} as NodeJS.Process, {
+    get(_target, key) {
+      if (key === 'type') return 'browser';
+      const value: unknown = Reflect.get(real, key, real);
+      return typeof value === 'function'
+        ? (value as (...args: unknown[]) => unknown).bind(real)
+        : value;
+    },
+    has: (_target, key) => Reflect.has(real, key),
+    set: (_target, key, value) => Reflect.set(real, key, value, real),
+  });
+  Object.defineProperty(globalThis, 'process', {
+    value: view,
+    writable: true,
+    configurable: true,
+    enumerable: descriptor.enumerable ?? false,
+  });
+  return () => {
+    Object.defineProperty(globalThis, 'process', descriptor);
+  };
 }
 
 /** Percorso (con separatore finale, come vuole pdf.js) di una cartella di pdf.js. */

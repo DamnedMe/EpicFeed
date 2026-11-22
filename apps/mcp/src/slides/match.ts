@@ -58,25 +58,44 @@ export function normalizeTitle(title: string): string {
     .trim();
 }
 
-/** Un PDF con il titolo letto dal nome e le lezioni che hanno quel titolo. */
+/** PDF con titolo riconosciuto: posizione nell'elenco dei file e numero. */
 interface ParsedFile {
   readonly file: SlideFile;
+  readonly index: number;
   readonly number: number;
-  readonly candidates: readonly CatalogLesson[];
 }
+
+/** PDF dello stesso titolo e lezioni importate con quel titolo (in ordine di corso). */
+interface TitleGroup {
+  readonly files: ParsedFile[];
+  candidates: readonly CatalogLesson[];
+}
+
+/** Lezione scelta per un gruppo di PDF, o motivo per lasciarli fuori. */
+type Assignment =
+  | { readonly lesson: CatalogLesson; readonly files: readonly ParsedFile[] }
+  | { readonly reason: string; readonly files: readonly ParsedFile[] };
 
 /**
  * Abbina i PDF alle lezioni importate per titolo (ADR 0012).
  *
- * Più lezioni dello stesso corso possono avere lo stesso titolo (es. due
- * "Examples" in capitoli diversi): lo zip del portale le distingue solo con la
- * numerazione, che prosegue da una lezione all'altra (`Examples-1…3` nel
- * capitolo 2, `Examples-4…6` nel capitolo 4). Per questi file conta l'ordine
- * dello zip, che è quello del corso: vedi {@link resolveByNeighbours}. Le
- * presentazioni di queste lezioni si rinumerano da 1.
+ * Lo zip del portale elenca i PDF nell'ordine del corso, e le presentazioni
+ * di una lezione sono file consecutivi ("blocco"). Più lezioni dello stesso
+ * corso possono avere lo stesso titolo (es. due "Examples" in capitoli
+ * diversi): la numerazione allora prosegue (`Examples-1…3` nel capitolo 2,
+ * `Examples-4…6` nel capitolo 4) e ogni blocco è una lezione. Così:
  *
- * Un file che non trova una lezione, o non riesce a sceglierne una, resta
- * fuori con il motivo: nessun abbinamento a indovinare.
+ * - le lezioni candidate si limitano alla materia dello zip, riconosciuta dai
+ *   PDF con un titolo unico (o a `subject`, se indicata);
+ * - se i blocchi sono tanti quante le lezioni candidate, si abbinano in ordine
+ *   di corso;
+ * - altrimenti ogni blocco si abbina guardando le lezioni dei file subito
+ *   prima e subito dopo (vedi {@link resolveByAdjacentLessons});
+ * - le presentazioni di queste lezioni si rinumerano da 1.
+ *
+ * Con una cartella estratta l'ordine dello zip è perso: i titoli ripetuti
+ * restano fuori. Un file che non trova una lezione, o non può sceglierne una
+ * con certezza, resta fuori con il motivo: nessun abbinamento a indovinare.
  *
  * @param files - PDF dello zip, nell'ordine dello zip.
  * @param lessons - Lezioni importate dallo studente, nell'ordine del corso.
@@ -96,119 +115,197 @@ export function matchSlideFiles(
     byTitle.set(key, [...(byTitle.get(key) ?? []), lesson]);
   }
 
-  const unmatched: (UnmatchedFile & { readonly order: number })[] = [];
-  const order = new Map(files.map((file, index) => [file, index]));
-  const parsed: ParsedFile[] = [];
-  for (const file of files) {
+  const unmatched: (UnmatchedFile & { readonly index: number })[] = [];
+  const groups = new Map<string, TitleGroup>();
+  for (const [index, file] of files.entries()) {
     const name = parseSlideFileName(file.fileName);
     if (!name) {
       unmatched.push({
         fileName: file.fileName,
         reason: 'il nome non è "titolo-numero.pdf"',
-        order: order.get(file) ?? 0,
+        index,
       });
       continue;
     }
-    const candidates = byTitle.get(normalizeTitle(name.title)) ?? [];
-    if (candidates.length === 0) {
-      unmatched.push({
-        fileName: file.fileName,
-        reason: 'nessuna lezione importata con questo titolo',
-        order: order.get(file) ?? 0,
-      });
-      continue;
-    }
-    parsed.push({ file, number: name.number, candidates });
+    const key = normalizeTitle(name.title);
+    const group = groups.get(key) ?? { files: [], candidates: byTitle.get(key) ?? [] };
+    group.files.push({ file, index, number: name.number });
+    groups.set(key, group);
   }
+
+  const ordered = files.every((file) => file.archiveOrder !== undefined);
+  const anchors = anchorLessons(groups, ordered);
+  restrictToZipSubject(groups, anchors);
 
   const courseIndex = new Map(lessons.map((lesson, index) => [lesson.lessonId, index]));
   const matched = new Map<string, { lesson: CatalogLesson; files: MatchedFile[] }>();
-  const sharedTitle = new Set<string>();
-  for (const [index, item] of parsed.entries()) {
-    const shared = item.candidates.length > 1;
-    const lesson = shared ? resolveByNeighbours(parsed, index, courseIndex) : item.candidates[0];
-    if (!lesson) {
-      unmatched.push({
-        fileName: item.file.fileName,
-        reason:
-          item.file.archiveOrder === undefined
-            ? `${String(item.candidates.length)} lezioni con questo titolo: usa lo zip scaricato dal portale, non la cartella estratta`
-            : `${String(item.candidates.length)} lezioni con questo titolo e l'ordine dello zip non basta a scegliere`,
-        order: order.get(item.file) ?? 0,
-      });
-      continue;
+  const renumbered = new Set<string>();
+  for (const group of groups.values()) {
+    const blocks = ordered ? splitIntoBlocks(group.files) : [group.files];
+    for (const assignment of assignGroup(group, blocks, ordered, anchors, courseIndex)) {
+      if ('reason' in assignment) {
+        for (const item of assignment.files) {
+          unmatched.push({
+            fileName: item.file.fileName,
+            reason: assignment.reason,
+            index: item.index,
+          });
+        }
+        continue;
+      }
+      const { lesson } = assignment;
+      if (group.candidates.length > 1 || blocks.length > 1) renumbered.add(lesson.lessonId);
+      const entry = matched.get(lesson.lessonId) ?? { lesson, files: [] };
+      for (const item of assignment.files) {
+        if (entry.files.some((existing) => existing.number === item.number)) {
+          unmatched.push({
+            fileName: item.file.fileName,
+            reason: 'numero di presentazione ripetuto',
+            index: item.index,
+          });
+          continue;
+        }
+        entry.files.push({ number: item.number, file: item.file });
+      }
+      matched.set(lesson.lessonId, entry);
     }
-    if (shared) sharedTitle.add(lesson.lessonId);
-    const entry = matched.get(lesson.lessonId) ?? { lesson, files: [] };
-    if (entry.files.some((existing) => existing.number === item.number)) {
-      unmatched.push({
-        fileName: item.file.fileName,
-        reason: 'numero di presentazione ripetuto',
-        order: order.get(item.file) ?? 0,
-      });
-      continue;
-    }
-    entry.files.push({ number: item.number, file: item.file });
-    matched.set(lesson.lessonId, entry);
   }
 
   for (const [lessonId, entry] of matched) {
     entry.files.sort((a, b) => a.number - b.number);
-    if (sharedTitle.has(lessonId)) {
+    if (renumbered.has(lessonId)) {
       // La numerazione dello zip prosegue tra lezioni omonime: si riparte da 1.
       entry.files = entry.files.map((deck, rank) => ({ number: rank + 1, file: deck.file }));
     }
   }
   const inFileOrder = unmatched
-    .sort((a, b) => a.order - b.order)
+    .sort((a, b) => a.index - b.index)
     .map(({ fileName, reason }) => ({ fileName, reason }));
   return { matched, unmatched: inFileOrder };
 }
 
 /**
- * Sceglie la lezione di un PDF il cui titolo è di più lezioni, guardando i
- * PDF vicini nello zip con un titolo unico (lo zip segue l'ordine del corso):
+ * Lezioni certe: titolo di una sola lezione e, nello zip, un solo blocco di
+ * file. Servono da punti di riferimento per materia e lezioni vicine.
  *
- * 1. tiene le lezioni che nel corso stanno tra la lezione del vicino
- *    precedente e quella del vicino successivo;
- * 2. se ne restano più di una, tiene quelle nello stesso capitolo del vicino
- *    precedente o, in mancanza, del successivo.
- *
- * @param parsed - PDF con titolo riconosciuto, nell'ordine dello zip.
- * @param index - Posizione del PDF da abbinare in `parsed`.
- * @param courseIndex - Posizione di ogni lezione nel corso.
- * @returns La lezione, o `undefined` se non si può scegliere con certezza
- *   (anche quando i file vengono da una cartella, senza l'ordine dello zip).
+ * @returns La lezione certa di ogni file, per posizione nell'elenco dei file.
  */
-function resolveByNeighbours(
-  parsed: readonly ParsedFile[],
-  index: number,
+function anchorLessons(
+  groups: ReadonlyMap<string, TitleGroup>,
+  ordered: boolean,
+): Map<number, CatalogLesson> {
+  const anchors = new Map<number, CatalogLesson>();
+  for (const group of groups.values()) {
+    const [lesson] = group.candidates;
+    if (!lesson || group.candidates.length > 1) continue;
+    if (ordered && splitIntoBlocks(group.files).length > 1) continue;
+    for (const item of group.files) anchors.set(item.index, lesson);
+  }
+  return anchors;
+}
+
+/**
+ * Tra lezioni omonime di materie diverse tiene quelle della materia dello zip:
+ * quella della maggior parte dei file con una lezione certa. I titoli di una
+ * sola lezione non si toccano (uno zip potrebbe coprire più materie).
+ */
+function restrictToZipSubject(
+  groups: ReadonlyMap<string, TitleGroup>,
+  anchors: ReadonlyMap<number, CatalogLesson>,
+): void {
+  const votes = new Map<string, number>();
+  for (const lesson of anchors.values()) {
+    votes.set(lesson.subjectTitle, (votes.get(lesson.subjectTitle) ?? 0) + 1);
+  }
+  const ranked = [...votes].sort((a, b) => b[1] - a[1]);
+  const top = ranked[0];
+  // Solo una maggioranza netta: a pari merito la materia resta incerta.
+  if (!top || ranked[1]?.[1] === top[1]) return;
+  for (const group of groups.values()) {
+    if (group.candidates.length < 2) continue;
+    const inSubject = group.candidates.filter((lesson) => lesson.subjectTitle === top[0]);
+    if (inSubject.length > 0) group.candidates = inSubject;
+  }
+}
+
+/** Divide i file di un titolo in blocchi di file consecutivi nell'elenco. */
+function splitIntoBlocks(items: readonly ParsedFile[]): ParsedFile[][] {
+  const blocks: ParsedFile[][] = [];
+  for (const item of items) {
+    const last = blocks.at(-1);
+    const previous = last?.at(-1);
+    if (last && previous && item.index === previous.index + 1) last.push(item);
+    else blocks.push([item]);
+  }
+  return blocks;
+}
+
+/** Sceglie la lezione di ogni blocco di file con lo stesso titolo. */
+function assignGroup(
+  group: TitleGroup,
+  blocks: readonly (readonly ParsedFile[])[],
+  ordered: boolean,
+  anchors: ReadonlyMap<number, CatalogLesson>,
+  courseIndex: ReadonlyMap<string, number>,
+): Assignment[] {
+  const { candidates } = group;
+  const [only] = candidates;
+  if (!only) {
+    return [{ reason: 'nessuna lezione importata con questo titolo', files: group.files }];
+  }
+  if (candidates.length === 1 && (blocks.length === 1 || !ordered)) {
+    return [{ lesson: only, files: group.files }];
+  }
+  if (!ordered) {
+    return [
+      {
+        reason: `${String(candidates.length)} lezioni con questo titolo: usa lo zip scaricato dal portale, non la cartella estratta`,
+        files: group.files,
+      },
+    ];
+  }
+  if (blocks.length === candidates.length) {
+    return blocks.map((files, rank) => ({ lesson: candidates[rank] ?? only, files }));
+  }
+  return blocks.map((files) => {
+    const lesson = resolveByAdjacentLessons(files, candidates, anchors, courseIndex);
+    return lesson
+      ? { lesson, files }
+      : {
+          reason: `${String(candidates.length)} lezioni importate con questo titolo e ${String(blocks.length)} gruppi di PDF nello zip: non so con certezza a quale vada`,
+          files,
+        };
+  });
+}
+
+/**
+ * Sceglie la lezione di un blocco guardando le lezioni certe dei file subito
+ * prima e subito dopo nello zip: va bene una candidata nello stesso capitolo
+ * della lezione prima (e dopo di lei nel corso) o nello stesso capitolo della
+ * lezione dopo (e prima di lei nel corso).
+ *
+ * @returns La lezione, o `undefined` se non ce n'è esattamente una.
+ */
+function resolveByAdjacentLessons(
+  block: readonly ParsedFile[],
+  candidates: readonly CatalogLesson[],
+  anchors: ReadonlyMap<number, CatalogLesson>,
   courseIndex: ReadonlyMap<string, number>,
 ): CatalogLesson | undefined {
-  const item = parsed[index];
-  if (item?.file.archiveOrder === undefined) return undefined;
-  const isAnchor = (other: ParsedFile) =>
-    other.candidates.length === 1 && other.file.archiveOrder !== undefined;
-  const previous = parsed.slice(0, index).findLast(isAnchor)?.candidates[0];
-  const next = parsed.slice(index + 1).find(isAnchor)?.candidates[0];
+  const first = block[0];
+  const last = block.at(-1);
+  if (!first || !last) return undefined;
+  const before = anchors.get(first.index - 1);
+  const after = anchors.get(last.index + 1);
   const position = (lesson: CatalogLesson) => courseIndex.get(lesson.lessonId) ?? -1;
-  const low = previous ? position(previous) : -Infinity;
-  const high = next ? position(next) : Infinity;
-
-  let candidates = item.candidates.filter(
-    (lesson) => low >= high || (position(lesson) > low && position(lesson) < high),
+  const sameChapter = (a: CatalogLesson, b: CatalogLesson) =>
+    a.subjectTitle === b.subjectTitle && a.chapterTitle === b.chapterTitle;
+  const fits = candidates.filter(
+    (lesson) =>
+      (before !== undefined &&
+        sameChapter(lesson, before) &&
+        position(lesson) > position(before)) ||
+      (after !== undefined && sameChapter(lesson, after) && position(lesson) < position(after)),
   );
-  if (candidates.length > 1) {
-    const chapterOf = (lesson: CatalogLesson) =>
-      `${lesson.subjectTitle}\u0000${lesson.chapterTitle}`;
-    for (const neighbour of [previous, next]) {
-      if (!neighbour) continue;
-      const sameChapter = candidates.filter((lesson) => chapterOf(lesson) === chapterOf(neighbour));
-      if (sameChapter.length > 0) {
-        candidates = sameChapter;
-        break;
-      }
-    }
-  }
-  return candidates.length === 1 ? candidates[0] : undefined;
+  return fits.length === 1 ? fits[0] : undefined;
 }

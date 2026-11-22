@@ -10,7 +10,7 @@ import { ApiRequestError } from './api-client.js';
 import { GENERATION_INSTRUCTIONS, PROMPT_VERSION, SERVER_INSTRUCTIONS } from './prompt.js';
 import type { SlidesToolkit } from './slides/toolkit.js';
 import { defaultSlidesToolkit } from './slides/toolkit.js';
-import { importSlides, slideImagesFor } from './slides/tools.js';
+import { importSlides, newImportSession, slideImagesFor } from './slides/tools.js';
 
 /** Versione del server MCP, mostrata a Claude Desktop. */
 export const SERVER_VERSION = '0.1.0';
@@ -45,7 +45,7 @@ export function createEpicFeedServer(
   // Parti di ogni lezione letta in questa sessione: servono al controllo locale.
   const partsByLesson = new Map<string, ReadonlySet<string>>();
   // Lezioni le cui slide sono già state importate in questa sessione (per riprendere).
-  const slidesDone = new Set<string>();
+  const slidesSession = newImportSession();
 
   server.registerTool(
     'lezioni_da_generare',
@@ -210,7 +210,7 @@ export function createEpicFeedServer(
       withErrors(async () => {
         const progressToken = extra._meta?.progressToken;
         try {
-          const outcome = await importSlides(api, slides, slidesDone, {
+          const outcome = await importSlides(api, slides, slidesSession, {
             path: percorso.trim(),
             subject: materia,
             refresh: aggiorna,
