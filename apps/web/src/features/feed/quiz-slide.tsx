@@ -166,10 +166,16 @@ function TrueFalse({ entry, language, answer, onAnswer }: QuizSlideProps) {
 export function QuizSlide(props: QuizSlideProps) {
   const copy = CARD_COPY[props.language];
   const isTrueFalse = props.entry.quiz.kind === 'true_false';
+  const batch = props.entry.batch;
   return (
     <div className="ef-stage">
       <div className="ef-tag">
         <span className="k">{isTrueFalse ? copy.trueFalse : copy.check}</span>
+        {batch.size > 1 ? (
+          <span aria-label={`${copy.question} ${batch.position} / ${batch.size}`}>
+            {batch.position}/{batch.size}
+          </span>
+        ) : null}
         {props.showPoints ? <span>+{POINTS.answer}</span> : null}
       </div>
       {isTrueFalse ? null : (

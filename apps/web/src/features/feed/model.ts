@@ -1,5 +1,6 @@
 import type { SubjectFeedResponse } from '@study-feed/contracts';
 import type { SequenceItem } from '@study-feed/core';
+import type { QuizBatchPosition } from '@study-feed/core';
 import { buildStudySequence } from '@study-feed/core';
 
 /**
@@ -45,6 +46,8 @@ export interface CardEntry extends EntryBase {
 export interface QuizEntry extends EntryBase {
   readonly type: 'quiz';
   readonly quiz: FeedQuizData;
+  /** Posizione nel gruppo di domande (per "1 di 3"). */
+  readonly batch: QuizBatchPosition;
 }
 
 export type FeedEntry = CardEntry | QuizEntry;
@@ -98,7 +101,15 @@ export function buildEntries(feed: SubjectFeed): FeedEntry[] {
     if (item.type === 'quiz') {
       const quiz = data.quiz[item.index];
       return quiz
-        ? [{ ...base, type: 'quiz', key: entryKey(lesson.lessonId, 'quiz', quiz.id), quiz }]
+        ? [
+            {
+              ...base,
+              type: 'quiz',
+              key: entryKey(lesson.lessonId, 'quiz', quiz.id),
+              quiz,
+              batch: item.batch,
+            },
+          ]
         : [];
     }
     const card = data.cards[item.index];
