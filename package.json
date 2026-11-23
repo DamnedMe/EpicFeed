@@ -15,7 +15,9 @@
     "test": "turbo run test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "pnpm format:check && turbo run lint typecheck test build"
+    "check": "pnpm format:check && pnpm docs:status:check && turbo run lint typecheck test build",
+    "docs:status": "node scripts/docs-status.mjs",
+    "docs:status:check": "node scripts/docs-status.mjs --check"
   },
   "devDependencies": {
     "@study-feed/config": "workspace:*",

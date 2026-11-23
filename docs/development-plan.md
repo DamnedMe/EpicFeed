@@ -27,10 +27,11 @@ Un solo utente reale (Damian). Il modello multi-utente (catalogo deduplicato, pr
 3. **Libri** (ADR 0005), che usa il server MCP.
 4. Dettagli dai sottotitoli corretti da Claude (ADR 0006 §2): nell'MVP le schede usano solo i riassunti, che è già la scelta più sicura.
 5. Sincronizzazione cifrata tra dispositivi, apertura ad altri studenti.
+6. **Modalità desktop** (richiesta di Damian, 23/11/2026): layout pensato per il PC che si attiva da solo quando l'app rileva uno schermo da computer.
 
 ## 2. Milestone
 
-Ogni milestone finisce con una PR (o poche) che include codice, test e documentazione tecnica e funzionale aggiornata. Le durate sono indicative, misurate in sessioni di lavoro, non in giorni di calendario.
+Ogni milestone finisce con una PR (o poche) che include codice, test e documentazione tecnica e funzionale aggiornata. Le durate sono indicative, misurate in sessioni di lavoro, non in giorni di calendario. Lo stato aggiornato di ogni milestone è in [status.json](status.json) e nella plancia in cima al [README](../README.md).
 
 | # | Milestone | Cosa si vede alla fine | Dimensione |
 |---|---|---|---|
@@ -43,6 +44,7 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
 | M6 | Assistente di studio MCP | Strumenti di studio per Claude Desktop: cerca lezione, concetti deboli, quiz al volo, segnala errore | M |
 | M7 | Libri | Libreria, import PDF/EPUB via MCP, modalità Studiare/Solo leggere | L |
 | M8 | Rifinitura | Accedi con Google, budget Lighthouse, audit di sicurezza, termini d'uso, prova con un altro studente | M |
+| M9 | Modalità desktop | Aperta da un PC, l'app passa da sola a un layout per schermi grandi (rilevato da larghezza e tipo di puntatore, non dal browser): feed centrato con pannelli laterali per lezione e ripasso, scorciatoie da tastiera al posto dei gesti, scelta manuale sempre possibile in Io | M |
 
 ### Dettaglio M0–M4
 

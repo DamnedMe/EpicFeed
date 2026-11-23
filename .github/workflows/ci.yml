@@ -41,6 +41,9 @@ jobs:
       - name: Formattazione
         run: pnpm format:check
 
+      - name: Stato della documentazione allineato a docs/status.json
+        run: pnpm docs:status:check
+
       - name: Lint, typecheck, test e build
         run: pnpm turbo run lint typecheck test build
 

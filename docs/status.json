@@ -1,0 +1,64 @@
+{
+  "aggiornato": "2026-11-23",
+  "mvpFinoA": "M4",
+  "ultimoTraguardo": "**M3 Feed di studio** unita il 23/11: feed a battute con gesti, domande a gruppi di 3, punti e sessioni da 5 minuti, PWA installabile.",
+  "inCorso": "**M4 Ripasso ed esame**: tutte le scelte decise con Damian il 23/11, sviluppo avviato (6 PR previste).",
+  "milestone": [
+    {
+      "id": "M0",
+      "nome": "Fondamenta",
+      "stato": "fatta",
+      "data": "2026-11-15"
+    },
+    {
+      "id": "M1",
+      "nome": "Import e catalogo",
+      "stato": "fatta",
+      "data": "2026-11-21"
+    },
+    {
+      "id": "M2",
+      "nome": "Generazione MCP",
+      "stato": "fatta",
+      "data": "2026-11-23"
+    },
+    {
+      "id": "M3",
+      "nome": "Feed di studio",
+      "stato": "fatta",
+      "data": "2026-11-23"
+    },
+    {
+      "id": "M4",
+      "nome": "Ripasso ed esame",
+      "stato": "in-corso",
+      "avanzamento": 0.15,
+      "nota": "PR 1 di 6"
+    },
+    {
+      "id": "M5",
+      "nome": "Segnala errore",
+      "stato": "da-fare"
+    },
+    {
+      "id": "M6",
+      "nome": "Assistente MCP",
+      "stato": "da-fare"
+    },
+    {
+      "id": "M7",
+      "nome": "Libri",
+      "stato": "da-fare"
+    },
+    {
+      "id": "M8",
+      "nome": "Rifinitura",
+      "stato": "da-fare"
+    },
+    {
+      "id": "M9",
+      "nome": "Modalità desktop",
+      "stato": "da-fare"
+    }
+  ]
+}
