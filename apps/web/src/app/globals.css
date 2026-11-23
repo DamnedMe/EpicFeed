@@ -2,7 +2,14 @@
 @import '@study-feed/ui/tokens.css';
 @import '@study-feed/ui/tailwind.css';
 
-/* Fondo e testo del tema; i font self-hosted arrivano con il feed (M3). */
+/* Font self-hosted (next/font) al posto dei nomi di famiglia dei token. */
+.ef-fonts {
+  --sf-font-display: var(--ef-font-display), ui-sans-serif, system-ui, sans-serif;
+  --sf-font-body: var(--ef-font-body), ui-sans-serif, system-ui, sans-serif;
+  --sf-font-mono: var(--ef-font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Fondo e testo del tema. */
 html {
   background: var(--sf-background);
   color: var(--sf-text);

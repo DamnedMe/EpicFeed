@@ -1,6 +1,6 @@
 # Web app (`apps/web`)
 
-Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailwind 4 con i token di `packages/ui`. Stato: milestone **M3** in corso (accesso, Le mie lezioni, collegamento dell'estensione e di Claude Desktop, API di import e di generazione, API del feed di studio).
+Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailwind 4 con i token di `packages/ui`. Stato: milestone **M3** in corso (accesso, Le mie lezioni, collegamento dell'estensione e di Claude Desktop, API di import e di generazione, feed di studio con *Io*).
 
 ## Pagine e API
 | Percorso | Cosa fa | Accesso |
@@ -8,6 +8,9 @@ Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailw
 | `/accedi` | Codice via email al primo accesso, poi email e password | pubblico |
 | `/accedi/callback` | Ritorno dal link dell'email di accesso (scambia il codice PKCE con la sessione) | pubblico |
 | `/accedi/password` | Imposta la password (almeno 12 caratteri) dopo il primo accesso | sessione |
+| `/` | **Feed di studio** a battute ([feed.md](../functional/feed.md)); la materia arriva da `GET /api/feed/subjects/{id}` | sessione |
+| `/io` | **Io**: aspetto, preferenze di studio, totali, collegamenti | sessione |
+| `/io/salvati` | Schede salvate sul dispositivo | sessione |
 | `/lezioni` | **Le mie lezioni**: lezioni importate raggruppate per materia e capitolo, con numero di parti, sottotitoli e stato di generazione | sessione |
 | `/estensione` | Collega l'estensione, elenca e revoca i collegamenti | sessione |
 | `/claude-desktop` | Crea il token "genera" per Claude Desktop (mostrato una volta), elenca e revoca i token | sessione |
@@ -22,14 +25,15 @@ Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailw
 | `POST /api/extension/token` | Crea un token di import | sessione, stessa origine |
 | `DELETE /api/extension/token/{id}` | Revoca un token | sessione, stessa origine |
 
-`/` porta a `/lezioni`. Tutte le pagine sono dinamiche (`force-dynamic`): dipendono dalla sessione e non vanno mai in cache.
+Tutte le pagine sono dinamiche (`force-dynamic`): dipendono dalla sessione e non vanno mai in cache.
 
 ## Struttura
 ```
 apps/web/src/
 ├─ proxy.ts             CSP con nonce, rinnovo della sessione, redirect ad /accedi
 ├─ app/                 pagine e route (solo composizione e presentazione)
-├─ components/          guscio dell'app (barra, navigazione)
+├─ components/          guscio delle pagine di servizio, barra in basso
+├─ features/feed/       feed di studio (client): modello, gesti, dati sul dispositivo, schermate
 └─ server/              solo lato server ('server-only')
    ├─ env.ts            variabili d'ambiente validate con zod alla prima lettura
    ├─ supabase.ts       client Supabase con i cookie della richiesta
@@ -38,6 +42,7 @@ apps/web/src/
    ├─ http.ts           risposte di errore uniformi, controllo dell'origine, bearer
    ├─ import-handler.ts POST /api/import, testabile senza Next.js
    ├─ feed-handler.ts   GET /api/feed/subjects[/{id}], testabile senza Next.js
+   ├─ appearance.ts     tema e accento dai cookie, per il primo render
    └─ feed-deps.ts      collega gli handler del feed ai servizi e al riallineamento con `after`
 ```
 Le route chiamano `getServices()` di `container.ts`, che crea una sola volta la connessione (`postgres`, `prepare: false` per il pooler di Supabase, TLS obbligatorio tranne che su `localhost`) e collega gli adapter di `packages/adapters` ai casi d'uso del core.
@@ -64,10 +69,29 @@ Le letture del catalogo passano da `withUserRls`: la query gira con il ruolo `au
 Decisioni in [ADR 0015](../decisions/0015-feed-di-studio-m3.md).
 
 - `GET /api/feed/subjects` → `{ subjects: [{ subjectId, title, editionLabel, lessons, lessonsWithFeed }] }` (`ListStudySubjects`).
-- `GET /api/feed/subjects/{id}` → la materia intera (`subjectFeedResponseSchema` in `packages/contracts/src/feed.ts`): capitoli in ordine, lezioni con link alla pagina del portale, parti con il loro link (per *Guarda sul portale*) e feed salvato (`null` se la lezione non è ancora generata). Gli id del portale restano sul server: l'app riceve solo i link, costruiti e validati da `portalContentUrl` del core.
+- `GET /api/feed/subjects/{id}` → la materia intera (`subjectFeedResponseSchema` in `packages/contracts/src/feed.ts`): capitoli in ordine, lezioni con link alla pagina del portale, parti con il loro link (per *Guarda sul portale*; le slide importate dallo zip non hanno una pagina sul portale e rimandano alla lezione) e feed salvato (`null` se la lezione non è ancora generata). Gli id del portale restano sul server: l'app riceve solo i link, costruiti e validati da `portalContentUrl` del core.
 - **Cache**: `Cache-Control: private, no-cache` ed `ETag` = impronta di feed e versioni di allineamento (`ReadSubjectFeed`); con `If-None-Match` uguale la risposta è `304` senza corpo. Il DSA intero pesa circa 700 KB (150 KB compressi).
 - **Permessi**: sessione verificata con Supabase (`getCurrentUser`, password già impostata); letture con `withUserRls` (`DrizzleStudyFeedRepository`): materie, lezioni, parti e feed visibili solo se importati. Per ogni lezione vale il feed più recente tra quelli visibili.
 - **Riallineamento**: se la materia contiene feed allineati con regole vecchie, la risposta parte subito e `after()` di Next.js esegue `RealignLessonFeeds` (una lezione alla volta, fonti lette con i permessi dello studente, impronta delle fonti ricontrollata). La scrittura usa la connessione del server ed è condizionata alla versione letta, così due richieste contemporanee non scrivono due volte. Alla visita successiva l'ETag è cambiato e l'app scarica i minuti nuovi.
+
+### Schermata del feed (`src/features/feed`)
+Le regole pure stanno nel core ([core.md](core.md#feed-di-studio)): `storyOf` (battute, parola da indovinare, abbinamento frasi–codice), `buildStudySequence` (ordine e domande), `answerPoints`. La web app aggiunge:
+
+| File | Ruolo |
+|---|---|
+| `model.ts` | Dalla risposta dell'API agli elementi da scorrere (`buildEntries`), indice dei capitoli, posizione da cui riprendere, minuto leggibile |
+| `feed-client.ts` | `loadFeed`: materia scelta (ultima aperta con lezioni pronte), copia sul dispositivo mostrata subito, `If-None-Match` con la versione salvata, `304` → copia; senza rete la copia, con l'avviso *offline* |
+| `storage.ts`, `local-state.ts` | `localStorage` con prefisso `ef:`, ogni lettura validata con zod e ogni errore assorbito; valori condivisi tra i componenti con `useSyncExternalStore` (sul server e al primo render valgono i predefiniti, quindi niente differenze di idratazione) |
+| `gestures.ts` | `GestureRecognizer` senza DOM, con timer sostituibili: tocco (destra/sinistra, quota sinistra 30%), doppio tocco entro 230 ms, pressione di 500 ms, tolleranza di 12 px oltre la quale è uno scroll; `swipeAnswer` per il vero/falso (80 px, soprattutto orizzontale) |
+| `feed-app.tsx` | Composizione: scroll verticale nativo con `scroll-snap`, solo le schede entro ±2 da quella visibile sono disegnate (le altre sono segnaposto vuoti alti uno schermo), le schede non visibili sono `inert`; sessione, punti, toast, sintesi vocale, tastiera, avanzamento automatico |
+| `card-slide.tsx`, `quiz-slide.tsx`, `sheets.tsx`, `overlays.tsx` | Scheda a battute, domande, fogli delle azioni e dei capitoli, spiegazione dei gesti e riepilogo della sessione |
+| `feed.css` | Stili del feed con i token `--sf-*`: tema e accento cambiano senza ricaricare; `data-motion='off'` e `prefers-reduced-motion` spengono animazioni e transizioni |
+
+**CSP e stili**: la CSP non permette attributi `style` nell'HTML del server. I pochi valori dinamici (durata della battuta in avanzamento automatico, anello dei 5 minuti, trascinamento del vero/falso) sono variabili CSS impostate dal client con `style.setProperty` dopo il montaggio; il feed stesso si disegna solo nel browser, dopo il caricamento della materia.
+
+**Aspetto**: `/io` salva tema e accento con la server action `saveAppearance` in due cookie `httpOnly` (`ef-theme`, `ef-accent`, un anno, valori validati con `isThemePreference`/`isAccentName`); il layout li legge con `readAppearance` e li mette su `<html>`, così la pagina nasce nei colori scelti. Nel frattempo il client cambia subito gli attributi di `<html>`.
+
+**Font**: Space Grotesk, Inter e JetBrains Mono con `next/font/google`, scaricati alla build e serviti dall'app (`font-src 'self'`); la classe `ef-fonts` su `<html>` li collega ai token `--sf-font-*`.
 
 ## Variabili d'ambiente
 Esempio commentato in `apps/web/.env.example`. In locale vanno in `apps/web/.env.local` (ignorato da git), su Vercel in *Settings → Environment Variables*.

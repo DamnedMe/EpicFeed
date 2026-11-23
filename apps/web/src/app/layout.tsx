@@ -1,7 +1,26 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
-import { DEFAULT_ACCENT, DEFAULT_THEME } from '@study-feed/ui';
+import { Inter, JetBrains_Mono, Space_Grotesk } from 'next/font/google';
+import { readAppearance } from '@/server/appearance';
 import './globals.css';
+import '@/features/feed/feed.css';
+
+// Font self-hosted da next/font: scaricati alla build, serviti dall'app (CSP `font-src 'self'`).
+const display = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ['500', '700'],
+  variable: '--ef-font-display',
+});
+const body = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--ef-font-body',
+});
+const mono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  variable: '--ef-font-mono',
+});
 
 export const metadata: Metadata = {
   title: { default: 'EpicFeed', template: '%s · EpicFeed' },
@@ -17,15 +36,22 @@ export const viewport: Viewport = {
   themeColor: '#0B0B0E',
   width: 'device-width',
   initialScale: 1,
+  // Il feed occupa anche le zone del notch: i margini usano env(safe-area-inset-*).
+  viewportFit: 'cover',
 };
 
 /**
- * Layout radice. Tema e accento predefiniti (scuro + racing red) finché la
- * sezione Io non permette di sceglierli (M4).
+ * Layout radice. Tema e accento arrivano dai cookie scelti in *Io* (ADR 0015),
+ * così la pagina nasce già nei colori giusti.
  */
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const appearance = await readAppearance();
   return (
-    <html lang="it" data-theme={DEFAULT_THEME} data-accent={DEFAULT_ACCENT}>
+    <html
+      lang="it"
+      {...appearance}
+      className={`ef-fonts ${display.variable} ${body.variable} ${mono.variable}`}
+    >
       <body className="min-h-dvh bg-background text-text">{children}</body>
     </html>
   );
