@@ -80,7 +80,7 @@ Requisiti e comandi in [docs/technical/setup.md](docs/technical/setup.md).
 | [Funzionale](docs/functional/overview.md) | Cosa fa l'app per lo studente |
 | [Design system](docs/design-system.md) | Colori, temi, accenti, tipografia |
 | [Tecnica](docs/README.md) | Import, generazione, database, web, token di design |
-| [Ricognizione del portale](docs/portal-recon.md) | Come è fatto il portale e vincoli d'uso |
+| [Uso del portale](docs/portal-usage.md) | Vincoli d'uso del portale Epicode |
 
 <sub>Lo stato in cima si aggiorna da [docs/status.json](docs/status.json) con `pnpm docs:status` (vedi [docs/README.md](docs/README.md#stato-dello-sviluppo)).</sub>
 
