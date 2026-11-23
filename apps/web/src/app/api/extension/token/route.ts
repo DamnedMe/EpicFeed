@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
  */
 export async function POST(request: Request): Promise<Response> {
   if (!isSameOrigin(request)) return apiError('FORBIDDEN', 'Richiesta non ammessa.');
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ verifyWithServer: true });
   if (!user?.hasPassword) return apiError('UNAUTHORIZED', 'Accedi per collegare l’estensione.');
 
   const issued = await getServices().tokens.issue(user.id, 'Estensione Chrome');

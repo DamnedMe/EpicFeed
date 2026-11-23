@@ -11,7 +11,7 @@ export default async function LoginPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { errore } = await searchParams;
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ verifyWithServer: true });
   if (user) redirect(user.hasPassword ? '/lezioni' : '/accedi/password');
 
   return (

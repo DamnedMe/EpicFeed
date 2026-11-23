@@ -11,7 +11,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
   if (!isSameOrigin(request)) return apiError('FORBIDDEN', 'Richiesta non ammessa.');
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ verifyWithServer: true });
   if (!user) return apiError('UNAUTHORIZED', 'Accedi per gestire i token.');
 
   const id = z.uuid().safeParse((await params).id);

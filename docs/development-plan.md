@@ -71,7 +71,7 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
 - Accesso del server MCP all'API con un **token personale** creato dalla sezione Io: limitato agli strumenti di generazione, revocabile, conservato solo sul PC.
 - Set di valutazione: 2–3 capitoli reali già importati, con controllo manuale di Damian su schede e quiz prima di considerare chiusa la milestone.
 
-**M3 Feed**: avviata il 23/11/2026; scelte di Damian nell'[ADR 0015](decisions/0015-feed-di-studio-m3.md) (schede come storie a battute, parola da indovinare, domande nel feed, punti e sessioni da 5 minuti, azioni con i gesti, materia intera offline, minuti anche per le schede dalle slide). Prima PR (#26, unita): allineamento versione 2, API del feed della materia e riallineamento automatico dei feed salvati ([web.md](technical/web.md#feed-di-studio-m3)). Seconda PR (#27, unita): schermata del feed a battute con gesti, domande, punti e sessioni, sezione *Io* e barra in basso ([feed.md](functional/feed.md)). Terza PR: PWA installabile con service worker scritto a mano e test Playwright su viste di iPhone e Android in CI ([web.md](technical/web.md#pwa-e-uso-senza-rete)).
+**M3 Feed**: avviata il 23/11/2026; scelte di Damian nell'[ADR 0015](decisions/0015-feed-di-studio-m3.md) (schede come storie a battute, parola da indovinare, domande nel feed, punti e sessioni da 5 minuti, azioni con i gesti, materia intera offline, minuti anche per le schede dalle slide). Prima PR (#26, unita): allineamento versione 2, API del feed della materia e riallineamento automatico dei feed salvati ([web.md](technical/web.md#feed-di-studio-m3)). Seconda PR (#27, unita): schermata del feed a battute con gesti, domande, punti e sessioni, sezione *Io* e barra in basso ([feed.md](functional/feed.md)). Terza PR (#28, unita): PWA installabile con service worker scritto a mano e test Playwright su viste di iPhone e Android in CI ([web.md](technical/web.md#pwa-e-uso-senza-rete)). Dopo la prova di Damian: app più reattiva (server a Dublino accanto a Supabase, sessione verificata in locale, feed aperto dalla copia, schermata di attesa), barra in basso coprente e *Io* allineata sui telefoni ([ADR 0016](decisions/0016-reattivita-app.md)).
 - Feed con scroll-snap, battute a tocco, virtualizzazione, precarico delle 2 schede successive.
 - Azioni con i gesti: doppio tocco Salva, tieni premuto per Ascolta, lingua, Fonte e *Guarda sul portale*, Chiedi (disattivata fino a M6, poi collegata).
 - Lingua di studio in *Io* e pulsante IT/EN su ogni scheda, con cambio locale senza nuove richieste ([ADR 0011](decisions/0011-studio-bilingue-it-en.md)).
@@ -131,7 +131,7 @@ TypeScript strict in monorepo pnpm · Next.js (App Router) + Tailwind + Motion, 
 | Componenti UI | Primitive Radix + componenti nostri | Accessibilità pronta, aspetto tutto nostro (il design è già definito) |
 | IndexedDB | Dexie | Query e migrazioni dello schema locale, molto usato |
 | PWA / service worker | ~~Serwist~~ service worker scritto a mano (ADR 0015) | Due sole strategie (statici e pagina del feed): niente dipendenza né plugin di build |
-| Regione dati | Supabase UE (Francoforte) | GDPR e latenza dall'Italia |
+| Regione dati | Supabase UE (creato in Irlanda, `eu-west-1`); funzioni Vercel a Dublino (ADR 0016) | GDPR e latenza dall'Italia |
 | Font | Self-hosted con `next/font` | Nessuna richiesta a Google Fonts, CSP più stretta |
 
 ### Scelte prese con Damian

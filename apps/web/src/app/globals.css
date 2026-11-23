@@ -21,6 +21,6 @@ html {
 .glass {
   background: var(--sf-surface);
   border: 1px solid var(--sf-border);
+  /* Solo la forma standard: il prefisso per Safari lo aggiunge Lightning CSS. */
   backdrop-filter: blur(var(--sf-glass-blur));
-  -webkit-backdrop-filter: blur(var(--sf-glass-blur));
 }

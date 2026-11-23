@@ -6,7 +6,7 @@ import { NextResponse, type NextRequest } from 'next/server';
  * 1. genera un nonce e imposta una Content Security Policy rigorosa
  *    (nessuno script inline senza nonce, nessun frame, connessioni solo verso
  *    l'app e Supabase);
- * 2. rinnova la sessione di Supabase nei cookie;
+ * 2. rinnova la sessione di Supabase nei cookie e verifica il token;
  * 3. manda alla pagina di accesso chi apre una pagina protetta senza sessione.
  *
  * Le route `/api/*` sono escluse: si autenticano da sole (token o sessione).
@@ -35,9 +35,11 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
         },
       },
     });
-    // Verifica il token con Supabase e, se serve, lo rinnova nei cookie.
-    const { data } = await supabase.auth.getUser();
-    signedIn = data.user !== null;
+    // Rinnova il token nei cookie se sta per scadere e ne verifica firma e
+    // scadenza in locale (chiave pubblica ES256 del progetto, tenuta in
+    // memoria): nessuna chiamata al server di autenticazione per pagina.
+    const { data, error } = await supabase.auth.getClaims();
+    signedIn = !error && Boolean(data?.claims.sub);
   }
 
   const path = request.nextUrl.pathname;

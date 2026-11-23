@@ -16,6 +16,8 @@ const TYPES: Record<string, string> = {
   '.css': 'text/css',
   '.woff2': 'font/woff2',
 };
+/** Pagine dell'app servite dal banco di prova. */
+const PAGES: Record<string, string> = { '/': 'index.html', '/io': 'io.html' };
 const CSP =
   "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self'";
 
@@ -29,7 +31,7 @@ test.beforeEach(async ({ page }) => {
   });
   await page.route(`${ORIGIN}/**`, async (route) => {
     const path = new URL(route.request().url()).pathname;
-    const file = normalize(join(ROOT, path === '/' ? 'index.html' : path));
+    const file = normalize(join(ROOT, PAGES[path] ?? path));
     if (!file.startsWith(ROOT) || !existsSync(file)) return route.fulfill({ status: 404 });
     return route.fulfill({
       status: 200,
@@ -210,4 +212,80 @@ test('riparte dall’ultima scheda vista', async ({ page }) => {
   await page.waitForTimeout(300);
   await page.reload();
   await expect(slide(page).getByText('passo passo')).toBeVisible();
+});
+
+test('si apre subito dalla copia sul telefono, anche con la rete lenta', async ({ page }) => {
+  await open(page);
+  await page.keyboard.press('ArrowDown');
+  await expect(slide(page).getByText('passo passo')).toBeVisible();
+  // Il server non risponde: il feed parte lo stesso, dalla scheda dove eri.
+  await page.goto(`${ORIGIN}/?rete=lenta`);
+  await expect(slide(page).getByText('passo passo')).toBeVisible();
+  await expect(page.getByText('Sei offline')).toHaveCount(0);
+});
+
+test('senza rete studia la copia salvata e lo dice', async ({ page }) => {
+  await open(page);
+  await page.goto(`${ORIGIN}/?rete=assente`);
+  await expect(page.getByText('Sei offline: studi la copia salvata.')).toBeVisible();
+  await expect(
+    slide(page).getByRole('heading', { name: "Che cos'è una linked list" }),
+  ).toBeVisible();
+});
+
+test('andando in Io e tornando, posizione e punti restano', async ({ page }) => {
+  await open(page);
+  await tap(page);
+  await tap(page);
+  await expect(page.getByLabel('2 punti')).toBeVisible();
+  await page.keyboard.press('ArrowDown');
+  await expect(slide(page).getByText('passo passo')).toBeVisible();
+  await page.getByRole('link', { name: 'Io' }).click();
+  await expect(page.getByRole('heading', { name: 'Io', exact: true })).toBeVisible();
+  await expect(page.locator('.ef-row-link', { hasText: 'Punti totali' })).toContainText('2');
+  await page.getByRole('link', { name: 'Feed' }).click();
+  await expect(slide(page).getByText('passo passo')).toBeVisible();
+});
+
+test('la sessione da 5 minuti si conta quando finisce', async ({ page }) => {
+  await page.clock.install();
+  await open(page);
+  await page.clock.fastForward('05:01');
+  await page.keyboard.press('ArrowDown');
+  await expect(page.getByRole('button', { name: 'Altri 5 minuti' })).toBeVisible();
+  const sessions = () =>
+    page.evaluate(
+      () =>
+        (JSON.parse(localStorage.getItem('ef:stats') ?? '{}') as { sessions?: number }).sessions,
+    );
+  expect(await sessions()).toBe(1);
+  await page.getByRole('button', { name: 'Altri 5 minuti' }).click();
+  expect(await sessions()).toBe(1);
+});
+
+test('Io sul telefono: righe allineate e barra in basso coprente', async ({ page }) => {
+  await page.goto(`${ORIGIN}/io`);
+  await expect(page.getByRole('heading', { name: 'Io', exact: true })).toBeVisible();
+  const width = await page.evaluate(() => window.innerWidth);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
+    width,
+  );
+  // IT ed EN sulla stessa riga, a destra del testo e dentro lo schermo.
+  for (const group of await page.locator('.ef-toggle .ef-seg').all()) {
+    const [it, en] = await group.locator('button').all();
+    const a = await it?.boundingBox();
+    const b = await en?.boundingBox();
+    if (!a || !b) throw new Error('pulsanti non visibili');
+    expect(Math.abs(a.y - b.y)).toBeLessThan(1);
+    expect(b.x + b.width).toBeLessThanOrEqual(width);
+  }
+  // La barra sfoca e copre quello che scorre sotto.
+  const nav = page.locator('.ef-nav');
+  const style = await nav.evaluate((element) => {
+    const computed = getComputedStyle(element);
+    return { blur: computed.backdropFilter, color: computed.backgroundColor };
+  });
+  expect(style.blur).toContain('blur');
+  const alpha = Number(/[\d.]+(?=\)$)/.exec(style.color.replace(/\s/g, ''))?.[0] ?? '1');
+  expect(alpha).toBeGreaterThanOrEqual(0.85);
 });

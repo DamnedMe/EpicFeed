@@ -18,11 +18,11 @@ import type { CardState } from './card-slide';
 import { CardSlide } from './card-slide';
 import { SPEECH_LANG } from './copy';
 import type { FeedLoad } from './feed-client';
-import { loadFeed } from './feed-client';
+import { loadFeed, preferredSubjectId, readCachedFeed } from './feed-client';
 import type { Gesture } from './gestures';
 import { Icon, SavedMark } from './icons';
 import { preferences, savedCards, stats, useLocalValue } from './local-state';
-import type { CardEntry, FeedEntry } from './model';
+import type { CardEntry, FeedEntry, SubjectFeed } from './model';
 import { buildEntries, chapterIndex, resumeIndex } from './model';
 import type { SessionSummary } from './overlays';
 import { GestureIntro, SessionEnd } from './overlays';
@@ -102,34 +102,72 @@ export function FeedApp() {
   const ringRef = useRef<HTMLDivElement>(null);
   const currentRef = useRef(0);
   const restoredFor = useRef<string | null>(null);
+  const sessionStarted = useRef(false);
   const scrollFrame = useRef(0);
   /** Contatore per riavviare le animazioni di punti e salvataggio. */
   const nextId = useRef(0);
 
-  // Caricamento: copia sul dispositivo + revalidazione con ETag (feed-client).
+  /**
+   * Apre una materia sulla scheda giusta: quella chiesta, altrimenti l'ultima
+   * vista (`position`). La posizione si salva subito, così anche una scheda
+   * aperta da *Salvati* resta il punto da cui riprendere.
+   */
+  const openFeed = useCallback((subjectFeed: SubjectFeed, requestedCard: string | null) => {
+    const positionKey = STORAGE_KEYS.position(subjectFeed.subjectId);
+    const position = requestedCard ?? readValue(positionKey, z.string(), null as string | null);
+    const list = buildEntries(subjectFeed);
+    const index = resumeIndex(list, position);
+    currentRef.current = index;
+    setCurrent(index);
+    if (list[index]) writeValue(positionKey, list[index].key);
+    // La sessione da 5 minuti parte con la prima materia mostrata, non a ogni aggiornamento.
+    if (!sessionStarted.current) {
+      sessionStarted.current = true;
+      setSession(newSession(Date.now()));
+    }
+  }, []);
+
+  // Caricamento: prima la copia sul dispositivo (subito, senza rete), poi la
+  // risposta del server con l'ETag; se la materia è cambiata la si sostituisce
+  // restando sulla scheda che si sta guardando.
   useEffect(() => {
     let alive = true;
+    let shown: SubjectFeed | null = null;
     const request = readRequest();
+    void Promise.resolve().then(() => {
+      if (!alive) return;
+      if (request.gestures) setForcedIntro(true);
+      const subjectId = preferredSubjectId(undefined, request.subject);
+      const cached = subjectId ? readCachedFeed(subjectId) : null;
+      if (!cached) return;
+      shown = cached;
+      openFeed(cached, request.card);
+      setLoad({ status: 'ready', subjects: [], feed: cached, offline: false });
+    });
     void loadFeed((input, init) => fetch(input, init), undefined, request.subject).then(
       (result) => {
         if (!alive) return;
-        if (request.gestures) setForcedIntro(true);
         if (result.status === 'unauthorized') {
           window.location.assign('/accedi');
           return;
         }
+        if (result.status === 'error' && shown) {
+          // Server irraggiungibile: si continua sulla copia, con l'avviso.
+          setLoad((previous) =>
+            previous.status === 'ready' ? { ...previous, offline: true } : result,
+          );
+          return;
+        }
         if (result.status === 'ready') {
-          const position =
-            request.card ??
-            readValue(
-              STORAGE_KEYS.position(result.feed.subjectId),
-              z.string(),
-              null as string | null,
-            );
-          const index = resumeIndex(buildEntries(result.feed), position);
-          currentRef.current = index;
-          setCurrent(index);
-          setSession(newSession(Date.now()));
+          const same =
+            shown?.subjectId === result.feed.subjectId && shown.version === result.feed.version;
+          if (same && shown) {
+            // Stessa materia: si tiene l'oggetto già mostrato (niente ricalcoli né salti).
+            setLoad({ ...result, feed: shown });
+            return;
+          }
+          // Materia nuova o aggiornata: la posizione salvata è la scheda che si stava guardando.
+          openFeed(result.feed, shown ? null : request.card);
         }
         setLoad(result);
       },
@@ -137,7 +175,7 @@ export function FeedApp() {
     return () => {
       alive = false;
     };
-  }, [attempt]);
+  }, [attempt, openFeed]);
 
   const feed = load.status === 'ready' ? load.feed : null;
   const entries = useMemo(() => (feed ? buildEntries(feed) : []), [feed]);
@@ -210,7 +248,11 @@ export function FeedApp() {
       writeValue(STORAGE_KEYS.position(feed.subjectId), entries[index].key);
       stopSpeaking();
       setSession((previous) => ({ ...previous, seen: previous.seen + 1 }));
-      if (Date.now() - session.startedAt >= SESSION_MS) setEnded(true);
+      if (!ended && Date.now() - session.startedAt >= SESSION_MS) {
+        // Sessione completata: si conta qui, anche se poi si chiude l'app senza scegliere.
+        setEnded(true);
+        stats.set((previous) => ({ ...previous, sessions: previous.sessions + 1 }));
+      }
     });
   };
 
@@ -339,7 +381,6 @@ export function FeedApp() {
   };
 
   const finishSession = (again: boolean) => {
-    stats.set((previous) => ({ ...previous, sessions: previous.sessions + 1 }));
     setEnded(false);
     setSession(newSession(Date.now()));
     if (!again) router.push('/io');

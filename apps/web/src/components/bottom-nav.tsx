@@ -3,9 +3,10 @@ import { Icon } from '@/features/feed/icons';
 
 /**
  * Barra in basso del design approvato: Feed · Ripasso · Libri · Io (ADR 0015,
- * punto 7). Ripasso (M4) e Libri (M7) sono visibili ma spenti.
+ * punto 7). Ripasso (M4) e Libri (M7) sono visibili ma spenti. Senza `active`
+ * (durante il caricamento di una pagina) nessuna voce è evidenziata.
  */
-export function BottomNav({ active }: { active: 'feed' | 'io' }) {
+export function BottomNav({ active }: { active?: 'feed' | 'io' }) {
   return (
     <nav className="ef-nav" aria-label="Sezioni">
       <Link

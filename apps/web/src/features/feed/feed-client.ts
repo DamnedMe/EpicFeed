@@ -2,15 +2,15 @@ import type { StudySubjectsResponse } from '@study-feed/contracts';
 import { studySubjectsResponseSchema, subjectFeedResponseSchema } from '@study-feed/contracts';
 import type { SubjectFeed } from './model';
 import type { KeyValueStore } from './storage';
-import { readValue, STORAGE_KEYS, writeValue } from './storage';
+import { defaultStore, readValue, STORAGE_KEYS, writeValue } from './storage';
 import { z } from 'zod';
 
 /**
  * Scaricamento della materia dalla web app (ADR 0015, punto 6).
  *
- * La materia intera si tiene sul dispositivo: si mostra subito la copia
- * salvata e si chiede al server se è cambiata (`If-None-Match`); una materia
- * invariata costa una risposta `304` vuota. Senza rete resta la copia salvata.
+ * La materia intera si tiene sul dispositivo: il feed mostra subito la copia
+ * salvata e intanto chiede al server se è cambiata (`If-None-Match`); una
+ * materia invariata costa una risposta `304` vuota. Senza rete resta la copia.
  */
 
 export type StudySubjectSummary = StudySubjectsResponse['subjects'][number];
@@ -49,7 +49,70 @@ export function chooseSubject(
 }
 
 /**
- * Carica la materia da studiare, usando e aggiornando la copia sul dispositivo.
+ * Copie della materia già lette e validate, per spazio dei dati. La materia
+ * intera pesa centinaia di KB: rileggerla e validarla a ogni ritorno sul feed
+ * (per esempio da *Io*) costerebbe decine di millisecondi sul telefono.
+ * La `WeakMap` tiene separati gli spazi (anche quelli finti dei test).
+ */
+const memory = new WeakMap<KeyValueStore, Map<string, SubjectFeed>>();
+
+function resolveStore(store: KeyValueStore | null | undefined): KeyValueStore | null {
+  return store === undefined ? defaultStore() : store;
+}
+
+function remember(store: KeyValueStore | null, feed: SubjectFeed): void {
+  if (!store) return;
+  const feeds = memory.get(store) ?? new Map<string, SubjectFeed>();
+  feeds.set(feed.subjectId, feed);
+  memory.set(store, feeds);
+}
+
+/**
+ * Materia da aprire: quella chiesta esplicitamente, altrimenti l'ultima aperta.
+ *
+ * @param store - Spazio dei dati del dispositivo (predefinito `localStorage`).
+ * @param requestedSubject - Materia chiesta esplicitamente (per esempio da *Salvati*).
+ * @returns L'id della materia, oppure `null`.
+ */
+export function preferredSubjectId(
+  store?: KeyValueStore | null,
+  requestedSubject?: string | null,
+): string | null {
+  return (
+    requestedSubject ??
+    readValue(STORAGE_KEYS.subject, subjectIdSchema, null as string | null, resolveStore(store))
+  );
+}
+
+/**
+ * Copia della materia sul dispositivo, se c'è e rispetta lo schema: prima
+ * dalla memoria, poi da `localStorage`.
+ *
+ * @param subjectId - Materia.
+ * @param store - Spazio dei dati del dispositivo (predefinito `localStorage`).
+ * @returns La materia salvata, oppure `null`.
+ */
+export function readCachedFeed(
+  subjectId: string,
+  store?: KeyValueStore | null,
+): SubjectFeed | null {
+  const kv = resolveStore(store);
+  const hit = kv ? memory.get(kv)?.get(subjectId) : undefined;
+  if (hit) return hit;
+  const feed = readValue(
+    STORAGE_KEYS.feed(subjectId),
+    subjectFeedResponseSchema,
+    null as SubjectFeed | null,
+    kv,
+  );
+  if (feed) remember(kv, feed);
+  return feed;
+}
+
+/**
+ * Chiede al server la materia da studiare, usando e aggiornando la copia sul
+ * dispositivo. Chi la chiama può mostrare prima la copia ({@link readCachedFeed})
+ * e usare questo esito per aggiornarla: lo studio parte senza aspettare la rete.
  *
  * @param fetchImpl - `fetch` (sostituibile nei test).
  * @param store - Spazio dei dati del dispositivo (predefinito `localStorage`).
@@ -61,16 +124,8 @@ export async function loadFeed(
   store?: KeyValueStore | null,
   requestedSubject?: string | null,
 ): Promise<FeedLoad> {
-  const preferred =
-    requestedSubject ??
-    readValue(STORAGE_KEYS.subject, subjectIdSchema, null as string | null, store);
-  const cachedFor = (subjectId: string) =>
-    readValue(
-      STORAGE_KEYS.feed(subjectId),
-      subjectFeedResponseSchema,
-      null as SubjectFeed | null,
-      store,
-    );
+  const kv = resolveStore(store);
+  const preferred = preferredSubjectId(kv, requestedSubject);
 
   let subjects: readonly StudySubjectSummary[];
   try {
@@ -80,7 +135,7 @@ export async function loadFeed(
     subjects = studySubjectsResponseSchema.parse(await response.json()).subjects;
   } catch {
     // Senza rete: si studia l'ultima materia salvata, se c'è.
-    const cached = preferred ? cachedFor(preferred) : null;
+    const cached = preferred ? readCachedFeed(preferred, kv) : null;
     return cached
       ? { status: 'ready', subjects: [], feed: cached, offline: true }
       : { status: 'error' };
@@ -88,8 +143,8 @@ export async function loadFeed(
 
   const subject = chooseSubject(subjects, preferred);
   if (!subject) return { status: 'empty', subjects };
-  writeValue(STORAGE_KEYS.subject, subject.subjectId, store);
-  const cached = cachedFor(subject.subjectId);
+  writeValue(STORAGE_KEYS.subject, subject.subjectId, kv);
+  const cached = readCachedFeed(subject.subjectId, kv);
 
   try {
     const response = await fetchImpl(`/api/feed/subjects/${subject.subjectId}`, {
@@ -103,7 +158,8 @@ export async function loadFeed(
     }
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const feed = subjectFeedResponseSchema.parse(await response.json());
-    writeValue(STORAGE_KEYS.feed(subject.subjectId), feed, store);
+    writeValue(STORAGE_KEYS.feed(subject.subjectId), feed, kv);
+    remember(kv, feed);
     return { status: 'ready', subjects, feed, offline: false };
   } catch {
     return cached

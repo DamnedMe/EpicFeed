@@ -98,7 +98,7 @@ export async function verifyCode(_prev: AuthFormState, form: FormData): Promise<
     if (!error) await supabase.auth.signOut();
     return { step: 'code', email: email.data, message: 'Codice errato o scaduto.', error: true };
   }
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ verifyWithServer: true });
   redirect(user?.hasPassword ? '/lezioni' : '/accedi/password');
 }
 
@@ -133,7 +133,7 @@ export async function setPassword(
   _prev: PasswordFormState,
   form: FormData,
 ): Promise<PasswordFormState> {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ verifyWithServer: true });
   if (!user) redirect('/accedi');
 
   const password = field(form, 'password');

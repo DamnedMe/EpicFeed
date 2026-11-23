@@ -18,7 +18,12 @@ export interface KeyValueStore {
   removeItem(key: string): void;
 }
 
-function defaultStore(): KeyValueStore | null {
+/**
+ * Spazio dei dati predefinito: `localStorage`, se c'è e si può usare.
+ *
+ * @returns Lo spazio, oppure `null` (sul server o con l'accesso negato).
+ */
+export function defaultStore(): KeyValueStore | null {
   try {
     return typeof window === 'undefined' ? null : window.localStorage;
   } catch {
