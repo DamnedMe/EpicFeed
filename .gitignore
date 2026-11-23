@@ -11,6 +11,6 @@ coverage/
 .output/
 
 # Test Playwright del feed
-e2e/.harness/
+apps/web/e2e/.harness/
 test-results/
 playwright-report/
