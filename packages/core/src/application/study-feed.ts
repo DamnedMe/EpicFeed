@@ -233,14 +233,18 @@ export class ReadSubjectFeed {
       fingerprint.push(
         `${row.lessonId}:${row.feed?.feedId ?? '-'}:${document ? alignmentVersionOf(document) : 0}:${row.parts.length}`,
       );
+      const lessonUrl = portalContentUrl(rows.epicodeId, row.epicodeId);
       (chapter.lessons as StudyFeedLesson[]).push({
         lessonId: row.lessonId,
         title: row.title,
         position: row.position,
-        portalUrl: portalContentUrl(rows.epicodeId, row.epicodeId),
+        portalUrl: lessonUrl,
         parts: row.parts.map((part) => ({
           ...part,
-          portalUrl: portalContentUrl(rows.epicodeId, part.epicodeId),
+          // Le slide vengono dallo zip della lezione (ADR 0012) e non hanno una
+          // pagina loro sul portale: il link porta alla lezione.
+          portalUrl:
+            part.kind === 'slides' ? lessonUrl : portalContentUrl(rows.epicodeId, part.epicodeId),
         })),
         feed: document,
       });

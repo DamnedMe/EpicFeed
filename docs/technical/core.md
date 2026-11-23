@@ -77,6 +77,17 @@ pending ──▶ generating ──▶ ready (finale)
 ## Feed di una lezione e allineamento al minuto
 `feed.ts` definisce schede, quiz, concetti e glossario bilingui (`Bilingual<T>`), `checkLessonFeed` (regole tra elementi, restituisce tutti i problemi) e `computeLessonSourcesHash` (impronta delle fonti di una lezione). `alignment.ts` calcola il tratto di video di una scheda dai sottotitoli (`alignCard`), in modo deterministico. Dettagli in [generation.md](generation.md).
 
+## Feed di studio
+Regole pure del feed sul telefono ([ADR 0015](../decisions/0015-feed-di-studio-m3.md)), in `domain/story.ts` e `domain/study-session.ts`; lavorano su tipi strutturali (`StoryCardInput`, `SequenceLessonInput`) così valgono sia per i documenti salvati sia per i dati dell'API.
+
+- `storyOf(card, lingua)` → `CardStory`: battute (`title`, `key`, poi `line`/`step`/`row`/`note`/`code` secondo il tipo), parola da indovinare, righe del confronto, codice con le spiegazioni. `beatText` dà il testo di una battuta (sintesi vocale, avanzamento automatico), `autoAdvanceMs` il tempo di lettura (55 ms a carattere, almeno 2,2 s).
+- `splitSentences`: frasi chiuse da `. ! ? ; :` seguiti da maiuscola, cifra o apertura; non spezza decimali, `cursor.next`, abbreviazioni (`es.`, `e.g.`) e unisce i pezzi sotto 32 caratteri.
+- `pickBlank(fraseChiave, termini)`: il termine più lungo che compare come parola intera (senza maiuscole), poi una complessità `O(...)`, un identificatore con il punto (`cur.next`), un numero di almeno due cifre; mai oltre il 60% della frase.
+- `highlightTerms`: pezzi del testo con i termini evidenziati, senza sovrapposizioni.
+- `codeBlocks` e `pairCodeExplanation`: blocchi separati da righe vuote; ogni frase illumina il blocco (o i blocchi a pari merito) con più identificatori in comune, o, con un solo blocco, le righe che li contengono; nessun identificatore in comune → nessuna evidenza.
+- `buildStudySequence(lezioni)`: schede in ordine e una domanda della stessa lezione ogni `QUIZ_EVERY` (3) schede, preferendo i concetti appena visti; una domanda finale se dall'ultima sono passate almeno 2 schede.
+- `POINTS`, `answerPoints(serie)` (10 + 2 per risposta giusta di fila oltre la prima, al massimo +8) e `SESSION_MS` (5 minuti).
+
 ## Prova di possesso
 `grantByPossessionProof(user, version, presentedHash, now)` concede il permesso solo se l'impronta del contenuto presentato coincide con quella della versione. L'impronta va calcolata **dal server** sul contenuto ricevuto, mai presa dal client: non basta dichiarare di avere una lezione, bisogna inviarne il contenuto.
 

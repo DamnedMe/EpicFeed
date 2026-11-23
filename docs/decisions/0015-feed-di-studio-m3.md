@@ -62,6 +62,16 @@ L'app scarica **tutta la materia** in una richiesta (`GET /api/feed/subjects/{id
 ### 7. Navigazione
 Barra in basso **Feed · Ripasso · Libri · Io** del design approvato; Ripasso (M4) e Libri (M7) visibili ma spenti con *in arrivo*. In *Io*: tema, accento, lingua di studio, interruttori di punti/vibrazione/animazioni, gesti, Salvati, Le mie lezioni, Estensione e Claude Desktop.
 
+### 8. Note di realizzazione (PR 2, 23/11/2026)
+Dettagli scelti da Claude realizzando le decisioni sopra, descritti in [feed.md](../functional/feed.md):
+- **Parola da indovinare**: se nessun termine del glossario compare nella frase chiave si copre una complessità, un pezzo di codice o un numero. Sulle prime due lezioni DSA trova una parola in 3 schede su 4 in italiano e in più di 4 su 5 in inglese: i termini del glossario sono in inglese. In M4 la generazione potrà indicare la parola.
+- **Domande**: una ogni 3 schede (il valore più basso dell'intervallo 3–4), più una a fine lezione; 10 punti, +2 per ogni risposta giusta di fila oltre la prima, fino a +8; parola indovinata 2 punti.
+- **Lingua delle domande**: separata da quella delle schede e inglese di base, come previsto dall'[ADR 0011](0011-studio-bilingue-it-en.md).
+- **Doppio tocco**: salva soltanto (come un "mi piace"); per togliere si usano le azioni o *Salvati*. Il tocco singolo aspetta 230 ms per riconoscere il doppio tocco.
+- **Fine sessione**: il riepilogo compare alla prima scheda dopo i 5 minuti, non a metà lettura.
+- **Fonte delle slide**: le slide importate dallo zip ([ADR 0012](0012-slide-dallo-zip-ufficiale.md)) non hanno una pagina sul portale, quindi il link porta alla lezione.
+- **Tema e accento** in cookie (letti dal server al primo render); tutto il resto in `localStorage`.
+
 ## Alternative scartate
 - **Scheda intera** in una schermata (prototipo 1): più veloce da scorrere, ma un muro di testo per chi fatica a mantenere l'attenzione.
 - **Pulsanti** A (colonna, toglie ~60 px al testo), B (barra sotto), C (pulsante unico, un tocco in più per ogni azione), E (icone in alto, lontane dal pollice).

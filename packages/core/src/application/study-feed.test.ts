@@ -63,7 +63,16 @@ const row = (
   chapterId,
   chapterTitle: chapterId === chapter1 ? '3. Trees' : '4. Graphs',
   chapterPosition: chapterId === chapter1 ? 3 : 4,
-  parts: [{ partId: videoPart, epicodeId: '9101', title: 'AVL', kind: 'video', position: 0 }],
+  parts: [
+    { partId: videoPart, epicodeId: '9101', title: 'AVL', kind: 'video', position: 0 },
+    {
+      partId: slidesPart,
+      epicodeId: 'slides-1',
+      title: 'Slide 1',
+      kind: 'slides',
+      position: 10001,
+    },
+  ],
   feed,
 });
 
@@ -91,6 +100,8 @@ describe('ReadSubjectFeed', () => {
     expect(first?.parts[0]?.portalUrl).toBe(
       'https://learn.epicode.edu.mt/course/177/curriculum/9101',
     );
+    // Le slide dello zip non hanno una pagina sul portale: si apre la lezione.
+    expect(first?.parts[1]?.portalUrl).toBe(first?.portalUrl);
     expect(feed.chapters[1]?.lessons[0]?.feed).toBeNull();
     expect(feed.version).toMatch(/^[0-9a-f]{64}$/);
     expect(outdated).toEqual([

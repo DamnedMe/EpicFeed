@@ -1,0 +1,661 @@
+'use client';
+
+import type { StudyLanguage } from '@study-feed/core';
+import {
+  answerPoints,
+  autoAdvanceMs,
+  beatText,
+  POINTS,
+  SESSION_MS,
+  storyOf,
+} from '@study-feed/core';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { z } from 'zod';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { BottomNav } from '@/components/bottom-nav';
+import type { CardState } from './card-slide';
+import { CardSlide } from './card-slide';
+import { SPEECH_LANG } from './copy';
+import type { FeedLoad } from './feed-client';
+import { loadFeed } from './feed-client';
+import type { Gesture } from './gestures';
+import { Icon, SavedMark } from './icons';
+import { preferences, savedCards, stats, useLocalValue } from './local-state';
+import type { CardEntry, FeedEntry } from './model';
+import { buildEntries, chapterIndex, resumeIndex } from './model';
+import type { SessionSummary } from './overlays';
+import { GestureIntro, SessionEnd } from './overlays';
+import type { QuizAnswer } from './quiz-slide';
+import { QuizSlide } from './quiz-slide';
+import { ActionSheet, ChapterSheet } from './sheets';
+import { readValue, STORAGE_KEYS, writeValue } from './storage';
+
+/** Quante schede si disegnano intorno a quella visibile: le altre sono segnaposto vuoti. */
+const WINDOW = 2;
+const RING_LENGTH = 81.7;
+const INITIAL_CARD: CardState = { beat: 0, blank: false };
+
+interface Session {
+  readonly startedAt: number;
+  readonly points: number;
+  readonly streak: number;
+  readonly bestStreak: number;
+  readonly right: number;
+  readonly answered: number;
+  readonly seen: number;
+}
+
+const newSession = (startedAt: number): Session => ({
+  startedAt,
+  points: 0,
+  streak: 0,
+  bestStreak: 0,
+  right: 0,
+  answered: 0,
+  seen: 1,
+});
+
+type LoadState = FeedLoad | { readonly status: 'loading' };
+
+/** Parametri dell'indirizzo: scheda da aprire (da *Salvati*), materia, gesti da rivedere. */
+function readRequest() {
+  const params = new URLSearchParams(window.location.search);
+  const request = {
+    card: params.get('card'),
+    subject: params.get('subject'),
+    gestures: params.get('gesti') === '1',
+  };
+  if (params.size > 0) window.history.replaceState(null, '', window.location.pathname);
+  return request;
+}
+
+function prefersReducedMotion(): boolean {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+/**
+ * Feed di studio (M3, ADR 0015): la materia in ordine, una scheda per
+ * schermata raccontata a battute, con domande, punti, sessioni da 5 minuti e
+ * gesti al posto dei pulsanti. Tutto lo stato di studio resta sul dispositivo.
+ */
+export function FeedApp() {
+  const router = useRouter();
+  const prefs = useLocalValue(preferences);
+  const saved = useLocalValue(savedCards);
+  const [load, setLoad] = useState<LoadState>({ status: 'loading' });
+  const [current, setCurrent] = useState(0);
+  const [cards, setCards] = useState<Record<string, CardState>>({});
+  const [answers, setAnswers] = useState<Record<string, QuizAnswer>>({});
+  const [languages, setLanguages] = useState<Record<string, StudyLanguage>>({});
+  const [sheet, setSheet] = useState<'actions' | 'chapters' | null>(null);
+  const [forcedIntro, setForcedIntro] = useState(false);
+  const [session, setSession] = useState<Session>(() => newSession(0));
+  const [ended, setEnded] = useState(false);
+  const [minutes, setMinutes] = useState(0);
+  const [toast, setToast] = useState<{ id: number; label: string } | null>(null);
+  const [flash, setFlash] = useState<number | null>(null);
+  const [speaking, setSpeaking] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+
+  const feedRef = useRef<HTMLDivElement>(null);
+  const ringRef = useRef<HTMLDivElement>(null);
+  const currentRef = useRef(0);
+  const restoredFor = useRef<string | null>(null);
+  const scrollFrame = useRef(0);
+  /** Contatore per riavviare le animazioni di punti e salvataggio. */
+  const nextId = useRef(0);
+
+  // Caricamento: copia sul dispositivo + revalidazione con ETag (feed-client).
+  useEffect(() => {
+    let alive = true;
+    const request = readRequest();
+    void loadFeed((input, init) => fetch(input, init), undefined, request.subject).then(
+      (result) => {
+        if (!alive) return;
+        if (request.gestures) setForcedIntro(true);
+        if (result.status === 'unauthorized') {
+          window.location.assign('/accedi');
+          return;
+        }
+        if (result.status === 'ready') {
+          const position =
+            request.card ??
+            readValue(
+              STORAGE_KEYS.position(result.feed.subjectId),
+              z.string(),
+              null as string | null,
+            );
+          const index = resumeIndex(buildEntries(result.feed), position);
+          currentRef.current = index;
+          setCurrent(index);
+          setSession(newSession(Date.now()));
+        }
+        setLoad(result);
+      },
+    );
+    return () => {
+      alive = false;
+    };
+  }, [attempt]);
+
+  const feed = load.status === 'ready' ? load.feed : null;
+  const entries = useMemo(() => (feed ? buildEntries(feed) : []), [feed]);
+  const chapters = useMemo(() => (feed ? chapterIndex(feed, entries) : []), [feed, entries]);
+  const savedKeys = useMemo(() => new Set(saved.map((card) => card.key)), [saved]);
+  const entry: FeedEntry | undefined = entries[current];
+  const languageOf = useCallback(
+    (item: FeedEntry | undefined): StudyLanguage => {
+      if (!item) return prefs.language;
+      return languages[item.key] ?? (item.type === 'quiz' ? prefs.quizLanguage : prefs.language);
+    },
+    [languages, prefs.language, prefs.quizLanguage],
+  );
+
+  // Riporta lo scroll alla posizione salvata quando arriva una materia.
+  useLayoutEffect(() => {
+    const element = feedRef.current;
+    if (!feed || !element || restoredFor.current === feed.version) return;
+    restoredFor.current = feed.version;
+    element.scrollTop = currentRef.current * element.clientHeight;
+  }, [feed]);
+
+  // Anello dei 5 minuti: aggiornato dal client ogni pochi secondi.
+  useEffect(() => {
+    if (!feed) return;
+    const tick = () => {
+      const elapsed = Math.max(0, Date.now() - session.startedAt);
+      const ratio = Math.min(1, elapsed / SESSION_MS);
+      ringRef.current?.style.setProperty('--ef-ring', String(RING_LENGTH * (1 - ratio)));
+      setMinutes(Math.floor(elapsed / 60000));
+    };
+    tick();
+    const id = window.setInterval(tick, 5000);
+    return () => {
+      window.clearInterval(id);
+    };
+  }, [feed, session.startedAt]);
+
+  const stopSpeaking = useCallback(() => {
+    try {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    } catch {
+      // Sintesi vocale non disponibile.
+    }
+    setSpeaking(null);
+  }, []);
+
+  const scrollToIndex = useCallback(
+    (index: number) => {
+      const element = feedRef.current;
+      if (!element || index < 0 || index >= entries.length) return;
+      const reduced = prefersReducedMotion() || !prefs.animations;
+      element.scrollTo({
+        top: index * element.clientHeight,
+        behavior: reduced ? 'auto' : 'smooth',
+      });
+    },
+    [entries.length, prefs.animations],
+  );
+
+  const onScroll = () => {
+    cancelAnimationFrame(scrollFrame.current);
+    scrollFrame.current = requestAnimationFrame(() => {
+      const element = feedRef.current;
+      if (!element || !feed) return;
+      const index = Math.round(element.scrollTop / Math.max(1, element.clientHeight));
+      if (index === currentRef.current || !entries[index]) return;
+      currentRef.current = index;
+      setCurrent(index);
+      writeValue(STORAGE_KEYS.position(feed.subjectId), entries[index].key);
+      stopSpeaking();
+      setSession((previous) => ({ ...previous, seen: previous.seen + 1 }));
+      if (Date.now() - session.startedAt >= SESSION_MS) setEnded(true);
+    });
+  };
+
+  const award = (points: number) => {
+    setSession((previous) => ({ ...previous, points: previous.points + points }));
+    stats.set((previous) => ({ ...previous, points: previous.points + points }));
+    if (!prefs.points) return;
+    nextId.current += 1;
+    setToast({ id: nextId.current, label: `+${points}` });
+    if (prefs.vibration) {
+      try {
+        if ('vibrate' in navigator) navigator.vibrate(30);
+      } catch {
+        // Vibrazione non supportata.
+      }
+    }
+  };
+
+  const updateCard = (key: string, next: CardState) => {
+    setCards((previous) => ({ ...previous, [key]: next }));
+  };
+
+  const save = (item: CardEntry, toggle: boolean) => {
+    if (!feed) return;
+    const isSaved = savedKeys.has(item.key);
+    if (isSaved && toggle) {
+      savedCards.set((list) => list.filter((card) => card.key !== item.key));
+      return;
+    }
+    // Il doppio tocco salva soltanto, non toglie: come un "mi piace".
+    if (!isSaved) {
+      savedCards.set((list) => [
+        {
+          key: item.key,
+          subjectId: feed.subjectId,
+          lessonTitle: item.lessonTitle,
+          title: { it: item.card.title.it, en: item.card.title.en },
+          savedAt: new Date().toISOString(),
+        },
+        ...list,
+      ]);
+    }
+    if (!toggle) {
+      nextId.current += 1;
+      setFlash(nextId.current);
+    }
+  };
+
+  /** Battuta dopo o prima; oltre i bordi passa alla scheda vicina. */
+  const advance = (index: number, direction: 1 | -1, byUser: boolean) => {
+    const item = entries[index];
+    if (item?.type !== 'card') return;
+    const story = storyOf(item.card, languageOf(item));
+    const state = cards[item.key] ?? INITIAL_CARD;
+    const beatIndex = Math.min(state.beat, story.beats.length - 1);
+    if (direction > 0 && story.beats[beatIndex]?.kind === 'key' && story.blank && !state.blank) {
+      updateCard(item.key, { beat: beatIndex, blank: true });
+      if (byUser) award(POINTS.blank);
+      return;
+    }
+    const next = beatIndex + direction;
+    if (next < 0) scrollToIndex(index - 1);
+    else if (next >= story.beats.length) scrollToIndex(index + 1);
+    else updateCard(item.key, { ...state, beat: next });
+  };
+
+  const onGesture = (index: number, gesture: Gesture) => {
+    const item = entries[index];
+    if (item?.type !== 'card' || sheet || ended) return;
+    if (gesture === 'next') advance(index, 1, true);
+    else if (gesture === 'previous') advance(index, -1, true);
+    else if (gesture === 'save') save(item, false);
+    else setSheet('actions');
+  };
+
+  const onAnswer = (item: FeedEntry, answer: QuizAnswer, correct: boolean) => {
+    if (answers[item.key] !== undefined) return;
+    setAnswers((previous) => ({ ...previous, [item.key]: answer }));
+    const streak = correct ? session.streak + 1 : 0;
+    setSession((previous) => ({
+      ...previous,
+      answered: previous.answered + 1,
+      right: previous.right + (correct ? 1 : 0),
+      streak,
+      bestStreak: Math.max(previous.bestStreak, streak),
+    }));
+    stats.set((previous) => ({ ...previous, bestStreak: Math.max(previous.bestStreak, streak) }));
+    if (correct) award(answerPoints(streak));
+  };
+
+  const toggleLanguage = () => {
+    if (!entry) return;
+    setLanguages((previous) => ({
+      ...previous,
+      [entry.key]: languageOf(entry) === 'it' ? 'en' : 'it',
+    }));
+    stopSpeaking();
+  };
+
+  const listen = () => {
+    if (entry?.type !== 'card') return;
+    if (speaking === entry.key) {
+      stopSpeaking();
+      return;
+    }
+    try {
+      const synth = window.speechSynthesis;
+      synth.cancel();
+      const language = languageOf(entry);
+      const story = storyOf(entry.card, language);
+      const utterance = new SpeechSynthesisUtterance(
+        story.beats
+          .map((beat) => beatText(story, beat))
+          .filter(Boolean)
+          .join('. '),
+      );
+      utterance.lang = SPEECH_LANG[language];
+      utterance.onend = () => {
+        setSpeaking(null);
+      };
+      synth.speak(utterance);
+      setSpeaking(entry.key);
+    } catch {
+      setSpeaking(null);
+    }
+  };
+
+  const finishSession = (again: boolean) => {
+    stats.set((previous) => ({ ...previous, sessions: previous.sessions + 1 }));
+    setEnded(false);
+    setSession(newSession(Date.now()));
+    if (!again) router.push('/io');
+  };
+
+  // Tastiera: le stesse azioni dei gesti.
+  const keyHandler = useRef<(event: KeyboardEvent) => void>(() => {});
+  useEffect(() => {
+    keyHandler.current = (event) => {
+      if (sheet || ended || !entry) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('input, textarea, select, button, a')) return;
+      const key = event.key.toLowerCase();
+      if (key === 'arrowright' || key === ' ') advance(current, 1, true);
+      else if (key === 'arrowleft') advance(current, -1, true);
+      else if (key === 'arrowdown' || key === 'pagedown' || key === 'j') scrollToIndex(current + 1);
+      else if (key === 'arrowup' || key === 'pageup' || key === 'k') scrollToIndex(current - 1);
+      else if (key === 's' && entry.type === 'card') save(entry, true);
+      else if (key === 'a') setSheet('actions');
+      else return;
+      event.preventDefault();
+    };
+  });
+  useEffect(() => {
+    const listener = (event: KeyboardEvent) => {
+      keyHandler.current(event);
+    };
+    window.addEventListener('keydown', listener);
+    return () => {
+      window.removeEventListener('keydown', listener);
+    };
+  }, []);
+
+  // Avanzamento automatico alla velocità di lettura (facoltativo, da Io).
+  const autoStory = entry?.type === 'card' ? storyOf(entry.card, languageOf(entry)) : null;
+  const autoState = entry ? (cards[entry.key] ?? INITIAL_CARD) : INITIAL_CARD;
+  const autoBeat = autoStory?.beats[Math.min(autoState.beat, autoStory.beats.length - 1)];
+  const autoMs =
+    prefs.autoAdvance && autoStory && autoBeat && !sheet && !ended && !speaking
+      ? autoAdvanceMs(beatText(autoStory, autoBeat))
+      : 0;
+  const advanceRef = useRef(advance);
+  useEffect(() => {
+    advanceRef.current = advance;
+  });
+  useEffect(() => {
+    if (autoMs === 0) return;
+    const id = window.setTimeout(() => {
+      advanceRef.current(current, 1, false);
+    }, autoMs);
+    return () => {
+      window.clearTimeout(id);
+    };
+  }, [autoMs, current, autoState.beat, autoState.blank]);
+
+  const showIntro = forcedIntro || (load.status === 'ready' && !prefs.introSeen);
+  const summary: SessionSummary = {
+    points: session.points,
+    minutes: Math.max(1, minutes),
+    cards: session.seen,
+    right: session.right,
+    answered: session.answered,
+    bestStreak: session.bestStreak,
+  };
+
+  if (load.status !== 'ready' || !feed) {
+    return (
+      <div className="ef-app">
+        <FeedFallback
+          load={load}
+          onRetry={() => {
+            setAttempt((value) => value + 1);
+          }}
+        />
+        <BottomNav active="feed" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="ef-app" data-motion={prefs.animations ? undefined : 'off'}>
+      <header className="ef-hud">
+        <button
+          type="button"
+          className="ef-chip"
+          onClick={() => {
+            setSheet('chapters');
+          }}
+          aria-label="Scegli capitolo o lezione"
+        >
+          <span>{entry ? `${entry.chapterTitle} · ${entry.lessonTitle}` : feed.title}</span>
+          <Icon name="chevron" />
+        </button>
+        {prefs.points ? (
+          <>
+            <span className="ef-stat" aria-label={`${session.points} punti`}>
+              <Icon name="bolt" />
+              <span key={session.points} className={session.points > 0 ? 'ef-pop' : ''}>
+                {session.points}
+              </span>
+            </span>
+            <span
+              className={`ef-stat ${session.streak >= 2 ? 'hot' : ''}`}
+              aria-label={`Serie di ${session.streak}`}
+            >
+              <Icon name="flame" />
+              {session.streak}
+            </span>
+          </>
+        ) : null}
+        <div ref={ringRef} className="ef-ring" aria-label={`${minutes} minuti su 5`} role="img">
+          <svg viewBox="0 0 30 30" aria-hidden="true">
+            <circle className="bg" cx="15" cy="15" r="13" />
+            <circle className="fg" cx="15" cy="15" r="13" />
+          </svg>
+          <span aria-hidden="true">{Math.min(5, minutes)}′</span>
+        </div>
+        <button
+          type="button"
+          className="ef-lang"
+          onClick={toggleLanguage}
+          aria-label="Cambia lingua della scheda"
+        >
+          {languageOf(entry).toUpperCase()}
+        </button>
+      </header>
+      {load.offline ? (
+        <p className="ef-hint px-4 pb-1">Sei offline: studi la copia salvata.</p>
+      ) : null}
+
+      <main
+        ref={feedRef}
+        className="ef-feed"
+        onScroll={onScroll}
+        aria-label={`Feed di ${feed.title}`}
+      >
+        {entries.map((item, index) => {
+          const near = Math.abs(index - current) <= WINDOW;
+          const language = languageOf(item);
+          return (
+            <section
+              key={item.key}
+              className="ef-slide"
+              inert={index !== current}
+              aria-roledescription="scheda"
+              aria-label={`${index + 1} di ${entries.length}`}
+            >
+              {near && item.type === 'card' ? (
+                <CardSlide
+                  entry={item}
+                  story={storyOf(item.card, language)}
+                  state={cards[item.key] ?? INITIAL_CARD}
+                  saved={savedKeys.has(item.key)}
+                  autoMs={index === current ? autoMs : 0}
+                  onGesture={(gesture) => {
+                    onGesture(index, gesture);
+                  }}
+                  onRevealBlank={() => {
+                    advance(index, 1, true);
+                  }}
+                />
+              ) : null}
+              {near && item.type === 'quiz' ? (
+                <QuizSlide
+                  entry={item}
+                  language={language}
+                  answer={answers[item.key]}
+                  showPoints={prefs.points}
+                  onAnswer={(answer, correct) => {
+                    onAnswer(item, answer, correct);
+                  }}
+                />
+              ) : null}
+            </section>
+          );
+        })}
+      </main>
+
+      <BottomNav active="feed" />
+
+      {toast ? (
+        <div
+          key={toast.id}
+          className="ef-toast"
+          aria-hidden="true"
+          onAnimationEnd={() => {
+            setToast(null);
+          }}
+        >
+          {toast.label}
+        </div>
+      ) : null}
+      {flash ? (
+        <div
+          key={flash}
+          className="ef-saved-flash"
+          onAnimationEnd={() => {
+            setFlash(null);
+          }}
+        >
+          <SavedMark />
+        </div>
+      ) : null}
+      <p className="sr-only" aria-live="polite">
+        {flash ? 'Scheda salvata' : ''}
+      </p>
+
+      {sheet === 'actions' && entry ? (
+        <ActionSheet
+          entry={entry}
+          language={languageOf(entry)}
+          saved={savedKeys.has(entry.key)}
+          speaking={speaking === entry.key}
+          onSave={() => {
+            if (entry.type === 'card') save(entry, true);
+          }}
+          onListen={() => {
+            listen();
+            setSheet(null);
+          }}
+          onLanguage={() => {
+            toggleLanguage();
+            setSheet(null);
+          }}
+          onGestures={() => {
+            setSheet(null);
+            setForcedIntro(true);
+          }}
+          onClose={() => {
+            setSheet(null);
+          }}
+        />
+      ) : null}
+      {sheet === 'chapters' ? (
+        <ChapterSheet
+          subjectTitle={feed.title}
+          chapters={chapters}
+          currentLessonId={entry?.lessonId ?? null}
+          onJump={(index) => {
+            setSheet(null);
+            // Il salto è lungo: niente animazione, si arriva subito.
+            const element = feedRef.current;
+            if (element) element.scrollTop = index * element.clientHeight;
+          }}
+          onClose={() => {
+            setSheet(null);
+          }}
+        />
+      ) : null}
+      {ended ? (
+        <SessionEnd
+          summary={summary}
+          showPoints={prefs.points}
+          onAgain={() => {
+            finishSession(true);
+          }}
+          onClose={() => {
+            finishSession(false);
+          }}
+        />
+      ) : null}
+      {showIntro ? (
+        <GestureIntro
+          onDone={() => {
+            setForcedIntro(false);
+            preferences.set((previous) => ({ ...previous, introSeen: true }));
+          }}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+/** Stati senza feed: caricamento, nessuna lezione pronta, errore. */
+function FeedFallback({ load, onRetry }: { load: LoadState; onRetry: () => void }) {
+  if (load.status === 'loading' || load.status === 'unauthorized') {
+    return (
+      <div className="ef-empty" aria-busy="true" aria-label="Caricamento del feed">
+        <div className="ef-skeleton w-2/3" />
+        <div className="ef-skeleton" />
+        <div className="ef-skeleton w-5/6" />
+      </div>
+    );
+  }
+  if (load.status === 'empty') {
+    return (
+      <div className="ef-empty">
+        <h1>Il feed è vuoto, per ora</h1>
+        <p>
+          {load.subjects.length === 0
+            ? 'Importa una lezione dal portale con l’estensione, poi generane schede e quiz con Claude Desktop.'
+            : 'Hai importato delle lezioni ma nessuna ha ancora schede: generale con Claude Desktop.'}
+        </p>
+        <p>
+          <Link className="ef-link" href="/lezioni">
+            Le mie lezioni
+          </Link>{' '}
+          ·{' '}
+          <Link className="ef-link" href="/estensione">
+            Estensione
+          </Link>{' '}
+          ·{' '}
+          <Link className="ef-link" href="/claude-desktop">
+            Claude Desktop
+          </Link>
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="ef-empty">
+      <h1>Non riesco a caricare il feed</h1>
+      <p>Controlla la connessione e riprova. Se il problema resta, riprova tra qualche minuto.</p>
+      <button type="button" className="ef-cta" onClick={onRetry}>
+        Riprova
+      </button>
+    </div>
+  );
+}
