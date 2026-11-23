@@ -37,7 +37,11 @@ Ogni testo per lo studente è una coppia `{ it, en }` (ADR 0011). Schemi in `pac
 Il server MCP esegue entrambi i controlli prima di inviare e restituisce a Claude l'elenco dei problemi da correggere; l'API li ripete, perché non si fida del client.
 
 ## Allineamento al minuto
-`alignCard(scheda, tracce)` in `packages/core/src/domain/alignment.ts`, eseguito dall'API al salvataggio per le schede tratte da una parte video.
+`alignCard(scheda, tracce)` in `packages/core/src/domain/alignment.ts`, eseguito dall'API al salvataggio. Da M3 ([ADR 0015](../decisions/0015-feed-di-studio-m3.md)) lo chiama `alignCardToLesson(scheda, video della lezione)` (regole **versione 2**, `ALIGNMENT_VERSION`):
+- una scheda tratta da un video cerca solo in quel video, come in M2;
+- una scheda tratta da slide o lettura cerca in tutti i video della lezione e tiene il tratto più sicuro (a parità, il video che viene prima);
+- il tratto salvato riporta la parte video in `partId` (nei feed di M2 manca e vale la parte di provenienza);
+- il documento salvato riporta `alignmentVersion`; i feed con una versione più vecchia si riallineano quando lo studente apre la materia (`RealignLessonFeeds`, vedi [web.md](web.md#feed-di-studio-m3)).
 
 1. Le parole di scheda e sottotitoli si riducono a una radice grezza: minuscolo, senza accenti, senza parole frequenti italiane e inglesi, senza la `s` finale, primi 5 caratteri (`trees` → `tree`, `alberi` → `alber`).
 2. La traccia si divide in finestre di 30 secondi, una per ogni riga di partenza.

@@ -172,6 +172,8 @@ export const videoAlignmentSchema = z.strictObject({
   endMs: z.number().int().min(0),
   confidence: z.number().min(0).max(1),
   language: z.string().max(32),
+  /** Parte video del tratto (da M3, ADR 0015); assente = la parte di provenienza. */
+  partId: partIdSchema.optional(),
 });
 
 /**
@@ -192,6 +194,8 @@ export const storedLessonFeedSchema = z.strictObject({
   cards: z.array(storedFeedCardSchema).max(FEED_LIMITS.cards.max),
   quiz: z.array(quizItemSchema).max(FEED_LIMITS.quiz.max),
   concepts: z.array(conceptSchema).max(FEED_LIMITS.concepts.max),
+  /** Versione delle regole di allineamento (assente nei feed di M2 = 1). */
+  alignmentVersion: z.number().int().min(1).optional(),
 });
 
 /** Feed salvato di una lezione. */

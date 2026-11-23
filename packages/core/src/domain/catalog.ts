@@ -126,3 +126,22 @@ export function requireVideoId(value: string): string {
   }
   return trimmed;
 }
+
+/** Indirizzo del portale Epicode. */
+export const EPICODE_PORTAL_ORIGIN = 'https://learn.epicode.edu.mt';
+
+/**
+ * Indirizzo di un contenuto sul portale: la pagina di una lezione o di una sua
+ * parte (`/course/{corso}/curriculum/{contenuto}`, come lo riconosce
+ * l'estensione). Serve a "Guarda sul portale" (ADR 0015): il video non si può
+ * incorporare fuori dai domini Epicode, quindi si apre la pagina del portale.
+ *
+ * @param subjectEpicodeId - Id del corso sul portale (la materia).
+ * @param contentEpicodeId - Id dell'attività (lezione) o della parte.
+ * @returns L'indirizzo assoluto.
+ */
+export function portalContentUrl(subjectEpicodeId: string, contentEpicodeId: string): string {
+  const course = encodeURIComponent(requireEpicodeId(subjectEpicodeId));
+  const content = encodeURIComponent(requireEpicodeId(contentEpicodeId));
+  return `${EPICODE_PORTAL_ORIGIN}/course/${course}/curriculum/${content}`;
+}

@@ -433,6 +433,11 @@ export interface LessonFeedDocument {
   readonly cards: readonly StoredFeedCard[];
   readonly quiz: readonly QuizItem[];
   readonly concepts: readonly Concept[];
+  /**
+   * Versione delle regole con cui sono stati calcolati i tratti di video
+   * (`ALIGNMENT_VERSION`). Manca nei feed salvati in M2, che valgono come versione 1.
+   */
+  readonly alignmentVersion?: number;
 }
 
 /**

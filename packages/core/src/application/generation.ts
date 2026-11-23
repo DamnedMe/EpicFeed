@@ -1,6 +1,7 @@
 import type {
   ContentHash,
   ContentVersionId,
+  FeedCard,
   GenerationStatus,
   GlossaryEntry,
   LessonFeedDocument,
@@ -16,9 +17,10 @@ import type {
   UserId,
 } from '../domain/index.js';
 import {
+  ALIGNMENT_VERSION,
   DomainError,
   FeedValidationError,
-  alignCard,
+  alignCardToLesson,
   canTransition,
   checkLessonFeed,
   computeLessonSourcesHash,
@@ -320,7 +322,7 @@ export interface SaveLessonFeedDeps {
  *    se non coincide con quella letta da Claude, la lezione è cambiata nel
  *    frattempo e il feed viene rifiutato;
  * 2. applica {@link checkLessonFeed}: se ci sono problemi, li restituisce tutti;
- * 3. calcola il tratto di video di ogni scheda tratta da una parte video;
+ * 3. calcola il tratto di video di ogni scheda ({@link alignFeedCards});
  * 4. salva feed, glossario e stato `ready` delle versioni in una transazione.
  */
 export class SaveLessonFeed {
@@ -357,14 +359,7 @@ export class SaveLessonFeed {
     const issues = checkLessonFeed(input.feed, { partIds: new Set(partsById.keys()) });
     if (issues.length > 0) throw new FeedValidationError(issues);
 
-    const cards: StoredFeedCard[] = input.feed.cards.map((card) => {
-      const part = partsById.get(card.sourcePartId);
-      const video =
-        part?.kind === 'video' && part.subtitles.length > 0
-          ? alignCard(card, part.subtitles)
-          : null;
-      return { ...card, video };
-    });
+    const cards = alignFeedCards(input.feed.cards, sources.parts);
 
     const document: LessonFeedDocument = {
       lessonId: input.lessonId,
@@ -374,6 +369,7 @@ export class SaveLessonFeed {
       cards,
       quiz: input.feed.quiz,
       concepts: input.feed.concepts,
+      alignmentVersion: ALIGNMENT_VERSION,
     };
     const saved = await this.deps.repository.saveLessonFeed({
       document,
@@ -390,4 +386,25 @@ export class SaveLessonFeed {
       alignedCards: cards.filter((card) => card.video !== null).length,
     };
   }
+}
+
+/**
+ * Calcola il tratto di video di ogni scheda con le regole correnti
+ * (`alignCardToLesson`, versione `ALIGNMENT_VERSION`): le schede tratte da un
+ * video cercano in quel video, quelle tratte da slide e letture in tutti i
+ * video della lezione.
+ *
+ * @param cards - Schede del feed (con o senza un allineamento precedente).
+ * @param parts - Parti della lezione con le tracce visibili allo studente.
+ * @returns Le schede con il tratto ricalcolato (`null` se incerto).
+ */
+export function alignFeedCards(
+  cards: readonly FeedCard[],
+  parts: readonly LessonSourcePart[],
+): StoredFeedCard[] {
+  const videoParts = parts
+    .filter((part) => part.kind === 'video')
+    .map((part) => ({ partId: part.lessonPartId, tracks: part.subtitles }));
+  // Il campo `video` di un allineamento precedente viene sostituito.
+  return cards.map((card) => ({ ...card, video: alignCardToLesson(card, videoParts) }));
 }

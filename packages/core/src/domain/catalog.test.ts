@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createLesson, createLessonPart } from './catalog.js';
+import { createLesson, createLessonPart, portalContentUrl } from './catalog.js';
 import type { ChapterId, LessonId, LessonPartId } from './ids.js';
 import { DomainError } from './errors.js';
 
@@ -71,5 +71,17 @@ describe('createLessonPart', () => {
         position: 0,
       }),
     ).toThrow(/Tipo di parte sconosciuto/);
+  });
+});
+
+describe('portalContentUrl', () => {
+  it('costruisce la pagina del contenuto sul portale', () => {
+    expect(portalContentUrl('177', '4021')).toBe(
+      'https://learn.epicode.edu.mt/course/177/curriculum/4021',
+    );
+  });
+
+  it('rifiuta id che potrebbero cambiare il percorso', () => {
+    expect(() => portalContentUrl('177', '../admin')).toThrow(DomainError);
   });
 });
