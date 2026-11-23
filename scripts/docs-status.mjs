@@ -3,8 +3,12 @@
  * Stato dello sviluppo nella documentazione.
  *
  * Legge `docs/status.json` (unica fonte di verità) e rigenera:
- * - `docs/assets/stato-scuro.svg` e `docs/assets/stato-chiaro.svg`: la plancia in cima al README;
- * - il blocco tra `<!-- stato:inizio -->` e `<!-- stato:fine -->` nel README.
+ * - `apps/web/public/readme/stato-scuro.svg` e `stato-chiaro.svg`: la plancia in cima al README;
+ * - il blocco tra `<!-- stato:inizio -->` e `<!-- stato:fine -->` nel README (plancia e riquadro).
+ *
+ * Le immagini del README sono servite dall'app pubblica su Vercel e non dalla repo: la repo è
+ * privata e l'app GitHub per smartphone non riesce a scaricare le immagini delle repo private.
+ * Il parametro `?v=` con la data di aggiornamento evita che GitHub mostri una copia vecchia.
  *
  * Uso:
  *   node scripts/docs-status.mjs          rigenera i file
@@ -21,6 +25,9 @@ const STATUS_PATH = join(ROOT, 'docs/status.json');
 const README_PATH = join(ROOT, 'README.md');
 const MARK_START = '<!-- stato:inizio -->';
 const MARK_END = '<!-- stato:fine -->';
+const PUBLIC_DIR = 'apps/web/public/readme';
+/** Indirizzo pubblico della cartella `public/readme` dell'app in produzione. */
+const PUBLIC_URL = 'https://study-feed-steel.vercel.app/readme';
 
 /** Palette del design system approvato (docs/design-system.md), accento racing red. */
 const THEMES = {
@@ -218,9 +225,14 @@ function renderBoard(status, themeName) {
  * @returns {string} Markdown tra i due marcatori
  */
 function renderReadmeBlock(status) {
+  const version = status.aggiornato;
   const lines = [
     MARK_START,
     '<!-- Blocco generato da scripts/docs-status.mjs a partire da docs/status.json: non modificarlo a mano. -->',
+    '<picture>',
+    `  <source media="(prefers-color-scheme: light)" srcset="${PUBLIC_URL}/stato-chiaro.svg?v=${version}">`,
+    `  <img src="${PUBLIC_URL}/stato-scuro.svg?v=${version}" alt="Stato dello sviluppo di EpicFeed: milestone da ${status.milestone[0].id} a ${status.milestone.at(-1).id}" width="100%">`,
+    '</picture>',
     '',
     '> [!TIP]',
     `> 🏁 Ultimo traguardo: ${status.ultimoTraguardo}`,
@@ -248,8 +260,8 @@ function main() {
   const check = process.argv.includes('--check');
   const status = JSON.parse(readFileSync(STATUS_PATH, 'utf8'));
   const outputs = [
-    [join(ROOT, 'docs/assets/stato-scuro.svg'), renderBoard(status, 'scuro')],
-    [join(ROOT, 'docs/assets/stato-chiaro.svg'), renderBoard(status, 'chiaro')],
+    [join(ROOT, PUBLIC_DIR, 'stato-scuro.svg'), renderBoard(status, 'scuro')],
+    [join(ROOT, PUBLIC_DIR, 'stato-chiaro.svg'), renderBoard(status, 'chiaro')],
     [README_PATH, replaceBlock(readFileSync(README_PATH, 'utf8'), renderReadmeBlock(status))],
   ];
   const stale = [];
