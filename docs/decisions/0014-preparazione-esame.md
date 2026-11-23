@@ -43,14 +43,25 @@ Dalla sezione **Esame** del corso si sceglie uno o più esercizi (per argomento,
 - Il contratto del feed cambia in modo **additivo**: campo facoltativo `examQuestions` in `lessonFeedDraftSchema`, nuova `promptVersion`. I feed già salvati restano validi; rigenerarli per avere le domande aperte è facoltativo.
 - Per non toccare la generazione M2 mentre è in prova, questa modifica si fa dopo la chiusura di M2.
 
+### 7. Simulazione del colloquio, solo scritta
+Scelta da Damian il 22/11/2026 dopo aver scoperto il formato dell'esame (vedi in fondo).
+- Sessione di **20 minuti** (durata letta dal materiale del corso, modificabile) con domande in inglese una alla volta, come in un colloquio tecnico: teoria ("explain…", "compare…"), complessità e, a volte, un breve esercizio di codice.
+- Le domande vengono dalla banca d'esame (§2) e dalle domande aperte dei feed (§6), scelte per coprire tutti i moduli; dopo una risposta può arrivare una domanda di approfondimento sullo stesso concetto, preparata in anticipo nella banca.
+- Si risponde **solo scrivendo** (niente microfono); i suggerimenti sono disattivati durante la simulazione.
+- Alla fine la sessione intera va in correzione come nel §4 (autovalutazione e/o Claude via MCP), con un giudizio per domanda e un riepilogo dei concetti deboli, che entrano nel ripasso.
+
+### 8. Quiz di modulo da 50 domande
+Come l'autovalutazione ufficiale di fine modulo: **50 domande a scelta multipla**, in inglese, composte dalle domande dei feed delle lezioni del modulo (circa 10 per lezione, coerente con le 6–8 generate oggi più quelle del quiz di capitolo). Se un modulo ne ha meno di 50, il quiz usa quelle disponibili e lo dice. Il risultato aggiorna il ripasso come gli altri quiz.
+
 ## Alternative scartate
 - **Solo autovalutazione**: più semplice, ma senza un giudizio esterno sulle risposte aperte, che sono la parte più difficile da valutare da soli.
 - **Claude API per la correzione**: immediata nell'app, ma costi a consumo e chiave sul server, contro l'ADR 0007.
 - **Esecuzione del codice sul server**: richiede una sandbox e un servizio sempre attivo; Pyodide gira sul telefono e offline.
 - **Esercizi bilingui**: allontanano dal formato dell'esame; restano bilingui solo i suggerimenti, a scelta.
+- **Colloquio a voce** (trascrizione nel browser): più vicino all'esame orale, scartato da Damian per ora a favore delle risposte scritte; si può aggiungere sopra la simulazione del §7.
 
 ## Conseguenze
-- M4 cresce da M a L: quiz e ripasso come previsto, più sezione Esame, strumenti MCP d'esame, Pyodide e domande aperte nei feed.
+- M4 cresce da M a L: quiz e ripasso come previsto, più sezione Esame, simulazione del colloquio, quiz di modulo, strumenti MCP d'esame, Pyodide e domande aperte nei feed.
 - Nuovi strumenti nel pacchetto `.mcpb` (con la prova Windows verde prima di ogni consegna).
 - Nuove tabelle additive (banca esercizi per corso, coda delle risposte da correggere) con RLS: ognuno vede solo le proprie.
 

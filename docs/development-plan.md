@@ -38,7 +38,7 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
 | M1 | **Import e catalogo** | L'estensione importa la lezione aperta; nell'app compare in "Le mie lezioni"; un secondo import uguale non crea duplicati | M |
 | M2 | **Generazione via MCP** | Da Claude Desktop: "genera le lezioni nuove" crea schede, quiz, concetti e glossario per le versioni importate, con l'intervallo di video di ogni scheda | M |
 | M3 | **Feed** | Feed verticale sul telefono, swipe fluido, "Guarda sul portale" al minuto giusto, temi e accenti | M |
-| M4 | **Quiz, ripasso ed esame** | Quiz di fine capitolo, ripasso giornaliero FSRS, backup esportabile; sezione Esame con esercizi aperti in inglese, timer, correzione di Claude e codice eseguibile ([ADR 0014](decisions/0014-preparazione-esame.md)). **Fine MVP** | L |
+| M4 | **Quiz, ripasso ed esame** | Quiz di fine capitolo, ripasso giornaliero FSRS, backup esportabile; sezione Esame con esercizi aperti in inglese, timer, simulazione scritta del colloquio di 20 minuti, quiz di modulo da 50 domande, correzione di Claude e codice eseguibile ([ADR 0014](decisions/0014-preparazione-esame.md)). **Fine MVP** | L |
 | M5 | Segnala errore | Correzioni salvate nell'area privata e riapplicate alle nuove versioni | S |
 | M6 | Assistente di studio MCP | Strumenti di studio per Claude Desktop: cerca lezione, concetti deboli, quiz al volo, segnala errore | M |
 | M7 | Libri | Libreria, import PDF/EPUB via MCP, modalità Studiare/Solo leggere | L |
@@ -87,6 +87,7 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
   - sezione Esame con esercitazione e timer facoltativo, suggerimenti attivabili con lingua a scelta (IT/EN);
   - autovalutazione con griglia e correzione di Claude via MCP (`risposte_da_correggere`, `salva_correzione`), punteggio collegato al ripasso FSRS;
   - test del codice Python nel browser con Pyodide in un Web Worker;
+  - simulazione scritta del colloquio finale (20 minuti, domande una alla volta, correzione a fine sessione) e quiz di modulo da 50 domande come l'autovalutazione ufficiale;
   - 1–2 domande aperte stile esame nel feed di ogni lezione (campo facoltativo `examQuestions`, dopo la chiusura di M2).
 - Budget Lighthouse in CI (LCP < 2,5 s mobile).
 
