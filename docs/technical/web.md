@@ -11,6 +11,7 @@ Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailw
 | `/` | **Feed di studio** a battute ([feed.md](../functional/feed.md)); la materia arriva da `GET /api/feed/subjects/{id}` | sessione |
 | `/io` | **Io**: aspetto, preferenze di studio, totali, collegamenti | sessione |
 | `/io/salvati` | Schede salvate sul dispositivo | sessione |
+| `/ripasso` | **Ripasso** dei concetti a battute e sezione **Esame** (`#esame`) ([review.md](../functional/review.md)) | sessione |
 | `/lezioni` | **Le mie lezioni**: lezioni importate raggruppate per materia e capitolo, con numero di parti, sottotitoli e stato di generazione | sessione |
 | `/estensione` | Collega l'estensione, elenca e revoca i collegamenti | sessione |
 | `/claude-desktop` | Crea il token "genera" per Claude Desktop (mostrato una volta), elenca e revoca i token | sessione |
@@ -98,11 +99,24 @@ Le regole pure stanno nel core ([core.md](core.md#feed-di-studio)): `storyOf` (b
 - Pulsanti, voci della barra e righe di *Io* reagiscono subito alla pressione (`:active`), senza l'evidenziazione dei browser mobili.
 - La barra in basso è in vetro su un fondo quasi pieno (90% del colore di fondo) con sfocatura. In CSS si scrive solo `backdrop-filter`: con anche la forma `-webkit-` Lightning CSS teneva solo quella, e Chrome restava senza sfocatura.
 
+## Ripasso (M4)
+Decisioni in [ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md); regole pure nel core ([core.md](core.md#ripasso)). Il tab `/ripasso` contiene anche la sezione Esame (`#esame`), che si riempie con le PR successive di M4.
+
+| File (`src/features/review`) | Ruolo |
+|---|---|
+| `progress-store.ts` | `IndexedDbProgressStore`, adapter della porta `ProgressStore`: database `epicfeed-progress` con `reviews` (stato FSRS per concetto, chiave `conceptId`), `answers` (storico, chiave automatica) e `meta` (serie di giorni). Stato e risposta nella stessa transazione; ogni record letto passa da uno schema zod e quelli non validi si ignorano. `progressStore()` apre il database una volta sola e restituisce `null` se IndexedDB non c'è; `onProgress`/`notifyProgress` avvisano le schermate aperte |
+| `record.ts` | `recordStudyAnswer`: porta una risposta nel ripasso con `recordAnswer` del core; non lancia mai (lo studio non si ferma se IndexedDB fallisce). La usano il feed (`onAnswer` in `feed-app.tsx`, fonte `feed`) e la sessione di ripasso (fonte `review`) |
+| `catalog.ts` | `buildReviewCatalog`: dalla materia scaricata ai concetti (uno per chiave, testi dalla prima lezione, termini da tutte le schede sul concetto) e alle domande, con l'id dell'elemento del feed (`lezione:quiz:id`, unico nella materia); `recallBlank` sceglie la parola da coprire con `pickBlank` del core o, in mancanza, il nome del concetto |
+| `use-review-data.ts` | Materia (prima la copia sul dispositivo, poi `loadFeed` come il feed) e progressi, ricaricati a ogni risposta |
+| `review-app.tsx` | Tab Ripasso: sezioni *Ripasso*/*Esame*, home (scaduti, serie, concetti deboli, barre per modulo), riepilogo di fine sessione |
+| `review-session.tsx` | Sessione a battute a tutto schermo: richiamo con la parola da indovinare, poi la domanda con `QuizSlide` del feed (prop `continueHint={null}` e pulsante *Avanti*) |
+| `review.css` | Stili del ripasso con i token `--sf-*`; le larghezze delle barre sono variabili CSS impostate dal client (CSP) |
+
 ### PWA e uso senza rete
 - **Manifest** (`src/app/manifest.ts`, servito come `/manifest.webmanifest`): nome *EpicFeed*, apertura su `/`, schermo intero verticale, colori ossidiana; icone in `public/icon.svg` e `public/icons/` (192, 512, 512 *maskable*, 180 per iOS). Il layout aggiunge l'icona per la schermata Home di iOS e `appleWebApp`.
 - **Service worker** (`public/sw.js`, scritto a mano, nessuna dipendenza), registrato da `ServiceWorkerRegistration` solo nella build di produzione:
   - `/_next/static/` (JS, CSS e font con l'impronta nel nome): prima la cache, poi la rete; al massimo 120 file, i più vecchi si scartano;
-  - navigazione su `/`: prima la rete; la copia in cache serve solo se la rete manca. Si conserva solo una risposta 200 della pagina stessa: un rimando ad `/accedi`, un 401 o un 403 cancellano la copia, così dopo l'uscita il feed non si riapre offline;
+  - navigazione su `/` e `/ripasso`: prima la rete; la copia in cache serve solo se la rete manca. Si conserva solo una risposta 200 della pagina stessa: un rimando ad `/accedi`, un 401 o un 403 cancellano la copia, così dopo l'uscita il feed non si riapre offline;
   - API, altre pagine e altri siti: non li tocca. La materia non passa dal service worker: la tiene `feed-client.ts` in `localStorage` e la rivaluta con l'ETag.
   - Le cache hanno la versione nel nome (`epicfeed-shell-v1`, `epicfeed-static-v1`): cambiare `VERSION` le svuota all'attivazione; `skipWaiting` e `clients.claim` fanno valere subito la versione nuova.
 - `next.config.ts` serve `/sw.js` con `Cache-Control: no-cache`, perché il browser controlli sempre se è cambiato; `proxy.ts` esclude `sw.js`, il manifest e le icone (niente sessione né CSP da rinnovare per file statici).

@@ -189,7 +189,16 @@ export const fixture: SubjectFeedResponse = {
                 difficulty: 1,
               },
             ],
-            concepts: [],
+            concepts: [
+              {
+                key: 'linked-list',
+                name: bi('Linked list', 'Linked list'),
+                description: bi(
+                  'Sequenza di nodi collegati da puntatori, a partire dalla head.',
+                  'A sequence of nodes linked by pointers, starting from the head.',
+                ),
+              },
+            ],
           },
         },
       ],

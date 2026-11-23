@@ -88,6 +88,13 @@ Regole pure del feed sul telefono ([ADR 0015](../decisions/0015-feed-di-studio-m
 - `buildStudySequence(lezioni)`: schede in ordine e, ogni `QUIZ_EVERY` (3) schede, un gruppo di al massimo `QUIZ_BATCH` (3) domande della stessa lezione: prima sui concetti delle ultime schede, poi sugli altri già visti nella lezione, mai su concetti non ancora visti; un gruppo finale se dopo l'ultimo c'è almeno una scheda. Ogni domanda porta `batch` (`position`, `size`) per mostrare *1/3*.
 - `POINTS`, `answerPoints(serie)` (10 + 2 per risposta giusta di fila oltre la prima, al massimo +8) e `SESSION_MS` (5 minuti).
 
+## Ripasso
+`domain/review.ts` e `application/review.ts` (M4, [ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md)):
+- `ConceptReviewState`: stato FSRS di un concetto (`conceptId` = `materia:chiave`), con date ISO 8601 per IndexedDB e sincronizzazione; `applyReview` lo aggiorna con `ts-fsrs` (parametri predefiniti, `enable_fuzz: false`, date precedenti all'ultima risposta portate all'ultima); `isDue`, `isStable` (fase di ripasso e stabilità ≥ 7 giorni), `recallProbability`.
+- `gradeFromAnswer` (sbagliata → *again*, aiutata → *hard*, giusta → *good*) e `gradeFromScore` (soglie 50% e 80% dell'ADR 0014).
+- Serie di giorni: `extendDayStreak`, `currentDayStreak`, `localDay` (giorno nell'ora del dispositivo).
+- Porta `ProgressStore` e casi d'uso `recordAnswer` (stato + storico con fonte e lingua), `completeReviewSession` (serie), `planReviewSession` (fino a 10 concetti: scaduti dal più in ritardo, altrimenti in anticipo i meno ricordati; mai concetti non ancora visti o senza domande; domanda successiva all'ultima fatta, a giro), `summarizeReview` (scaduti, deboli, avanzamento per modulo).
+
 ## Prova di possesso
 `grantByPossessionProof(user, version, presentedHash, now)` concede il permesso solo se l'impronta del contenuto presentato coincide con quella della versione. L'impronta va calcolata **dal server** sul contenuto ricevuto, mai presa dal client: non basta dichiarare di avere una lezione, bisogna inviarne il contenuto.
 

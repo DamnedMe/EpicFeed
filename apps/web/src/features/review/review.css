@@ -1,0 +1,138 @@
+/*
+ * Ripasso (M4, ADR 0017): home con scadenze, serie, concetti deboli e moduli,
+ * e la sessione a battute che riusa le classi del feed (.ef-app, .ef-hud,
+ * .ef-stage, .ef-blank). Solo token del design system (--sf-*).
+ */
+.ef-rv-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ef-rv-tabs {
+  padding: 0;
+}
+.ef-rv-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+.ef-rv-box p {
+  margin: 0;
+}
+.ef-rv-today {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ef-rv-num {
+  font: 700 52px/1 var(--sf-font-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--sf-accent-text);
+}
+.ef-rv-label {
+  font: 700 18px/1.25 var(--sf-font-display);
+  margin: 4px 0 0;
+  text-wrap: balance;
+}
+.ef-rv-list,
+.ef-rv-modules {
+  list-style: none;
+  margin: 0;
+  padding: 4px 14px;
+}
+.ef-rv-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--sf-border);
+}
+.ef-rv-list li:last-child,
+.ef-rv-modules li:last-child {
+  border-bottom: 0;
+}
+.ef-rv-modules li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 12px;
+  align-items: center;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--sf-border);
+  font-size: 14px;
+}
+.ef-rv-modules .ef-hint {
+  font-variant-numeric: tabular-nums;
+}
+.ef-rv-bar {
+  grid-column: 1 / -1;
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--sf-border);
+  overflow: hidden;
+}
+.ef-rv-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 3px;
+  transform-origin: left;
+  width: 100%;
+}
+.ef-rv-bar .seen {
+  background: color-mix(in srgb, var(--sf-review) 35%, transparent);
+  transform: scaleX(var(--ef-seen, 0));
+}
+.ef-rv-bar .stable {
+  background: var(--sf-accent-fill);
+  transform: scaleX(var(--ef-stable, 0));
+}
+.ef-rv-end {
+  text-align: center;
+  align-items: center;
+}
+.ef-rv-grow {
+  flex: 1;
+}
+
+/* Sessione: a tutto schermo come il feed, senza barra in basso. */
+.ef-rv-session .ef-hud > button.ef-stat {
+  cursor: pointer;
+  color: var(--sf-text);
+}
+.ef-rv-beats {
+  display: flex;
+  gap: 4px;
+  padding: 0 18px 10px;
+}
+.ef-rv-beats i {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--sf-border);
+}
+.ef-rv-beats i.on {
+  background: var(--sf-accent-fill);
+}
+.ef-rv-slide {
+  height: auto;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  gap: 14px;
+  padding-bottom: calc(18px + env(safe-area-inset-bottom));
+}
+.ef-rv-slide .ef-stage {
+  justify-content: center;
+}
+.ef-rv-slide > .ef-cta {
+  flex-shrink: 0;
+}
+.ef-rv-note {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--sf-text-muted);
+}

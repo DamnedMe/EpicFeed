@@ -5,6 +5,7 @@ import {
   answerPoints,
   autoAdvanceMs,
   beatText,
+  gradeFromAnswer,
   POINTS,
   SESSION_MS,
   storyOf,
@@ -14,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { BottomNav } from '@/components/bottom-nav';
+import { recordStudyAnswer } from '@/features/review/record';
 import type { CardState } from './card-slide';
 import { CardSlide } from './card-slide';
 import { SPEECH_LANG } from './copy';
@@ -341,6 +343,17 @@ export function FeedApp() {
     }));
     stats.set((previous) => ({ ...previous, bestStreak: Math.max(previous.bestStreak, streak) }));
     if (correct) award(answerPoints(streak));
+    // Ogni risposta del feed entra nel ripasso del suo concetto (M4, ADR 0017).
+    if (item.type === 'quiz' && feed) {
+      void recordStudyAnswer({
+        subjectId: feed.subjectId,
+        conceptKey: item.quiz.conceptKey,
+        questionId: item.key,
+        source: 'feed',
+        grade: gradeFromAnswer(correct),
+        language: languageOf(item),
+      });
+    }
   };
 
   const toggleLanguage = () => {

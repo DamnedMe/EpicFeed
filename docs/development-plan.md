@@ -80,7 +80,7 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
 - PWA installabile, funziona offline per le schede già scaricate.
 - Test Playwright del flusso import → feed su viewport mobile.
 
-**M4 Quiz e ripasso**
+**M4 Quiz e ripasso**: avviata il 23/11/2026; scelte di Damian nell'[ADR 0017](decisions/0017-ripasso-ed-esame-m4.md) (Esame dentro il tab Ripasso, ripasso con richiamo + domanda, +10 domande d'esame per lezione, CodeMirror, Pyodide dal nostro dominio, sincronizzazione cifrata dei progressi già in M4, colloquio in chat, 2 varianti per esercizio). Sei PR: 1 ripasso; 2 sincronizzazione cifrata; 3 contenuti d'esame e strumenti MCP; 4 sezione Esame; 5 correzione di Claude e colloquio; 6 Lighthouse e chiusura. Prima PR: ripasso FSRS per concetto, progressi in IndexedDB, risposte del feed nel ripasso, tab Ripasso con la sezione Esame ([review.md](functional/review.md)).
 - `AnswerQuiz`, `ScheduleReview` con `ts-fsrs`; `IndexedDbProgressStore`.
 - Schermate Quiz e Ripasso, sezione Io (tema, accento, lingua dei quiz, export/import backup).
 - Quiz nella lingua scelta (proposta: inglese, per l'esame); il ripasso è unico per concetto, qualunque sia la lingua; i risultati ricordano la lingua usata ([ADR 0011](decisions/0011-studio-bilingue-it-en.md)).

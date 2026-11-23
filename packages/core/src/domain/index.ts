@@ -13,6 +13,7 @@ export * from './errors.js';
 export * from './feed.js';
 export * from './import.js';
 export * from './ids.js';
+export * from './review.js';
 export * from './story.js';
 export * from './study-session.js';
 export * from './subtitles.js';
