@@ -23,6 +23,7 @@ pnpm check            # formattazione + lint + typecheck + test + build, come in
 | `pnpm --filter @study-feed/db db:generate` | Genera una nuova migrazione SQL dallo schema |
 | `pnpm --filter @study-feed/db db:check` | Verifica che le migrazioni siano allineate allo schema |
 | `pnpm --filter @study-feed/db db:migrate` | Applica le migrazioni al database di `DATABASE_URL` |
+| `pnpm --filter @study-feed/web test:e2e` | Test del feed su viste di iPhone e Android (Playwright, dopo `pnpm build`; la prima volta `pnpm --filter @study-feed/web exec playwright install chromium`) |
 | `pnpm --filter @study-feed/web dev` | Web app in locale su `http://localhost:3000` (serve `apps/web/.env.local`) |
 | `pnpm --filter @study-feed/extension dev` | Estensione in modalità sviluppo (Chrome con ricarica automatica) |
 | `pnpm --filter @study-feed/extension build` | Estensione da caricare in Chrome (`apps/extension/.output/chrome-mv3`) |
@@ -59,8 +60,9 @@ Ogni pacchetto ha gli stessi script (`build`, `lint`, `typecheck`, `test`) e Tur
 1. installazione con lockfile bloccato;
 2. formattazione (Prettier);
 3. lint, typecheck, test e build di tutti i pacchetti;
-4. controllo che le migrazioni corrispondano allo schema Drizzle;
-5. `pnpm audit` (job separato): fallisce con vulnerabilità di livello moderato o superiore.
+4. test del feed su viste mobili (Playwright, Chromium installato nel job);
+5. controllo che le migrazioni corrispondano allo schema Drizzle;
+6. `pnpm audit` (job separato): fallisce con vulnerabilità di livello moderato o superiore.
 
 Il workflow `db-migrate.yml` (*Migrazioni database*) si avvia a mano da `main` e applica le migrazioni a Supabase ([database.md](database.md#collegare-supabase)).
 

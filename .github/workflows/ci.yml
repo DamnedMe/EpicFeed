@@ -22,7 +22,7 @@ jobs:
   check:
     name: Lint, typecheck, test e build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
         with:
@@ -43,6 +43,14 @@ jobs:
 
       - name: Lint, typecheck, test e build
         run: pnpm turbo run lint typecheck test build
+
+      # Il feed sul telefono (M3): Chromium con le viste di iPhone 13 e Pixel 7,
+      # sul banco di prova costruito dalla build appena fatta (apps/web/e2e).
+      - name: Installa Chromium per Playwright
+        run: pnpm --filter @study-feed/web exec playwright install --with-deps chromium
+
+      - name: Test del feed su viste mobili (Playwright)
+        run: pnpm --filter @study-feed/web test:e2e
 
       - name: Migrazioni allineate allo schema
         run: pnpm --filter @study-feed/db db:check

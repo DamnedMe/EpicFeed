@@ -62,4 +62,9 @@ Le schede partono nella **lingua di studio** e le domande nella **lingua delle d
 - **Contenuti**: Le mie lezioni, Estensione, Claude Desktop. In fondo, *Esci*.
 
 ## Cosa resta sul telefono
-Punti, serie, schede salvate, posizione nel feed, preferenze e la copia della materia restano **solo su questo dispositivo** ([ADR 0003](../decisions/0003-risultati-sul-dispositivo.md)); tema e accento stanno in un cookie per colorare la pagina già al primo caricamento. Il feed riparte dall'ultima scheda vista. Se la connessione manca, il feed usa la copia salvata e lo dice in alto; con la PWA (prossima PR) si aprirà anche l'app senza rete.
+Punti, serie, schede salvate, posizione nel feed, preferenze e la copia della materia restano **solo su questo dispositivo** ([ADR 0003](../decisions/0003-risultati-sul-dispositivo.md)); tema e accento stanno in un cookie per colorare la pagina già al primo caricamento. Il feed riparte dall'ultima scheda vista. Se la connessione manca, il feed usa la copia salvata e lo dice in alto.
+
+## Installare l'app e usarla senza rete
+EpicFeed si installa come un'app: su Android, Chrome propone *Installa app* (o dal menu ⋮ → *Aggiungi a schermata Home*); su iPhone, in Safari, *Condividi → Aggiungi alla schermata Home*. Si apre a schermo intero con la sua icona.
+
+Dopo la prima apertura con la rete, l'app si apre anche **senza connessione**: mostra l'ultima materia scaricata con l'avviso *offline*, e punti, salvati e posizione funzionano come sempre. Le lezioni generate nel frattempo arrivano alla prima apertura con la rete. Dopo *Esci* la copia offline della pagina si cancella alla visita successiva con la rete.

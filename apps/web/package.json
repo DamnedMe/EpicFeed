@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:e2e": "node e2e/harness/build.mjs && playwright test -c e2e/playwright.config.ts"
   },
   "dependencies": {
     "@study-feed/adapters": "workspace:*",
@@ -30,11 +31,13 @@
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "16.4.6",
+    "@playwright/test": "1.63.0",
     "@study-feed/config": "workspace:*",
     "@tailwindcss/postcss": "4.3.5",
     "@types/node": "26.6.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "esbuild": "0.28.2",
     "eslint": "10.15.0",
     "eslint-plugin-react-hooks": "7.1.1",
     "tailwindcss": "4.3.5",

@@ -12,7 +12,15 @@ import { createConfig } from '@study-feed/config/eslint';
 export default createConfig({
   tsconfigRootDir: import.meta.dirname,
   extra: [
-    { ignores: ['.next/**', 'next-env.d.ts', 'postcss.config.mjs'] },
+    {
+      ignores: [
+        '.next/**',
+        'e2e/.harness/**',
+        'test-results/**',
+        'next-env.d.ts',
+        'postcss.config.mjs',
+      ],
+    },
     {
       plugins: { '@next/next': nextPlugin, 'react-hooks': reactHooks },
       rules: {

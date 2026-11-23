@@ -20,7 +20,17 @@ const config: NextConfig = {
   // I pacchetti del monorepo sono già compilati in `dist/`: nessuna trascrizione.
   serverExternalPackages: ['postgres'],
   headers() {
-    return Promise.resolve([{ source: '/:path*', headers: securityHeaders }]);
+    return Promise.resolve([
+      { source: '/:path*', headers: securityHeaders },
+      // Il service worker va sempre ricontrollato, altrimenti un aggiornamento arriverebbe in ritardo.
+      {
+        source: '/sw.js',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, max-age=0' },
+          { key: 'Content-Type', value: 'text/javascript; charset=utf-8' },
+        ],
+      },
+    ]);
   },
 };
 

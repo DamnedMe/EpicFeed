@@ -60,6 +60,9 @@ function contentSecurityPolicy(nonce: string, https: boolean): string {
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${dev ? " 'unsafe-eval'" : ''}`,
     `style-src 'self' 'nonce-${nonce}'${dev ? " 'unsafe-inline'" : ''}`,
     "img-src 'self' blob: data:",
+    // Service worker e manifest della PWA: solo dall'app.
+    "worker-src 'self'",
+    "manifest-src 'self'",
     "font-src 'self'",
     `connect-src 'self' ${supabase}`.trim(),
     "object-src 'none'",
@@ -74,7 +77,8 @@ function contentSecurityPolicy(nonce: string, https: boolean): string {
 export const config = {
   matcher: [
     {
-      source: '/((?!api|_next/static|_next/image|favicon.ico|icon.svg).*)',
+      source:
+        '/((?!api|_next/static|_next/image|favicon.ico|icon.svg|icons/|manifest.webmanifest|sw.js).*)',
       missing: [
         { type: 'header', key: 'next-router-prefetch' },
         { type: 'header', key: 'purpose', value: 'prefetch' },
