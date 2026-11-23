@@ -310,6 +310,29 @@ test('una risposta sbagliata nel feed entra nel Ripasso, che si fa a battute', a
   });
   await slide(page).getByRole('button', { name: 'True →' }).click();
   await expect(slide(page).getByRole('status')).toContainText('Almost.');
+  // La risposta si salva in IndexedDB in modo asincrono: si cambia pagina solo
+  // dopo che la transazione è confermata, altrimenti la navigazione la annulla.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          new Promise<number>((resolve) => {
+            const request = indexedDB.open('epicfeed-progress');
+            request.onsuccess = () => {
+              const db = request.result;
+              const count = db.transaction('answers').objectStore('answers').count();
+              count.onsuccess = () => {
+                db.close();
+                resolve(count.result);
+              };
+            };
+            request.onerror = () => {
+              resolve(0);
+            };
+          }),
+      ),
+    )
+    .toBe(1);
 
   await page.goto(`${ORIGIN}/ripasso`);
   await expect(page.getByRole('heading', { name: 'Concetti deboli' })).toBeVisible();
