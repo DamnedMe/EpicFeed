@@ -16,6 +16,8 @@ interface QuizSlideProps {
   readonly answer: QuizAnswer | undefined;
   readonly showPoints: boolean;
   readonly onAnswer: (answer: QuizAnswer, correct: boolean) => void;
+  /** Invito dopo la risposta; `null` per nasconderlo (es. nel ripasso, che ha il suo pulsante). */
+  readonly continueHint?: string | null;
 }
 
 /** Spiegazione dopo la risposta. */
@@ -160,8 +162,8 @@ function TrueFalse({ entry, language, answer, onAnswer }: QuizSlideProps) {
 }
 
 /**
- * Domanda nel feed (ADR 0015, punto 2): risposta e spiegazione subito. In M3
- * il risultato resta nella sessione; da M4 entra nel ripasso.
+ * Domanda nel feed (ADR 0015, punto 2) e nel ripasso (ADR 0017): risposta e
+ * spiegazione subito; il risultato entra nel ripasso del concetto.
  */
 export function QuizSlide(props: QuizSlideProps) {
   const copy = CARD_COPY[props.language];
@@ -176,7 +178,9 @@ export function QuizSlide(props: QuizSlideProps) {
         <h2 className="ef-big sm">{props.entry.quiz.question[props.language]}</h2>
       )}
       {isTrueFalse ? <TrueFalse {...props} /> : <MultipleChoice {...props} />}
-      {props.answer !== undefined ? <span className="ef-hint">{copy.nextCard} ↑</span> : null}
+      {props.answer !== undefined && props.continueHint !== null ? (
+        <span className="ef-hint">{props.continueHint ?? `${copy.nextCard} ↑`}</span>
+      ) : null}
     </div>
   );
 }

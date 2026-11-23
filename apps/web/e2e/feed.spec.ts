@@ -17,7 +17,11 @@ const TYPES: Record<string, string> = {
   '.woff2': 'font/woff2',
 };
 /** Pagine dell'app servite dal banco di prova. */
-const PAGES: Record<string, string> = { '/': 'index.html', '/io': 'io.html' };
+const PAGES: Record<string, string> = {
+  '/': 'index.html',
+  '/io': 'io.html',
+  '/ripasso': 'ripasso.html',
+};
 const CSP =
   "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self'";
 
@@ -288,4 +292,50 @@ test('Io sul telefono: righe allineate e barra in basso coprente', async ({ page
   expect(style.blur).toContain('blur');
   const alpha = Number(/[\d.]+(?=\)$)/.exec(style.color.replace(/\s/g, ''))?.[0] ?? '1');
   expect(alpha).toBeGreaterThanOrEqual(0.85);
+});
+
+test('una risposta sbagliata nel feed entra nel Ripasso, che si fa a battute', async ({ page }) => {
+  await page.goto(`${ORIGIN}/ripasso`);
+  await expect(page.getByText('Rispondi alle domande del feed')).toBeVisible();
+
+  // Nel feed: vero/falso sbagliato (la risposta giusta è Falso).
+  await open(page);
+  await page.evaluate(() => {
+    const element = document.querySelector('.ef-feed');
+    if (element) element.scrollTop = element.clientHeight * 6;
+  });
+  await slide(page).getByRole('button', { name: 'True →' }).click();
+  await expect(slide(page).getByRole('status')).toContainText('Almost.');
+
+  await page.goto(`${ORIGIN}/ripasso`);
+  await expect(page.getByRole('heading', { name: 'Concetti deboli' })).toBeVisible();
+  await expect(page.locator('.ef-rv-list')).toContainText('Linked list');
+  await expect(page.locator('.ef-rv-list')).toContainText('1 errore');
+  // Appena sbagliato non scade ancora (rivede tra un minuto): si ripassa in anticipo.
+  await page.getByRole('button', { name: 'Ripassa in anticipo' }).click();
+
+  // Battuta di richiamo: parola da scoprire, poi la domanda.
+  await expect(page.getByRole('heading', { name: 'Linked list' })).toBeVisible();
+  await page.locator('.ef-blank').click();
+  await expect(page.locator('.ef-blank.open')).toHaveText('head');
+  await page.locator('.ef-stage').click({ position: { x: 10, y: 10 } });
+  await expect(page.locator('.ef-rv-beats i.on')).toHaveCount(2);
+
+  // Domanda in inglese (lingua delle domande predefinita), poi Avanti.
+  const options = page.locator('.ef-opt');
+  if ((await options.count()) > 0) await options.nth(1).click();
+  else await page.getByRole('button', { name: 'False' }).click();
+  await page.getByRole('button', { name: 'Next' }).click();
+
+  await expect(page.getByText('Ripasso completato')).toBeVisible();
+  await expect(page.getByText('Primo giorno della serie')).toBeVisible();
+  await expect(page.locator('.ef-stat').filter({ hasText: 'giorno' })).toContainText('1 giorno');
+});
+
+test('Ripasso ed Esame stanno nello stesso tab', async ({ page }) => {
+  await page.goto(`${ORIGIN}/ripasso`);
+  await page.getByRole('tab', { name: 'Esame' }).click();
+  await expect(page.getByText('simulazione scritta del colloquio')).toBeVisible();
+  await expect(page).toHaveURL(/#esame$/);
+  await expect(page.locator('.ef-nav .on')).toHaveText('Ripasso');
 });

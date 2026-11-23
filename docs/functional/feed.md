@@ -8,7 +8,7 @@ Una schermata spiega i quattro gesti con piccole animazioni e si chiude con **Ho
 ## Cosa si vede
 - In alto: il **capitolo e la lezione** (un tocco apre l'elenco per saltare altrove), i **punti** della sessione, la **serie** di risposte giuste (si accende da 2 in su), l'**anello dei 5 minuti** e il pulsante **IT/EN** della scheda.
 - Sotto, la **barra delle battute**: un trattino per ogni battuta della scheda, come nelle storie dei social.
-- In basso, la barra **Feed · Ripasso · Libri · Io** (Ripasso e Libri sono *in arrivo*).
+- In basso, la barra **Feed · Ripasso · Libri · Io** (Libri è *in arrivo*; Ripasso contiene anche l'Esame, vedi [review.md](review.md)).
 
 ## Le schede a battute
 | Tipo | Battute |
@@ -43,11 +43,11 @@ Il tocco singolo aspetta un attimo (230 ms) per capire se arriva un secondo tocc
 - **Rivedi i gesti**.
 
 ## Domande
-Dopo ogni 3 schede arriva una domanda della stessa lezione, scelta tra quelle sui concetti appena letti; alla fine della lezione ne arriva un'altra se dall'ultima sono passate almeno due schede. Le domande non usate restano per il ripasso (M4).
+Dopo ogni 3 schede arriva una domanda della stessa lezione, scelta tra quelle sui concetti appena letti; alla fine della lezione ne arriva un'altra se dall'ultima sono passate almeno due schede. Le domande non usate restano per il ripasso.
 - **Vero o falso**: si trascina la carta a destra (vero) o a sinistra (falso), oppure si usano i due pulsanti.
 - **Scelta multipla**: un tocco sull'opzione.
 
-La risposta mostra subito quella giusta e la spiegazione. Una risposta giusta vale **10 punti**, più **2 per ogni risposta giusta di fila** oltre la prima (fino a +8). In M3 il risultato non si salva per il ripasso.
+La risposta mostra subito quella giusta e la spiegazione. Una risposta giusta vale **10 punti**, più **2 per ogni risposta giusta di fila** oltre la prima (fino a +8). Da M4 ogni risposta entra nel **ripasso** del suo concetto ([review.md](review.md)).
 
 ## Sessioni da 5 minuti
 L'anello in alto si riempie in 5 minuti. Passati i 5 minuti, alla scheda successiva compare il riepilogo: punti, minuti, schede viste, risposte giuste e serie migliore, e la sessione si conta tra quelle completate. **Altri 5 minuti** riparte, **Basta per ora** porta a *Io*.

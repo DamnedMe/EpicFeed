@@ -35,7 +35,11 @@ const serverActions = {
 };
 
 await build({
-  entryPoints: { app: join(here, 'entry.tsx'), io: join(here, 'io-entry.tsx') },
+  entryPoints: {
+    app: join(here, 'entry.tsx'),
+    io: join(here, 'io-entry.tsx'),
+    review: join(here, 'review-entry.tsx'),
+  },
   bundle: true,
   outdir: out,
   plugins: [serverActions],
@@ -62,4 +66,5 @@ const page = (script) =>
   `<!doctype html><html lang="it" data-theme="dark" data-accent="racing-red" class="ef-fonts ${fontClasses.join(' ')}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">${links}</head><body class="min-h-dvh bg-background text-text"><div id="root"></div><script src="/${script}.js"></script></body></html>`;
 writeFileSync(join(out, 'index.html'), page('app'));
 writeFileSync(join(out, 'io.html'), page('io'));
+writeFileSync(join(out, 'ripasso.html'), page('review'));
 console.log(`Banco di prova pronto in ${out}`);

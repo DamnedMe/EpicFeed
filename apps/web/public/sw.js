@@ -8,7 +8,7 @@
  * Strategie:
  * - file di `/_next/static/` (JS, CSS, font): hanno l'impronta nel nome e non
  *   cambiano mai, quindi prima la cache, poi la rete;
- * - pagine del feed (`/`): prima la rete, e la copia in cache solo se la rete
+ * - pagine del feed e del ripasso (`/`, `/ripasso`): prima la rete, e la copia in cache solo se la rete
  *   manca. Una risposta che rimanda all'accesso cancella la copia: dopo
  *   l'uscita il feed non resta aperto offline;
  * - tutto il resto (API, altre pagine, altri siti): non lo tocca.
@@ -19,7 +19,7 @@ const VERSION = 'v1';
 const SHELL_CACHE = `epicfeed-shell-${VERSION}`;
 const STATIC_CACHE = `epicfeed-static-${VERSION}`;
 /** Pagine conservate per l'uso offline. */
-const OFFLINE_PAGES = ['/'];
+const OFFLINE_PAGES = ['/', '/ripasso'];
 /** Tetto ai file statici in cache: a ogni deploy cambiano nome, i vecchi si scartano. */
 const STATIC_LIMIT = 120;
 
