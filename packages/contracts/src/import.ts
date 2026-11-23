@@ -14,7 +14,7 @@ import { z } from 'zod';
  * Qui si controlla solo la **forma** (tipi, lunghezze massime, campi ammessi);
  * le regole di dominio (normalizzazione, impronta, permessi) restano nel core.
  * Gli oggetti sono `strict`: un campo in più è un errore, così l'estensione non
- * può inviare per sbaglio dati che non ci servono (es. dati di altri studenti).
+ * può inviare per sbaglio dati che non ci servono (es. campi del portale che l'app non usa).
  */
 
 /** Id di un elemento Directus: interi o UUID, solo caratteri sicuri. */

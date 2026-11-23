@@ -4,10 +4,10 @@ import { locate, type CourseOutline } from './outline';
 /**
  * Lettura dal CMS del portale (Directus su `cms.epicode.edu.mt`).
  *
- * Regole (docs/portal-recon.md):
+ * Regole (docs/portal-usage.md e docs/technical/import.md):
  * - solo richieste GET, solo su `items/content` e `items/courses`;
- * - sempre l'elenco esplicito dei campi (mai `fields=*.*`, che restituisce
- *   anche dati di altri studenti);
+ * - sempre l'elenco esplicito dei campi (mai `fields=*.*`): si legge solo
+ *   ciò che serve all'import;
  * - nessuna scrittura, in particolare sulle collezioni di progresso.
  */
 

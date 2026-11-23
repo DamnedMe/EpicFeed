@@ -2,7 +2,7 @@
 
 Stato: **approvato da Damian** (15/11/2026). Le scelte del §4 sono registrate nell'[ADR 0007](decisions/0007-generazione-via-mcp-e-login.md).
 
-Base: [architettura](architecture.md), ADR [0001](decisions/0001-architettura-ibrida.md)–[0006](decisions/0006-sottotitoli-come-fonte-secondaria.md), [design system](design-system.md), [ricognizione del portale](portal-recon.md).
+Base: [architettura](architecture.md), ADR [0001](decisions/0001-architettura-ibrida.md)–[0006](decisions/0006-sottotitoli-come-fonte-secondaria.md), [design system](design-system.md), [vincoli d'uso del portale](portal-usage.md).
 
 ## 1. Obiettivo dell'MVP
 

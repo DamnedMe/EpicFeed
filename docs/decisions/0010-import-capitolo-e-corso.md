@@ -8,9 +8,9 @@
 Con l'import di una lezione alla volta ([ADR 0009](0009-import-lezione-intera-e-sottotitoli.md)) un corso di 30–40 lezioni chiede decine di clic. Damian vuole poter importare anche un capitolo o l'intero corso, a patto che la sessione del portale regga e che il traffico non sembri un comportamento anomalo.
 
 Verifiche sul portale reale (21/11/2026, profilo Chrome loggato, nessuna richiesta aggiuntiva al CMS):
-- a ogni pagina aperta il portale fa circa 15 richieste al CMS, tra cui **l'albero intero del corso** per la barra laterale (`GET /items/content?filter[courses][course][_eq]={id}&filter[type]=unit`, con unità, moduli, attività e parti, titoli e visibilità);
-- il token di accesso al CMS che il portale usa ha una **validità di 30 giorni**: un import di mezz'ora non rischia la scadenza della sessione;
-- le letture (GET) non scrivono nulla: i progressi passano da altre collezioni e da `POST /items/access_logs`, che l'estensione non chiama.
+- a ogni pagina aperta il portale fa circa 15 richieste al CMS, tra cui **l'albero intero del corso** per la barra laterale (unità, moduli, attività e parti, titoli e visibilità);
+- la sessione del portale dura ben più di un import di mezz'ora;
+- le letture (GET) non scrivono nulla: i progressi passano da altre richieste, che l'estensione non fa.
 
 ## Decisione
 1. **Tre scelte nel popup**: *Importa la lezione* (come prima), *Importa il capitolo*, *Importa tutto il corso*, ciascuna con il numero di lezioni e la durata stimata.
@@ -25,7 +25,7 @@ Verifiche sul portale reale (21/11/2026, profilo Chrome loggato, nessuna richies
 - *Chiedere al CMS l'elenco delle lezioni con un filtro*: una richiesta in più e un tipo di lettura (filtri, elenchi) che il ponte oggi non ammette di proposito; l'albero che il portale scarica comunque basta.
 - *Leggere più lezioni in parallelo*: più veloce, ma crea raffiche di richieste che il portale stesso non fa mai fuori dall'apertura di una pagina.
 - *Pause fisse*: più semplici, ma gli intervalli regolari sono la firma tipica di un automatismo.
-- *Aprire le lezioni nella scheda una dopo l'altra*: imiterebbe la navigazione, ma ogni apertura registra un accesso (`access_logs`), invia analytics e può segnare contenuti come visti: proprio ciò che va evitato.
+- *Aprire le lezioni nella scheda una dopo l'altra*: imiterebbe la navigazione, ma ogni apertura registra un accesso, invia analytics e può segnare contenuti come visti: proprio ciò che va evitato.
 
 ## Conseguenze
 - Il traffico verso il CMS di un intero corso (circa 120 GET in 20 minuti) è inferiore a quello di una decina di pagine aperte a mano.
