@@ -111,10 +111,6 @@ Altri endpoint visti: `/items/courses`, `/items/courses/{id}`, `/items/folders`,
 - Nel HAR **non ci sono scritture** su progressi o completamenti: solo GET, più `access_logs` e analytics.
 - La nostra app non deve mai scrivere su queste collezioni né su `/v2/content/checkmark-completion`, e non deve riprodurre i video del portale in background.
 
-### Attenzione ai dati di altri studenti
-
-`GET /items/courses/{id}` con `fields=*.*` restituisce anche **le iscrizioni di altri studenti** (id utente, classe, stato) e gli utenti del tenant. Non ci servono: la nostra app chiederà solo i campi necessari (`fields=id,title,...`) e non salverà mai dati di altri utenti.
-
 ### Cosa significa per l'architettura
 
 - Il materiale "studiabile" è già testuale: riassunti per video (IT/EN), riassunti di capitolo in markdown, sottotitoli VTT italiani. **Non serve scaricare né tagliare video.** La base delle schede sono i riassunti; i sottotitoli danno i tempi ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondaria.md)).

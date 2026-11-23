@@ -40,7 +40,7 @@ describe('importLessonRequestSchema', () => {
   });
 
   it('rifiuta campi non previsti (niente dati in più dal portale)', () => {
-    const extra = { ...valid, enrollments: [{ user: 'x' }] };
+    const extra = { ...valid, campoNonPrevisto: [{ user: 'x' }] };
     expect(importLessonRequestSchema.safeParse(extra).success).toBe(false);
     const extraInPart = {
       ...valid,

@@ -22,7 +22,7 @@ describe('isAllowedPath', () => {
   it('rifiuta jolly, altre collezioni, elenchi, filtri e campi non previsti', () => {
     for (const path of [
       '/items/courses/177?fields[]=*.*',
-      '/items/courses/177?fields[]=enrollments',
+      '/items/courses/177?fields[]=campo_non_previsto',
       '/items/content_completions/1?fields[]=id',
       '/items/content?fields[]=id',
       '/items/content/1?fields[]=id&filter[id][_eq]=1',

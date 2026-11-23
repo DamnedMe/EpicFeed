@@ -110,7 +110,7 @@ describe('POST /api/import', () => {
 
   it('rifiuta JSON non valido e campi non previsti', async () => {
     expect(await errorCode(await handleImport(request('{'), deps()))).toBe('INVALID_REQUEST');
-    const extra = await handleImport(request({ ...body, enrollments: [] }), deps());
+    const extra = await handleImport(request({ ...body, campoNonPrevisto: [] }), deps());
     expect(extra.status).toBe(400);
   });
 

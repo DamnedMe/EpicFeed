@@ -83,3 +83,7 @@ Requisiti e comandi in [docs/technical/setup.md](docs/technical/setup.md).
 | [Ricognizione del portale](docs/portal-recon.md) | Come è fatto il portale e vincoli d'uso |
 
 <sub>Lo stato in cima si aggiorna da [docs/status.json](docs/status.json) con `pnpm docs:status` (vedi [docs/README.md](docs/README.md#stato-dello-sviluppo)).</sub>
+
+## 📄 Licenza
+
+[MIT](LICENSE). Il materiale del corso Epicode non fa parte della repo e resta di Epicode.

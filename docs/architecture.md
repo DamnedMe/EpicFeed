@@ -35,7 +35,7 @@ Vincoli che l'architettura rispetta sempre (vedi [portal-recon.md](portal-recon.
 - traffico verso Epicode solo dal browser dello studente e solo su sua azione, mai dal cloud;
 - i video non vengono scaricati né ritagliati;
 - non si scrive mai sulle collezioni di progresso (`video_tracking`, `content_completions`, `/v2/content/checkmark-completion`);
-- l'estensione chiede a Directus solo i campi necessari (mai `fields=*.*`, che espone dati di altri studenti).
+- l'estensione chiede a Directus solo i campi necessari (mai `fields=*.*`).
 
 ## 2. Componenti
 

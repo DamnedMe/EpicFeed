@@ -1,6 +1,8 @@
 .env*
 !.env.example
 *.har
+# Note riservate (es. dettagli sul portale da non pubblicare)
+docs/private/
 node_modules/
 .next/
 dist/

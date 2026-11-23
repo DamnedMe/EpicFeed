@@ -2,7 +2,7 @@
   "name": "study-feed",
   "private": true,
   "description": "Study Feed: lezioni Epicode trasformate in un feed di schede, quiz e ripasso.",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "type": "module",
   "packageManager": "pnpm@10.28.0",
   "engines": {
