@@ -1,6 +1,6 @@
 # Web app (`apps/web`)
 
-Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailwind 4 con i token di `packages/ui`. Stato: milestone **M1** (accesso, Le mie lezioni, collegamento dell'estensione, API di import).
+Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailwind 4 con i token di `packages/ui`. Stato: milestone **M3** in corso (accesso, Le mie lezioni, collegamento dell'estensione e di Claude Desktop, API di import e di generazione, API del feed di studio).
 
 ## Pagine e API
 | Percorso | Cosa fa | Accesso |
@@ -16,6 +16,8 @@ Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailw
 | `POST /api/generation/lessons/{id}/feed` | Salva il feed generato | token "genera" |
 | `POST /api/generation/token` | Crea un token "genera" (90 giorni) | sessione, stessa origine |
 | `DELETE /api/generation/token/{id}` | Revoca un token "genera" | sessione, stessa origine |
+| `GET /api/feed/subjects` | Materie con lezioni importate e quante hanno un feed ([feed di studio](#feed-di-studio-m3)) | sessione |
+| `GET /api/feed/subjects/{id}` | Feed di tutta la materia, con ETag (`304` se invariato) | sessione |
 | `POST /api/import` | Import di una lezione ([import.md](import.md#api-post-apiimport)) | token di import |
 | `POST /api/extension/token` | Crea un token di import | sessione, stessa origine |
 | `DELETE /api/extension/token/{id}` | Revoca un token | sessione, stessa origine |
@@ -34,7 +36,9 @@ apps/web/src/
    ├─ auth.ts           utente corrente, allowlist delle email, password impostata
    ├─ container.ts      composizione: connessione Postgres, repository, casi d'uso
    ├─ http.ts           risposte di errore uniformi, controllo dell'origine, bearer
-   └─ import-handler.ts POST /api/import, testabile senza Next.js
+   ├─ import-handler.ts POST /api/import, testabile senza Next.js
+   ├─ feed-handler.ts   GET /api/feed/subjects[/{id}], testabile senza Next.js
+   └─ feed-deps.ts      collega gli handler del feed ai servizi e al riallineamento con `after`
 ```
 Le route chiamano `getServices()` di `container.ts`, che crea una sola volta la connessione (`postgres`, `prepare: false` per il pooler di Supabase, TLS obbligatorio tranne che su `localhost`) e collega gli adapter di `packages/adapters` ai casi d'uso del core.
 
@@ -55,6 +59,15 @@ Le letture del catalogo passano da `withUserRls`: la query gira con il ruolo `au
 - Le API che usano la sessione accettano solo richieste della stessa origine (`isSameOrigin`), contro il CSRF.
 - Nessuna chiave privilegiata nel client: il browser riceve solo URL e chiave pubblicabile di Supabase.
 - Errori verso il client con codici stabili (`packages/contracts/src/errors.ts`) e messaggi in italiano, senza dettagli interni.
+
+## Feed di studio (M3)
+Decisioni in [ADR 0015](../decisions/0015-feed-di-studio-m3.md).
+
+- `GET /api/feed/subjects` → `{ subjects: [{ subjectId, title, editionLabel, lessons, lessonsWithFeed }] }` (`ListStudySubjects`).
+- `GET /api/feed/subjects/{id}` → la materia intera (`subjectFeedResponseSchema` in `packages/contracts/src/feed.ts`): capitoli in ordine, lezioni con link alla pagina del portale, parti con il loro link (per *Guarda sul portale*) e feed salvato (`null` se la lezione non è ancora generata). Gli id del portale restano sul server: l'app riceve solo i link, costruiti e validati da `portalContentUrl` del core.
+- **Cache**: `Cache-Control: private, no-cache` ed `ETag` = impronta di feed e versioni di allineamento (`ReadSubjectFeed`); con `If-None-Match` uguale la risposta è `304` senza corpo. Il DSA intero pesa circa 700 KB (150 KB compressi).
+- **Permessi**: sessione verificata con Supabase (`getCurrentUser`, password già impostata); letture con `withUserRls` (`DrizzleStudyFeedRepository`): materie, lezioni, parti e feed visibili solo se importati. Per ogni lezione vale il feed più recente tra quelli visibili.
+- **Riallineamento**: se la materia contiene feed allineati con regole vecchie, la risposta parte subito e `after()` di Next.js esegue `RealignLessonFeeds` (una lezione alla volta, fonti lette con i permessi dello studente, impronta delle fonti ricontrollata). La scrittura usa la connessione del server ed è condizionata alla versione letta, così due richieste contemporanee non scrivono due volte. Alla visita successiva l'ETag è cambiato e l'app scarica i minuti nuovi.
 
 ## Variabili d'ambiente
 Esempio commentato in `apps/web/.env.example`. In locale vanno in `apps/web/.env.local` (ignorato da git), su Vercel in *Settings → Environment Variables*.

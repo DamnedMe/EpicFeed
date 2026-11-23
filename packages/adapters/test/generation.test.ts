@@ -175,7 +175,7 @@ describe('DrizzleGenerationRepository con i casi d’uso della generazione', () 
       feed: draft(video?.lessonPartId ?? '', reading?.lessonPartId ?? ''),
     };
     const first = await save.execute(anna as UserId, input);
-    expect(first).toMatchObject({ created: true, cards: 3, alignedCards: 2 });
+    expect(first).toMatchObject({ created: true, cards: 3, alignedCards: 3 });
     expect(await statuses()).toEqual(['ready', 'ready']);
 
     const second = await save.execute(anna as UserId, input);
@@ -190,7 +190,8 @@ describe('DrizzleGenerationRepository con i casi d’uso della generazione', () 
     // Le righe sull'AVL iniziano a 40 s: il tratto le comprende.
     expect(stored[0]?.feed.cards[0]?.video?.startMs).toBeGreaterThanOrEqual(10_000);
     expect(stored[0]?.feed.cards[0]?.video?.startMs).toBeLessThanOrEqual(40_000);
-    expect(stored[0]?.feed.cards[2]?.video).toBeNull();
+    // La scheda della lettura trova il minuto nel video della lezione (ADR 0015).
+    expect(stored[0]?.feed.cards[2]?.video).not.toBeNull();
 
     const reread = await new ReadLessonForGeneration(repository).execute(anna as UserId, lessonId);
     expect(reread.glossary.map((entry) => entry.term)).toEqual(['Balance factor']);

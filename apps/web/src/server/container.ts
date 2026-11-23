@@ -2,6 +2,7 @@ import 'server-only';
 import {
   DrizzleCatalogRepository,
   DrizzleGenerationRepository,
+  DrizzleStudyFeedRepository,
   GenerateTokenService,
   GenerationRateLimiter,
   ImportRateLimiter,
@@ -14,8 +15,11 @@ import {
   ImportLessonSlides,
   ListLessonsToGenerate,
   ListOwnedLessons,
+  ListStudySubjects,
   PossessionProofVerifier,
   ReadLessonForGeneration,
+  ReadSubjectFeed,
+  RealignLessonFeeds,
   SaveLessonFeed,
   systemClock,
 } from '@study-feed/core';
@@ -40,6 +44,9 @@ export interface Services {
   readonly saveLessonFeed: SaveLessonFeed;
   readonly listOwnedLessons: ListOwnedLessons;
   readonly importLessonSlides: ImportLessonSlides;
+  readonly listStudySubjects: ListStudySubjects;
+  readonly readSubjectFeed: ReadSubjectFeed;
+  readonly realignLessonFeeds: RealignLessonFeeds;
 }
 
 let services: Services | undefined;
@@ -67,6 +74,7 @@ export function getServices(): Services {
   const db = drizzle(client, { schema }) as unknown as Database;
   const generation = new DrizzleGenerationRepository(db);
   const catalog = new DrizzleCatalogRepository(db);
+  const studyFeed = new DrizzleStudyFeedRepository(db);
   const verifier = new PossessionProofVerifier(systemClock);
   services = {
     importLesson: new ImportLesson({ catalog, verifier, clock: systemClock }),
@@ -85,6 +93,9 @@ export function getServices(): Services {
       verifier,
       clock: systemClock,
     }),
+    listStudySubjects: new ListStudySubjects(studyFeed),
+    readSubjectFeed: new ReadSubjectFeed(studyFeed),
+    realignLessonFeeds: new RealignLessonFeeds(generation, studyFeed),
   };
   return services;
 }

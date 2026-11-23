@@ -8,3 +8,4 @@ export * from './import-lesson.js';
 export * from './ports.js';
 export * from './possession-proof-verifier.js';
 export * from './slides.js';
+export * from './study-feed.js';

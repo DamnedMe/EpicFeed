@@ -8,7 +8,12 @@ import type {
   LessonPartId,
   UserId,
 } from '../domain/index.js';
-import { DomainError, FeedValidationError, computeLessonSourcesHash } from '../domain/index.js';
+import {
+  ALIGNMENT_VERSION,
+  DomainError,
+  FeedValidationError,
+  computeLessonSourcesHash,
+} from '../domain/index.js';
 import type {
   GenerationRepository,
   LessonSources,
@@ -242,17 +247,19 @@ describe('SaveLessonFeed', () => {
     feed,
   });
 
-  it('allinea le schede delle parti video, salva e passa le versioni a ready', async () => {
+  it('allinea le schede ai video della lezione, salva e passa le versioni a ready', async () => {
     const repo = new FakeRepository();
     const result = await new SaveLessonFeed({ repository: repo, clock }).execute(
       user,
       await input(),
     );
-    expect(result).toEqual({ feedId: 'feed-1', created: true, cards: 3, alignedCards: 2 });
+    expect(result).toEqual({ feedId: 'feed-1', created: true, cards: 3, alignedCards: 3 });
     const saved = repo.saved[0];
     expect(saved?.document.generatedAt).toBe('2026-11-21T19:00:00.000Z');
+    expect(saved?.document.alignmentVersion).toBe(ALIGNMENT_VERSION);
     expect(saved?.document.cards[0]?.video?.language).toBe('en-x-autogen');
-    expect(saved?.document.cards[1]?.video).toBeNull();
+    // La scheda della lettura trova il minuto nel video della stessa lezione (ADR 0015).
+    expect(saved?.document.cards[1]?.video?.partId).toBe(videoPart);
     expect(saved?.sourceVersionIds).toEqual([v1, v2]);
     expect(saved?.glossary).toHaveLength(1);
     expect(saved?.readyFrom).toEqual(['generating']);

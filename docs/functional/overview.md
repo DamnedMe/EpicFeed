@@ -33,9 +33,21 @@ Dal PC, in Claude Desktop, si chiede per esempio "genera le lezioni nuove". Clau
 Ogni corso ha una sezione **Esame** con esercizi aperti **in inglese**, come all'esame: quelli ufficiali del materiale *Exam Prep* di Epicode (14 per il corso DSA) e alcune varianti generate da Claude sullo stesso argomento. Si scelgono gli esercizi, si avvia eventualmente un **timer** e si scrive la risposta: testo per le domande di teoria, codice Python per gli esercizi di programmazione, con il pulsante **Esegui i test** che prova il codice sugli esempi direttamente nel browser, anche offline. I **suggerimenti** si possono attivare o disattivare e leggere in italiano o in inglese, a scelta. Alla fine si vedono la soluzione modello e una griglia di correzione: ci si può valutare da soli oppure premere **Fai correggere a Claude** e, dal PC, chiedere a Claude Desktop "correggi le mie risposte"; il punteggio e il commento tornano nell'app. Gli argomenti andati male entrano nel ripasso. Per l'esame finale, che nel corso DSA è un colloquio online di 20 minuti, c'è la **simulazione del colloquio**: domande in inglese una alla volta per 20 minuti, risposte scritte, correzione a fine sessione. E come le autovalutazioni ufficiali, ogni modulo ha un **quiz da 50 domande** a scelta multipla. Anche il feed di ogni lezione propone una o due domande aperte stile esame ([ADR 0014](../decisions/0014-preparazione-esame.md)).
 
 ## Feed
-Nella barra in basso: Feed, Libri, Ripasso, Io.
+Nella barra in basso: Feed, Ripasso, Libri, Io (Ripasso e Libri arrivano con M4 e M7). Decisioni e motivi nell'[ADR 0015](../decisions/0015-feed-di-studio-m3.md); il feed arriva con M3.
 
-Clip verticali di un concetto ciascuna, ordinate per capitolo o in modalità "Per te". Su ogni clip ci sono quattro azioni: **Salva**, **Chiedi** (domanda all'assistente), **Quiz** rapido e **Fonte** ("Guarda sul portale": apre la lezione al minuto della clip). Le clip sono schede testuali animate, perché i video Epicode non si possono riprodurre fuori dal portale. Una barra in alto mostra l'avanzamento nel capitolo.
+Il feed segue la materia **in ordine**, capitolo dopo capitolo, e riparte dall'ultima scheda vista; *Capitolo* permette di saltare a un capitolo o a una lezione. Ogni scheda è una piccola **storia a battute**: una frase grande per schermata, le frasi già lette restano sopra in grigio, una barra in alto mostra a che punto sei della scheda. I passi arrivano uno alla volta, i confronti diventano un duello *A VS B* riga per riga, il codice si illumina un blocco alla volta con la sua spiegazione.
+
+Per tenere viva l'attenzione:
+- nella frase chiave una **parola è coperta**: prova a ricordarla, poi tocca per scoprirla;
+- ogni 3–4 schede arriva una **domanda** della lezione: vero o falso con uno swipe, scelta multipla con un tocco, con la spiegazione subito;
+- **punti** e **serie** di risposte giuste, **sessioni da 5 minuti** con un riepilogo finale;
+- **Ascolta** legge la battuta ad alta voce, in italiano o in inglese; l'avanzamento può essere automatico, alla velocità di lettura.
+
+Niente pulsanti sulla scheda, solo **gesti** (spiegati al primo avvio e rivedibili da *Io*): tocco a destra o a sinistra per la battuta dopo o prima, scorrimento in su per la scheda dopo, **doppio tocco** per salvare, **tieni premuto** per le azioni (Salva, Ascolta, lingua, Fonte e *Guarda sul portale*, Chiedi all'assistente da M6). In alto a destra resta il pulsante **IT/EN**.
+
+*Guarda sul portale* apre sul portale Epicode la pagina del video da cui viene la scheda e indica il minuto (es. *4:12*), perché i video Epicode non si possono riprodurre fuori dal portale. Il minuto c'è anche per le schede nate dalle slide, quando il video della lezione ne parla in modo riconoscibile; se non è sicuro, la scheda non indica un minuto sbagliato.
+
+Tutta la materia si scarica sul telefono al primo accesso e si studia anche senza connessione; l'app si aggiorna da sola quando una lezione cambia.
 
 ### Da dove viene il testo delle schede
 Il testo nasce dai riassunti scritti di ogni parte video e del capitolo. I sottotitoli del portale, spesso generati in automatico e imprecisi, servono soprattutto a sapere a che minuto aprire la lezione con "Guarda sul portale". Quando una scheda riporta un dettaglio preso dai sottotitoli, Claude lo ha prima corretto con i riassunti e con un glossario dei termini tecnici del corso, e la scheda lo indica con un piccolo segno.

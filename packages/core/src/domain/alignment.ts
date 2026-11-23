@@ -1,4 +1,5 @@
 import type { Bilingual, FeedCard, StudyLanguage } from './feed.js';
+import type { LessonPartId } from './ids.js';
 import type { SubtitleCue, SubtitleTrack } from './subtitles.js';
 
 /**
@@ -22,7 +23,23 @@ export interface VideoAlignment {
   readonly confidence: number;
   /** Lingua della traccia usata. */
   readonly language: string;
+  /**
+   * Parte video del tratto. Da M3 c'è sempre; nei feed allineati prima
+   * (versione 1) manca e vale la parte di provenienza della scheda.
+   */
+  readonly partId?: LessonPartId;
 }
+
+/**
+ * Versione delle regole di allineamento. Sale quando cambiano le regole o i
+ * parametri: i feed salvati con una versione più vecchia si riallineano
+ * (`RealignLessonFeeds`), senza rigenerare nulla in Claude Desktop.
+ *
+ * - 1 (M2): solo le schede tratte da una parte video, sui sottotitoli di quella parte.
+ * - 2 (M3, ADR 0015): anche le schede tratte da slide e letture, cercando nei
+ *   video della stessa lezione.
+ */
+export const ALIGNMENT_VERSION = 2;
 
 /** Parametri dell'allineamento, con valori predefiniti tarati sul corso DSA. */
 export interface AlignmentOptions {
@@ -282,4 +299,43 @@ export function alignCard(
 export function studyLanguageOf(language: string): StudyLanguage | null {
   const primary = language.toLowerCase().split('-')[0];
   return primary === 'it' || primary === 'en' ? primary : null;
+}
+
+/** Parte video di una lezione con le sue tracce di sottotitoli. */
+export interface VideoPartTracks {
+  readonly partId: LessonPartId;
+  readonly tracks: readonly SubtitleTrack[];
+}
+
+/**
+ * Allinea una scheda ai video della sua lezione (ADR 0015).
+ *
+ * - Scheda tratta da una parte video: si cerca solo in quella parte, come in M2;
+ *   se lì il risultato è incerto, la scheda resta senza minuto (il riassunto di
+ *   un video parla di quel video, cercarla altrove darebbe falsi positivi).
+ * - Scheda tratta da slide o lettura: si cerca in ogni video della lezione e si
+ *   tiene il tratto più sicuro; a parità vince il video che viene prima. Le
+ *   soglie sono le stesse, quindi un tratto incerto non viene mai proposto.
+ *
+ * @param card - Scheda del feed.
+ * @param videoParts - Parti video della lezione, in ordine, con le loro tracce.
+ * @param options - Parametri; di default {@link DEFAULT_ALIGNMENT_OPTIONS}.
+ * @returns Il tratto con la parte video, oppure `null`.
+ */
+export function alignCardToLesson(
+  card: FeedCard,
+  videoParts: readonly VideoPartTracks[],
+  options: AlignmentOptions = DEFAULT_ALIGNMENT_OPTIONS,
+): VideoAlignment | null {
+  const own = videoParts.find((part) => part.partId === card.sourcePartId);
+  const candidates = own ? [own] : videoParts;
+  let best: VideoAlignment | null = null;
+  for (const part of candidates) {
+    if (part.tracks.length === 0) continue;
+    const result = alignCard(card, part.tracks, options);
+    if (result !== null && (best === null || result.confidence > best.confidence)) {
+      best = { ...result, partId: part.partId };
+    }
+  }
+  return best;
 }
