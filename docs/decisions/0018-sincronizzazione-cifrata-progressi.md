@@ -2,11 +2,11 @@
 
 - Stato: accettata
 - Data: 23/11/2026
-- Decisa da: Damian (scelta 6 dell'[ADR 0017](0017-ripasso-ed-esame-m4.md): sincronizzazione già in M4, chiave ricavata dalla password); Claude per i dettagli tecnici
+- Completa: [ADR 0017](0017-ripasso-ed-esame-m4.md) (punto 6)
 - Modifica: [ADR 0003](0003-risultati-sul-dispositivo.md) (i progressi di studio escono dal dispositivo, ma solo cifrati)
 
 ## Contesto
-Da M4 ogni risposta del feed e del ripasso aggiorna il ripasso del concetto, salvato in IndexedDB. Damian studia sul telefono e sul PC: senza sincronizzazione i due ripassi divergono. L'ADR 0003 voleva i risultati solo sul dispositivo, per privacy; Damian ha scelto di sincronizzarli subito, a patto che il server non li possa leggere (scartata la cifratura del solo database, perché chi lo amministra potrebbe leggerli).
+Da M4 ogni risposta del feed e del ripasso aggiorna il ripasso del concetto, salvato in IndexedDB. Chi studia sul telefono e sul PC senza sincronizzazione ha due ripassi che divergono. L'ADR 0003 voleva i risultati solo sul dispositivo, per privacy: la sincronizzazione si fa solo se il server non li può leggere (scartata la cifratura del solo database, perché chi lo amministra potrebbe leggerli).
 
 ## Decisione
 
@@ -44,7 +44,7 @@ I progressi del dispositivo hanno un proprietario. Se entra un altro account, i 
 - **Frase di recupero** separata dalla password: più sicura contro chi conosce la password, ma un segreto in più da conservare. Resta l'opzione per *Accedi con Google* (M8), dove non c'è password.
 
 ## Conseguenze
-- Il server conserva i progressi senza poterli leggere; chi conosce la password di Damian sì, come per l'account stesso.
+- Il server conserva i progressi senza poterli leggere; chi conosce la password dello studente sì, come per l'account stesso.
 - Con la password dimenticata, la copia sul server non si recupera: si rifà dal primo dispositivo che entra con la password nuova, con i progressi che ha.
 - Se la sincronizzazione non riesce (offline, errore) lo studio continua: i progressi restano sul dispositivo e partono alla volta successiva.
 - La chiave resta sul dispositivo anche dopo l'uscita dall'account, come i progressi in chiaro: entrambi spariscono se entra un altro account o si cancellano i dati del sito.

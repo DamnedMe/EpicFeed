@@ -32,7 +32,7 @@ function sectionFromHash(): Section {
 
 /**
  * Tab *Ripasso* (M4, ADR 0017): in alto le due sezioni Ripasso ed Esame
- * (scelta 1 di Damian: l'Esame sta qui dentro, la barra in basso non cambia).
+ * (la barra in basso non cambia).
  * I progressi si sincronizzano cifrati tra i dispositivi (ADR 0018).
  *
  * @param props.account - Utente della sessione.

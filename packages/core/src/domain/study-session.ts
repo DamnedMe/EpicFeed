@@ -33,7 +33,7 @@ export type SequenceItem =
 /** Ogni quante schede arriva un gruppo di domande della stessa lezione. */
 export const QUIZ_EVERY = 3;
 
-/** Quante domande, al massimo, in ogni gruppo (scelta di Damian, 23/11/2026). */
+/** Quante domande, al massimo, in ogni gruppo. */
 export const QUIZ_BATCH = 3;
 
 /**
