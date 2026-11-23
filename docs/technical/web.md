@@ -59,7 +59,7 @@ Ogni pagina protetta richiama `requireUser()` (sessione verificata con Supabase,
 Le letture del catalogo passano da `withUserRls`: la query gira con il ruolo `authenticated` e l'id dell'utente nei claim, quindi la RLS del database decide cosa si vede anche se il server usa una connessione privilegiata.
 
 ## Sicurezza
-- **CSP per richiesta** (`proxy.ts`): script e stili solo con nonce, `frame-ancestors 'none'`, `connect-src` solo verso l'app e Supabase, `upgrade-insecure-requests` in HTTPS.
+- **CSP per richiesta** (`proxy.ts`): script e stili solo con nonce, `frame-ancestors 'none'`, `connect-src` solo verso l'app e Supabase, `worker-src` e `manifest-src` solo dall'app (service worker e manifest della PWA), `upgrade-insecure-requests` in HTTPS.
 - Header fissi (`next.config.ts`): HSTS, `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY`, `Permissions-Policy`.
 - Le API che usano la sessione accettano solo richieste della stessa origine (`isSameOrigin`), contro il CSRF.
 - Nessuna chiave privilegiata nel client: il browser riceve solo URL e chiave pubblicabile di Supabase.
@@ -93,6 +93,16 @@ Le regole pure stanno nel core ([core.md](core.md#feed-di-studio)): `storyOf` (b
 
 **Font**: Space Grotesk, Inter e JetBrains Mono con `next/font/google`, scaricati alla build e serviti dall'app (`font-src 'self'`); la classe `ef-fonts` su `<html>` li collega ai token `--sf-font-*`.
 
+### PWA e uso senza rete
+- **Manifest** (`src/app/manifest.ts`, servito come `/manifest.webmanifest`): nome *EpicFeed*, apertura su `/`, schermo intero verticale, colori ossidiana; icone in `public/icon.svg` e `public/icons/` (192, 512, 512 *maskable*, 180 per iOS). Il layout aggiunge l'icona per la schermata Home di iOS e `appleWebApp`.
+- **Service worker** (`public/sw.js`, scritto a mano, nessuna dipendenza), registrato da `ServiceWorkerRegistration` solo nella build di produzione:
+  - `/_next/static/` (JS, CSS e font con l'impronta nel nome): prima la cache, poi la rete; al massimo 120 file, i più vecchi si scartano;
+  - navigazione su `/`: prima la rete; la copia in cache serve solo se la rete manca. Si conserva solo una risposta 200 della pagina stessa: un rimando ad `/accedi`, un 401 o un 403 cancellano la copia, così dopo l'uscita il feed non si riapre offline;
+  - API, altre pagine e altri siti: non li tocca. La materia non passa dal service worker: la tiene `feed-client.ts` in `localStorage` e la rivaluta con l'ETag.
+  - Le cache hanno la versione nel nome (`epicfeed-shell-v1`, `epicfeed-static-v1`): cambiare `VERSION` le svuota all'attivazione; `skipWaiting` e `clients.claim` fanno valere subito la versione nuova.
+- `next.config.ts` serve `/sw.js` con `Cache-Control: no-cache`, perché il browser controlli sempre se è cambiato; `proxy.ts` esclude `sw.js`, il manifest e le icone (niente sessione né CSP da rinnovare per file statici).
+- Senza rete, quindi, l'app installata si apre sul feed con l'ultima materia scaricata e l'avviso *offline*; punti, salvati e posizione restano sul dispositivo come sempre.
+
 ## Variabili d'ambiente
 Esempio commentato in `apps/web/.env.example`. In locale vanno in `apps/web/.env.local` (ignorato da git), su Vercel in *Settings → Environment Variables*.
 
@@ -122,4 +132,6 @@ pnpm --filter @study-feed/web dev              # http://localhost:3000
 ```
 
 ## Test
-`src/server/*.test.ts` (Vitest): `handleImport` con servizi finti (ogni caso di errore), controllo dell'origine e lettura del bearer. I flussi con il database sono coperti dai test di `packages/adapters` e dalla prova end-to-end descritta in [import.md](import.md#come-è-testato).
+`src/server/*.test.ts` (Vitest): `handleImport` con servizi finti (ogni caso di errore), controllo dell'origine e lettura del bearer. I flussi con il database sono coperti dai test di `packages/adapters` e dalla prova end-to-end descritta in [import.md](import.md#come-è-testato). `src/features/feed/*.test.ts`: modello del feed, salvataggi sul dispositivo, gesti e caricamento della materia.
+
+**Feed sul telefono (Playwright, `apps/web/e2e`)**: `pnpm --filter @study-feed/web test:e2e`, dopo la build. Un banco di prova (`e2e/harness/build.mjs`) impacchetta con esbuild il vero `FeedApp` con una materia di prova (`fixture.ts`, validata dallo stesso schema dell'API) e un `fetch` finto, al posto di `next/link` e `next/navigation` mette due sostituti minimi, e prende i CSS e i font dalla build di Next (`.next/static`). I test servono i file con `page.route` (nessun server, nessun database) e con una CSP come quella di produzione per gli stili, quindi un attributo `style` nell'HTML o un errore in console fanno fallire il test. Chromium con le viste di **iPhone 13** e **Pixel 7** (tocco attivo): spiegazione dei gesti al primo avvio, battute avanti e indietro, parola da indovinare, doppio tocco, tieni premuto con il minuto sul portale, scorrimento con domanda in inglese e codice, vero/falso con lo swipe, foglio dei capitoli, tastiera, ripresa dall'ultima scheda.

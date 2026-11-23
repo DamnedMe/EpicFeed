@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import { Inter, JetBrains_Mono, Space_Grotesk } from 'next/font/google';
+import { ServiceWorkerRegistration } from '@/components/service-worker';
 import { readAppearance } from '@/server/appearance';
 import './globals.css';
 import '@/features/feed/feed.css';
@@ -26,6 +27,9 @@ export const metadata: Metadata = {
   title: { default: 'EpicFeed', template: '%s · EpicFeed' },
   description: 'Le lezioni Epicode trasformate in schede, quiz e ripasso.',
   robots: { index: false, follow: false },
+  icons: { icon: '/icon.svg', apple: '/icons/apple-touch-icon.png' },
+  // Su iPhone, aperta dalla schermata Home, l'app occupa tutto lo schermo.
+  appleWebApp: { capable: true, title: 'EpicFeed', statusBarStyle: 'black-translucent' },
 };
 
 // Tutte le pagine sono dinamiche: la CSP usa un nonce diverso a ogni richiesta
@@ -52,7 +56,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       {...appearance}
       className={`ef-fonts ${display.variable} ${body.variable} ${mono.variable}`}
     >
-      <body className="min-h-dvh bg-background text-text">{children}</body>
+      <body className="min-h-dvh bg-background text-text">
+        {children}
+        <ServiceWorkerRegistration />
+      </body>
     </html>
   );
 }

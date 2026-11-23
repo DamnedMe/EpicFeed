@@ -9,3 +9,8 @@ coverage/
 *.tsbuildinfo
 .wxt/
 .output/
+
+# Test Playwright del feed
+apps/web/e2e/.harness/
+test-results/
+playwright-report/

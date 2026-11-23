@@ -1,0 +1,213 @@
+import { readFileSync, existsSync } from 'node:fs';
+import { extname, join, normalize } from 'node:path';
+import { expect, test, type Page } from '@playwright/test';
+
+/**
+ * Feed sul telefono: gesti, battute, parola da indovinare, domande, azioni,
+ * capitoli e preferenze. Il banco di prova è servito con la stessa CSP di
+ * produzione per gli stili (niente `style` in linea), quindi un attributo
+ * `style` reso nell'HTML farebbe fallire i test.
+ */
+const ROOT = join(import.meta.dirname, '.harness');
+const ORIGIN = 'http://epicfeed.test';
+const TYPES: Record<string, string> = {
+  '.html': 'text/html',
+  '.js': 'text/javascript',
+  '.css': 'text/css',
+  '.woff2': 'font/woff2',
+};
+const CSP =
+  "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self'";
+
+let problems: string[];
+
+test.beforeEach(async ({ page }) => {
+  problems = [];
+  page.on('pageerror', (error) => problems.push(error.message));
+  page.on('console', (message) => {
+    if (message.type() === 'error') problems.push(message.text());
+  });
+  await page.route(`${ORIGIN}/**`, async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    const file = normalize(join(ROOT, path === '/' ? 'index.html' : path));
+    if (!file.startsWith(ROOT) || !existsSync(file)) return route.fulfill({ status: 404 });
+    return route.fulfill({
+      status: 200,
+      body: readFileSync(file),
+      contentType: TYPES[extname(file)] ?? 'application/octet-stream',
+      headers: { 'Content-Security-Policy': CSP },
+    });
+  });
+});
+
+test.afterEach(() => {
+  expect(problems).toEqual([]);
+});
+
+/** Apre il feed; se `intro` è falso chiude la spiegazione dei gesti. */
+async function open(page: Page, intro = false) {
+  await page.goto(ORIGIN);
+  const button = page.getByRole('button', { name: 'Ho capito, iniziamo' });
+  await expect(button).toBeVisible();
+  if (!intro) await button.click();
+}
+
+const slide = (page: Page) => page.locator('section.ef-slide:not([inert])');
+
+/** Tocco sulla scheda visibile: a destra avanti, a sinistra indietro. */
+async function tap(page: Page, side: 'right' | 'left' | 'center' = 'right') {
+  const box = await slide(page).locator('.ef-stage').boundingBox();
+  if (!box) throw new Error('scheda non visibile');
+  const x = box.x + box.width * (side === 'right' ? 0.85 : side === 'left' ? 0.1 : 0.5);
+  await page.touchscreen.tap(x, box.y + box.height * 0.25);
+  // Il tocco singolo aspetta un eventuale secondo tocco (230 ms).
+  await page.waitForTimeout(300);
+}
+
+const beats = (page: Page) => slide(page).locator('.ef-beats i');
+
+test('al primo avvio spiega i gesti, poi non più', async ({ page }) => {
+  await open(page, true);
+  await expect(page.getByRole('heading', { name: 'Quattro gesti, nessun pulsante' })).toBeVisible();
+  await page.getByRole('button', { name: 'Ho capito, iniziamo' }).click();
+  await page.reload();
+  await expect(
+    slide(page).getByRole('heading', { name: "Che cos'è una linked list" }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Ho capito, iniziamo' })).toHaveCount(0);
+});
+
+test('le battute avanzano e tornano indietro con i tocchi, la parola si indovina', async ({
+  page,
+}) => {
+  await open(page);
+  await expect(beats(page)).toHaveCount(4);
+  await tap(page);
+  await expect(slide(page).locator('.ef-blank')).toHaveAttribute('aria-label', /Parola nascosta/);
+  await tap(page);
+  await expect(slide(page).locator('.ef-blank.open')).toHaveText('head');
+  await expect(page.getByLabel('2 punti')).toBeVisible();
+  await tap(page);
+  await expect(slide(page).locator('.ef-lines li')).toHaveCount(1);
+  await tap(page, 'left');
+  await expect(slide(page).locator('.ef-key')).toBeVisible();
+  await expect(slide(page).locator('.ef-beats i.done')).toHaveCount(1);
+});
+
+test('il doppio tocco salva la scheda e la tiene in Salvati', async ({ page }) => {
+  await open(page);
+  const box = await slide(page).locator('.ef-stage').boundingBox();
+  if (!box) throw new Error('scheda non visibile');
+  await page.touchscreen.tap(box.x + box.width / 2, box.y + 200);
+  await page.waitForTimeout(80);
+  await page.touchscreen.tap(box.x + box.width / 2, box.y + 200);
+  await expect(slide(page).getByText('· salvata')).toBeVisible();
+  const saved = await page.evaluate(
+    () => JSON.parse(localStorage.getItem('ef:saved') ?? '[]') as { key: string }[],
+  );
+  expect(saved.map((card) => card.key)).toEqual(['00000000-0000-4000-8000-000000000020:card:what']);
+  // Nessun avanzamento: il doppio tocco non è un tocco.
+  await expect(slide(page).locator('.ef-beats i.done')).toHaveCount(0);
+});
+
+test('tieni premuto apre le azioni con il minuto sul portale', async ({ page }) => {
+  await open(page);
+  const box = await slide(page).locator('.ef-stage').boundingBox();
+  if (!box) throw new Error('scheda non visibile');
+  await page.mouse.move(box.x + box.width / 2, box.y + 200);
+  await page.mouse.down();
+  await page.waitForTimeout(650);
+  await page.mouse.up();
+  const sheet = page.getByRole('dialog', { name: "Che cos'è una linked list" });
+  await expect(sheet).toBeVisible();
+  const portal = sheet.getByRole('link', { name: /Guarda sul portale/ });
+  await expect(portal).toHaveAttribute(
+    'href',
+    'https://learn.epicode.edu.mt/course/177/curriculum/66756',
+  );
+  await expect(portal).toContainText('cerca il minuto 2:14');
+  await expect(portal).toHaveAttribute('rel', 'noopener noreferrer');
+  await sheet.getByRole('button', { name: 'Leggi in inglese' }).click();
+  await expect(slide(page).getByRole('heading', { name: 'What a linked list is' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Cambia lingua della scheda' })).toHaveText('EN');
+});
+
+test('scorrendo arrivano passi, confronto, codice e una domanda in inglese', async ({ page }) => {
+  await open(page);
+  const feed = page.locator('.ef-feed');
+  const next = async () => {
+    await feed.evaluate((element) => {
+      element.scrollBy(0, element.clientHeight);
+    });
+    await page.waitForTimeout(400);
+  };
+  await next();
+  await expect(slide(page).getByText('passo passo')).toBeVisible();
+  await next();
+  await expect(slide(page).getByText('confronto')).toBeVisible();
+  await next();
+  // Dopo tre schede, una domanda della lezione, in inglese di base.
+  await expect(slide(page).getByText('Quick check')).toBeVisible();
+  await slide(page)
+    .getByRole('button', { name: /The head/ })
+    .click();
+  await expect(slide(page).getByRole('status')).toContainText('Correct!');
+  await expect(page.getByLabel('10 punti')).toBeVisible();
+  await next();
+  await expect(slide(page).getByText('codice')).toBeVisible();
+  await tap(page);
+  await tap(page);
+  await tap(page);
+  await expect(slide(page).locator('.ef-code .ln.on').first()).toBeVisible();
+});
+
+test('vero o falso con lo swipe', async ({ page }) => {
+  await open(page);
+  await page.evaluate(() => {
+    const element = document.querySelector('.ef-feed');
+    if (element) element.scrollTop = element.clientHeight * 6;
+  });
+  await expect(slide(page).getByText('True or false?')).toBeVisible();
+  const card = slide(page).locator('.ef-swcard');
+  const box = await card.boundingBox();
+  if (!box) throw new Error('carta non visibile');
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 - 150, box.y + box.height / 2, { steps: 8 });
+  await page.mouse.up();
+  await expect(slide(page).getByRole('status')).toContainText('Correct! False.');
+});
+
+test('Capitolo salta a una lezione e segnala quelle da generare', async ({ page }) => {
+  await open(page);
+  await page.getByRole('button', { name: 'Scegli capitolo o lezione' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Data Structures and Algorithms' });
+  await expect(sheet.getByRole('button', { name: /Binary trees/ })).toBeDisabled();
+  await expect(sheet.getByRole('button', { name: /Linked Lists/ })).toHaveAttribute(
+    'aria-current',
+    'true',
+  );
+  await page.keyboard.press('Escape');
+  await expect(sheet).toHaveCount(0);
+});
+
+test('da tastiera si studia senza toccare lo schermo', async ({ page }) => {
+  await open(page);
+  await page.keyboard.press('ArrowRight');
+  await expect(slide(page).locator('.ef-key')).toBeVisible();
+  await page.keyboard.press('s');
+  await expect(slide(page).getByText('· salvata')).toBeVisible();
+  await page.keyboard.press('ArrowDown');
+  await expect(slide(page).getByText('passo passo')).toBeVisible();
+  await page.keyboard.press('a');
+  await expect(page.getByRole('dialog', { name: 'Inserire in testa' })).toBeVisible();
+});
+
+test('riparte dall’ultima scheda vista', async ({ page }) => {
+  await open(page);
+  await page.keyboard.press('ArrowDown');
+  await expect(slide(page).getByText('passo passo')).toBeVisible();
+  await page.waitForTimeout(300);
+  await page.reload();
+  await expect(slide(page).getByText('passo passo')).toBeVisible();
+});
