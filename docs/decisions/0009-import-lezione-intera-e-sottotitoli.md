@@ -5,7 +5,7 @@
 - Decisa da: Damian (punto 1, scelta "Lezione intera, sottotitoli tutti"); Claude durante M1 per i punti 2–5, nel perimetro del [piano di sviluppo](../development-plan.md), da confermare in revisione della PR
 
 ## Contesto
-In M1 l'estensione deve importare la lezione aperta nel portale ([ADR 0001](0001-architettura-ibrida.md), [ADR 0007](0007-generazione-via-mcp-e-login.md)). Dalla ricognizione ([portal-recon.md](../portal-recon.md)):
+In M1 l'estensione deve importare la lezione aperta nel portale ([ADR 0001](0001-architettura-ibrida.md), [ADR 0007](0007-generazione-via-mcp-e-login.md)). Dalla ricognizione ([portal-usage.md](../portal-usage.md)):
 - riassunti e riassunto di capitolo arrivano dal CMS Directus con le credenziali della pagina;
 - i sottotitoli non sono nel CMS: li elenca la configurazione del player Vimeo (`window.playerConfig`), che funziona solo dentro i domini Epicode, con URL firmati a scadenza;
 - per leggere i sottotitoli di un video serve quindi aprirne il player nella pagina del portale.

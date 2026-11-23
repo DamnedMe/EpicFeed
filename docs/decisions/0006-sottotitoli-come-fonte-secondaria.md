@@ -5,7 +5,7 @@
 - Decisa da: Damian
 
 ## Contesto
-Le clip sono schede testuali animate, perché il player Vimeo non funziona fuori dal portale ([portal-recon.md](../portal-recon.md) §5). Per ogni parte video abbiamo tre fonti testuali:
+Le clip sono schede testuali animate, perché il player Vimeo non funziona fuori dal portale ([portal-usage.md](../portal-usage.md)). Per ogni parte video abbiamo tre fonti testuali:
 
 | Fonte | Qualità | Cosa offre |
 |---|---|---|
@@ -47,7 +47,7 @@ Damian ha segnalato che i sottotitoli sono spesso sbagliati. Costruire le schede
 ## Alternative scartate
 - **Sottotitoli come fonte principale**: tempi precisi, ma errori frequenti nel testo e quindi nei quiz.
 - **Sottotitoli scartati del tutto**: niente errori, ma "Guarda sul portale" non saprebbe a che minuto aprire la lezione.
-- **Ritrascrivere l'audio** con un modello di riconoscimento vocale: richiederebbe di scaricare l'audio dei video, escluso dai vincoli del progetto ([portal-recon.md](../portal-recon.md)).
+- **Ritrascrivere l'audio** con un modello di riconoscimento vocale: richiederebbe di scaricare l'audio dei video, escluso dai vincoli del progetto ([portal-usage.md](../portal-usage.md)).
 - **Correzioni condivise subito tra utenti**: utili, ma un errore o un abuso finirebbe nel feed di tutti. Serve prima un meccanismo di verifica (punto aperto).
 
 ## Conseguenze

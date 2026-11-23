@@ -29,7 +29,7 @@ L'architettura è **ibrida** ([ADR 0001](decisions/0001-architettura-ibrida.md))
  Server MCP (locale, per Claude Desktop/Code) ── legge catalogo + export dei risultati
 ```
 
-Vincoli che l'architettura rispetta sempre (vedi [portal-recon.md](portal-recon.md)):
+Vincoli che l'architettura rispetta sempre (vedi [portal-usage.md](portal-usage.md)):
 - nessuna chiamata che marca contenuti come visti/completati;
 - nessun login automatico, nessun aggiramento di Turnstile, nessuna credenziale Epicode salvata;
 - traffico verso Epicode solo dal browser dello studente e solo su sua azione, mai dal cloud;
@@ -124,7 +124,7 @@ Gerarchia delle fonti ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondar
 - Ogni passaggio preso dai sottotitoli viene corretto da Claude confrontandolo con i riassunti e con il **glossario dei termini tecnici** della materia (costruito dai riassunti e arricchito dalle correzioni dell'utente). Ciò che non trova riscontro viene scartato.
 - Le **correzioni dell'utente** ("Segnala errore") sono salvate in un'area privata del server (RLS: solo l'autore), si applicano alla clip su tutti i suoi dispositivi e vengono passate alle generazioni successive. Non modificano il catalogo condiviso.
 - Esecuzione: da Claude Desktop tramite il server MCP ([ADR 0007](decisions/0007-generazione-via-mcp-e-login.md)); la versione passa da `da_generare` a `pronta`, idempotente per `contentHash`, con i risultati salvati e rivalidati dall'API.
-- Fonti testuali (dal file HAR, vedi [portal-recon.md](portal-recon.md) §5): per ogni parte video il riassunto markdown (`summary.it/en`), il riassunto di capitolo in markdown e i sottotitoli VTT con timestamp. Gli URL dei VTT sono firmati e scadono, quindi l'estensione li legge al momento dell'import.
+- Fonti testuali (vedi [portal-usage.md](portal-usage.md)): per ogni parte video il riassunto markdown (`summary.it/en`), il riassunto di capitolo in markdown e i sottotitoli VTT con timestamp. Gli URL dei VTT sono firmati e scadono, quindi l'estensione li legge al momento dell'import.
 - Riproduzione: i video Vimeo hanno `embed_permission: whitelist` e **non si possono incorporare** fuori dal dominio Epicode. Le clip sono quindi **schede testuali/animate** (titolo, frase chiave dai riassunti, codice, schema) con il pulsante "Guarda sul portale" che apre la lezione al minuto della clip.
 
 ## 7 bis. Libri personali

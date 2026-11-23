@@ -17,7 +17,7 @@
 | [technical/import.md](technical/import.md) | Import delle lezioni: estensione, corrispondenza portale → catalogo, token, API |
 | [technical/web.md](technical/web.md) | Web app: pagine, accesso, sicurezza, feed di studio, ripasso, variabili d'ambiente, messa online |
 | [technical/design-tokens.md](technical/design-tokens.md) | Token del design system: CSS, Tailwind, temi e accenti, test di contrasto |
-| [portal-recon.md](portal-recon.md) | Ricognizione del portale Epicode e vincoli d'uso |
+| [portal-usage.md](portal-usage.md) | Vincoli d'uso del portale Epicode (la ricognizione tecnica è una nota riservata in `private/`, fuori da git) |
 
 ## Stato dello sviluppo
 La plancia in cima al [README](../README.md) (versioni per tema scuro e chiaro in `apps/web/public/readme/`, servite dall'app pubblica su Vercel perché l'app GitHub per smartphone non mostra le immagini delle repo private) e il riquadro "Ultimo traguardo" sono generati da [status.json](status.json) con uno script senza dipendenze ([scripts/docs-status.mjs](../scripts/docs-status.mjs)).
