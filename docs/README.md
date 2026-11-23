@@ -20,12 +20,12 @@
 | [portal-recon.md](portal-recon.md) | Ricognizione del portale Epicode e vincoli d'uso |
 
 ## Stato dello sviluppo
-La plancia in cima al [README](../README.md) (versioni per tema scuro e chiaro in `assets/`) e il riquadro "Ultimo traguardo" sono generati da [status.json](status.json) con uno script senza dipendenze ([scripts/docs-status.mjs](../scripts/docs-status.mjs)).
+La plancia in cima al [README](../README.md) (versioni per tema scuro e chiaro in `apps/web/public/readme/`, servite dall'app pubblica su Vercel perché l'app GitHub per smartphone non mostra le immagini delle repo private) e il riquadro "Ultimo traguardo" sono generati da [status.json](status.json) con uno script senza dipendenze ([scripts/docs-status.mjs](../scripts/docs-status.mjs)).
 
 Quando una milestone avanza o si chiude:
 1. aggiorna `status.json`: `stato` (`fatta`, `in-corso`, `da-fare`), `data` per le milestone fatte, `avanzamento` (da 0 a 1) e `nota` per quella in corso, `ultimoTraguardo`, `inCorso` e `aggiornato`;
-2. esegui `pnpm docs:status`, che rigenera i due SVG e il blocco del README tra `<!-- stato:inizio -->` e `<!-- stato:fine -->`;
-3. committa i file nello stesso PR della milestone.
+2. esegui `pnpm docs:status`, che rigenera i due SVG e il blocco del README (plancia con `?v=` aggiornato e riquadro) tra `<!-- stato:inizio -->` e `<!-- stato:fine -->`;
+3. committa i file nello stesso PR della milestone: la plancia nuova compare nel README dopo il deploy di produzione su Vercel.
 
 La CI esegue `pnpm docs:status:check` e fallisce se i file generati non corrispondono a `status.json`. La percentuale dell'MVP è la media dell'avanzamento delle milestone da M0 a `mvpFinoA`.
 

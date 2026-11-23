@@ -114,6 +114,7 @@ Decisioni in [ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md); regole pure n
 
 ### PWA e uso senza rete
 - **Manifest** (`src/app/manifest.ts`, servito come `/manifest.webmanifest`): nome *EpicFeed*, apertura su `/`, schermo intero verticale, colori ossidiana; icone in `public/icon.svg` e `public/icons/` (192, 512, 512 *maskable*, 180 per iOS). Il layout aggiunge l'icona per la schermata Home di iOS e `appleWebApp`.
+- **Immagini del README** (`public/readme/`): plancia dello stato e schermate, pubbliche ed escluse dal controllo di accesso in `src/proxy.ts`, così si vedono anche nell'app GitHub per smartphone (vedi [docs/README.md](../README.md#stato-dello-sviluppo)).
 - **Service worker** (`public/sw.js`, scritto a mano, nessuna dipendenza), registrato da `ServiceWorkerRegistration` solo nella build di produzione:
   - `/_next/static/` (JS, CSS e font con l'impronta nel nome): prima la cache, poi la rete; al massimo 120 file, i più vecchi si scartano;
   - navigazione su `/` e `/ripasso`: prima la rete; la copia in cache serve solo se la rete manca. Si conserva solo una risposta 200 della pagina stessa: un rimando ad `/accedi`, un 401 o un 403 cancellano la copia, così dopo l'uscita il feed non si riapre offline;

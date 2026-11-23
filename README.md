@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: light)" srcset="docs/assets/app-chiaro.png">
-    <img src="docs/assets/app-scuro.png" alt="Le schermate di EpicFeed: feed di studio, quiz di fine capitolo e ripasso" width="100%">
+    <source media="(prefers-color-scheme: light)" srcset="https://study-feed-steel.vercel.app/readme/app-chiaro.png">
+    <img src="https://study-feed-steel.vercel.app/readme/app-scuro.png" alt="Le schermate di EpicFeed: feed di studio, quiz di fine capitolo e ripasso" width="100%">
   </picture>
 </p>
 
@@ -19,13 +19,12 @@
   <a href="docs/README.md">📚 Documentazione</a>
 </p>
 
-<picture>
-  <source media="(prefers-color-scheme: light)" srcset="docs/assets/stato-chiaro.svg">
-  <img src="docs/assets/stato-scuro.svg" alt="Stato dello sviluppo di EpicFeed, milestone da M0 a M9" width="100%">
-</picture>
-
 <!-- stato:inizio -->
 <!-- Blocco generato da scripts/docs-status.mjs a partire da docs/status.json: non modificarlo a mano. -->
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="https://study-feed-steel.vercel.app/readme/stato-chiaro.svg?v=2026-11-23">
+  <img src="https://study-feed-steel.vercel.app/readme/stato-scuro.svg?v=2026-11-23" alt="Stato dello sviluppo di EpicFeed: milestone da M0 a M9" width="100%">
+</picture>
 
 > [!TIP]
 > 🏁 Ultimo traguardo: **M3 Feed di studio** unita il 23/11: feed a battute con gesti, domande a gruppi di 3, punti e sessioni da 5 minuti, PWA installabile.
