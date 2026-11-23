@@ -1,24 +1,86 @@
-# study-feed
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/app-chiaro.png">
+    <img src="docs/assets/app-scuro.png" alt="Le schermate di EpicFeed: feed di studio, quiz di fine capitolo e ripasso" width="100%">
+  </picture>
+</p>
 
-Web app personale per studiare il materiale del corso Epicode in modo più leggero.
+<h1 align="center">EpicFeed</h1>
 
-**Idea**
-- Prende lezioni e riassunti dal portale Epicode (solo il materiale a cui lo studente ha già accesso, per uso personale).
-- Li trasforma in un feed verticale stile TikTok di clip brevi, un concetto per clip.
-- Quiz a fine capitolo e ripasso mirato dei soli concetti sbagliati.
-- Un server MCP che espone materiale e risultati dei quiz a un assistente di studio Claude.
+<p align="center">
+  <b>Studia il corso Epicode come scorri un feed.</b><br>
+  Una frase per schermata, quiz con lo swipe, ripasso di ciò che hai sbagliato. In italiano e in inglese.
+</p>
 
-**Paletti**
-- Nessuna marcatura automatica di video o contenuti come "visti/completati".
-- Traffico minimo, come un utente normale: niente crawling massivo, niente aggiramento di protezioni (es. Cloudflare Turnstile).
-- Nessuna credenziale salvata in chiaro o committata.
+<p align="center">
+  <a href="https://study-feed-steel.vercel.app">🚀 Apri l'app</a> ·
+  <a href="docs/development-plan.md">🗺️ Piano di sviluppo</a> ·
+  <a href="docs/decisions/">🧭 Decisioni</a> ·
+  <a href="docs/README.md">📚 Documentazione</a>
+</p>
 
-**Stato**: milestone M0 Fondamenta completata (monorepo, dominio, design system, schema e RLS, CI). Prossima: M1 Import e catalogo ([piano di sviluppo](docs/development-plan.md)).
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="docs/assets/stato-chiaro.svg">
+  <img src="docs/assets/stato-scuro.svg" alt="Stato dello sviluppo di EpicFeed, milestone da M0 a M9" width="100%">
+</picture>
 
-**Sviluppo**
+<!-- stato:inizio -->
+<!-- Blocco generato da scripts/docs-status.mjs a partire da docs/status.json: non modificarlo a mano. -->
+
+> [!TIP]
+> 🏁 Ultimo traguardo: **M3 Feed di studio** unita il 23/11: feed a battute con gesti, domande a gruppi di 3, punti e sessioni da 5 minuti, PWA installabile.
+>
+> 🛠️ Ora: **M4 Ripasso ed esame**: tutte le scelte decise con Damian il 23/11, sviluppo avviato (6 PR previste).
+
+<!-- stato:fine -->
+
+## ✨ Cosa fa
+
+| 📥 Importa | ✨ Genera | 📱 Studia | 🔁 Ripassa |
+|---|---|---|---|
+| L'estensione Chrome porta nell'app lezione, capitolo o corso intero, a ritmo prudente. | Claude Desktop, via MCP, crea schede, domande e concetti in italiano e in inglese. | Feed a battute con gesti, parole da indovinare, punti, serie e sessioni da 5 minuti. | Ripasso FSRS dei concetti sbagliati e simulazione dell'esame in inglese *(M4)*. |
+
+Per lo studente: [documentazione funzionale](docs/functional/overview.md) e [feed di studio](docs/functional/feed.md).
+
+## 🧩 Come funziona
+
+```
+Portale Epicode ──▶ Estensione (sul PC) ──▶ Catalogo su Supabase ──▶ Claude Desktop (MCP) ──▶ Feed PWA sul telefono
+                    importa solo ciò che     lezioni deduplicate,     genera schede e quiz       studio, quiz e ripasso;
+                    lo studente già vede     prova di possesso        bilingui                   risultati sul dispositivo
+```
+
+Dettagli in [architettura](docs/architecture.md): clean architecture (dominio puro + adattatori), RLS su ogni tabella, funzioni Vercel a Dublino accanto al database.
+
+## 🛡️ Paletti
+
+- Nessuna marcatura automatica di video o contenuti come "visti" o "completati".
+- Traffico minimo, come un utente normale: niente crawling massivo, niente aggiramento di protezioni.
+- Solo il materiale a cui lo studente ha già accesso, per uso personale. Nessuna credenziale salvata in chiaro o committata.
+
+## 🧰 Stack
+
+Next.js su Vercel · Supabase (Postgres EU, RLS) · estensione WXT · server MCP per Claude Desktop · monorepo pnpm + Turborepo · TypeScript · Vitest e Playwright.
+
+## 💻 Sviluppo
+
 ```bash
 corepack enable && pnpm install
 pnpm check   # formattazione, lint, typecheck, test e build, come in CI
 ```
+
 Requisiti e comandi in [docs/technical/setup.md](docs/technical/setup.md).
-Documentazione in [docs/](docs/README.md): [architettura](docs/architecture.md), [decisioni](docs/decisions/), [funzionale](docs/functional/overview.md), [design system](docs/design-system.md), [ricognizione del portale](docs/portal-recon.md).
+
+## 📚 Documentazione
+
+| | |
+|---|---|
+| [Piano di sviluppo](docs/development-plan.md) | Perimetro dell'MVP, milestone, stack |
+| [Architettura](docs/architecture.md) | Componenti, modello dati, sicurezza, performance |
+| [Decisioni (ADR)](docs/decisions/) | Una decisione per file, con contesto e alternative |
+| [Funzionale](docs/functional/overview.md) | Cosa fa l'app per lo studente |
+| [Design system](docs/design-system.md) | Colori, temi, accenti, tipografia |
+| [Tecnica](docs/README.md) | Import, generazione, database, web, token di design |
+| [Ricognizione del portale](docs/portal-recon.md) | Come è fatto il portale e vincoli d'uso |
+
+<sub>Lo stato in cima si aggiorna da [docs/status.json](docs/status.json) con `pnpm docs:status` (vedi [docs/README.md](docs/README.md#stato-dello-sviluppo)).</sub>
