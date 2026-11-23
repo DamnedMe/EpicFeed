@@ -83,6 +83,8 @@ export function buildReviewCatalog(feed: SubjectFeed): ReviewCatalog {
           lessonTitle: lesson.title,
           lessonPortalUrl: lesson.portalUrl,
           quiz,
+          // Nel ripasso ogni domanda è da sola: niente "1/3".
+          batch: { position: 1, size: 1 },
         });
       }
     }

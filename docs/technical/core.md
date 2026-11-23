@@ -85,7 +85,7 @@ Regole pure del feed sul telefono ([ADR 0015](../decisions/0015-feed-di-studio-m
 - `pickBlank(fraseChiave, termini)`: il termine più lungo che compare come parola intera (senza maiuscole), poi una complessità `O(...)`, un identificatore con il punto (`cur.next`), un numero di almeno due cifre; mai oltre il 60% della frase.
 - `highlightTerms`: pezzi del testo con i termini evidenziati, senza sovrapposizioni.
 - `codeBlocks` e `pairCodeExplanation`: blocchi separati da righe vuote; ogni frase illumina il blocco (o i blocchi a pari merito) con più identificatori in comune, o, con un solo blocco, le righe che li contengono; nessun identificatore in comune → nessuna evidenza.
-- `buildStudySequence(lezioni)`: schede in ordine e una domanda della stessa lezione ogni `QUIZ_EVERY` (3) schede, preferendo i concetti appena visti; una domanda finale se dall'ultima sono passate almeno 2 schede.
+- `buildStudySequence(lezioni)`: schede in ordine e, ogni `QUIZ_EVERY` (3) schede, un gruppo di al massimo `QUIZ_BATCH` (3) domande della stessa lezione: prima sui concetti delle ultime schede, poi sugli altri già visti nella lezione, mai su concetti non ancora visti; un gruppo finale se dopo l'ultimo c'è almeno una scheda. Ogni domanda porta `batch` (`position`, `size`) per mostrare *1/3*.
 - `POINTS`, `answerPoints(serie)` (10 + 2 per risposta giusta di fila oltre la prima, al massimo +8) e `SESSION_MS` (5 minuti).
 
 ## Ripasso

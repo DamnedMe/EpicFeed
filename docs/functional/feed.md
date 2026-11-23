@@ -43,7 +43,7 @@ Il tocco singolo aspetta un attimo (230 ms) per capire se arriva un secondo tocc
 - **Rivedi i gesti**.
 
 ## Domande
-Dopo ogni 3 schede arriva una domanda della stessa lezione, scelta tra quelle sui concetti appena letti; alla fine della lezione ne arriva un'altra se dall'ultima sono passate almeno due schede. Le domande non usate restano per il ripasso.
+Dopo ogni 3 schede arriva un gruppo di **fino a 3 domande** della stessa lezione: prima quelle sui concetti delle schede appena lette, poi quelle sugli altri concetti già letti nella lezione, mai su qualcosa che non si è ancora visto. In alto a destra la domanda dice la sua posizione nel gruppo (*1/3*, *2/3*, …). Alla fine della lezione arriva un ultimo gruppo con le domande rimaste sulle ultime schede. Sul corso DSA quasi tutte le domande generate (246 su 247) entrano così nel feed.
 - **Vero o falso**: si trascina la carta a destra (vero) o a sinistra (falso), oppure si usano i due pulsanti.
 - **Scelta multipla**: un tocco sull'opzione.
 

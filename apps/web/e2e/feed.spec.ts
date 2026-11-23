@@ -152,13 +152,17 @@ test('scorrendo arrivano passi, confronto, codice e una domanda in inglese', asy
   await next();
   await expect(slide(page).getByText('confronto')).toBeVisible();
   await next();
-  // Dopo tre schede, una domanda della lezione, in inglese di base.
+  // Dopo tre schede, un gruppo di domande della lezione (qui due), in inglese di base.
   await expect(slide(page).getByText('Quick check')).toBeVisible();
+  await expect(slide(page).getByLabel('Question 1 / 2')).toHaveText('1/2');
   await slide(page)
     .getByRole('button', { name: /The head/ })
     .click();
   await expect(slide(page).getByRole('status')).toContainText('Correct!');
   await expect(page.getByLabel('10 punti')).toBeVisible();
+  await next();
+  await expect(slide(page).getByText('True or false?')).toBeVisible();
+  await expect(slide(page).getByLabel('Question 2 / 2')).toHaveText('2/2');
   await next();
   await expect(slide(page).getByText('codice')).toBeVisible();
   await tap(page);
@@ -171,7 +175,7 @@ test('vero o falso con lo swipe', async ({ page }) => {
   await open(page);
   await page.evaluate(() => {
     const element = document.querySelector('.ef-feed');
-    if (element) element.scrollTop = element.clientHeight * 6;
+    if (element) element.scrollTop = element.clientHeight * 4;
   });
   await expect(slide(page).getByText('True or false?')).toBeVisible();
   const card = slide(page).locator('.ef-swcard');
@@ -302,7 +306,7 @@ test('una risposta sbagliata nel feed entra nel Ripasso, che si fa a battute', a
   await open(page);
   await page.evaluate(() => {
     const element = document.querySelector('.ef-feed');
-    if (element) element.scrollTop = element.clientHeight * 6;
+    if (element) element.scrollTop = element.clientHeight * 4;
   });
   await slide(page).getByRole('button', { name: 'True →' }).click();
   await expect(slide(page).getByRole('status')).toContainText('Almost.');
