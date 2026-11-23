@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
  */
 export async function POST(request: Request): Promise<Response> {
   if (!isSameOrigin(request)) return apiError('FORBIDDEN', 'Richiesta non ammessa.');
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ verifyWithServer: true });
   if (!user?.hasPassword) return apiError('UNAUTHORIZED', 'Accedi per collegare Claude Desktop.');
 
   const issued = await getServices().generateTokens.issue(user.id, 'Claude Desktop');

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { chooseSubject, loadFeed } from './feed-client';
+import { chooseSubject, loadFeed, preferredSubjectId, readCachedFeed } from './feed-client';
 import type { KeyValueStore } from './storage';
 
 const S1 = '11111111-1111-4111-8111-111111111111';
@@ -112,5 +112,47 @@ describe('loadFeed', () => {
     expect(await loadFeed(none.impl, memoryStore())).toMatchObject({ status: 'empty' });
     const failing = fakeFetch({ '/api/feed/subjects': () => new Response(null, { status: 500 }) });
     expect(await loadFeed(failing.impl, memoryStore())).toEqual({ status: 'error' });
+  });
+});
+
+describe('copia sul dispositivo', () => {
+  it('sceglie la materia chiesta, altrimenti l’ultima aperta', () => {
+    const store = memoryStore();
+    expect(preferredSubjectId(store)).toBeNull();
+    store.data.set('ef:subject', JSON.stringify(S2));
+    expect(preferredSubjectId(store)).toBe(S2);
+    expect(preferredSubjectId(store, S1)).toBe(S1);
+    expect(preferredSubjectId(null)).toBeNull();
+  });
+
+  it('legge e valida la copia una volta sola, poi la tiene in memoria', () => {
+    const store = memoryStore();
+    expect(readCachedFeed(S2, store)).toBeNull();
+    store.data.set(`ef:feed:${S2}`, JSON.stringify(feed('d')));
+    const first = readCachedFeed(S2, store);
+    expect(first?.version).toBe('d'.repeat(64));
+    // Anche se lo spazio cambia sotto, la copia già validata resta la stessa.
+    store.data.set(`ef:feed:${S2}`, 'rotto');
+    expect(readCachedFeed(S2, store)).toBe(first);
+    // Un altro spazio non vede la memoria del primo.
+    expect(readCachedFeed(S2, memoryStore())).toBeNull();
+  });
+
+  it('una copia corrotta vale come nessuna copia', () => {
+    const store = memoryStore();
+    store.data.set(`ef:feed:${S2}`, JSON.stringify({ subjectId: S2 }));
+    expect(readCachedFeed(S2, store)).toBeNull();
+  });
+
+  it('la materia nuova scaricata sostituisce quella in memoria', async () => {
+    const store = memoryStore();
+    store.data.set(`ef:feed:${S2}`, JSON.stringify(feed('e')));
+    expect(readCachedFeed(S2, store)?.version).toBe('e'.repeat(64));
+    const { impl } = fakeFetch({
+      '/api/feed/subjects': list,
+      [`/api/feed/subjects/${S2}`]: () => Response.json(feed('f')),
+    });
+    await loadFeed(impl, store, S2);
+    expect(readCachedFeed(S2, store)?.version).toBe('f'.repeat(64));
   });
 });

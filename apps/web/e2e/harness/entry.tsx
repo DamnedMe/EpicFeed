@@ -19,7 +19,15 @@ const subjects = {
   ],
 };
 
+/**
+ * Rete simulata, scelta con `?rete=` nell'indirizzo: `lenta` non risponde mai
+ * (il feed deve partire dalla copia sul dispositivo), `assente` fallisce
+ * subito come senza connessione.
+ */
+const network = new URLSearchParams(window.location.search).get('rete');
 window.fetch = (input: RequestInfo | URL) => {
+  if (network === 'lenta') return new Promise<Response>(() => {});
+  if (network === 'assente') return Promise.reject(new TypeError('Failed to fetch'));
   const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
   return Promise.resolve(Response.json(url.endsWith('/api/feed/subjects') ? subjects : fixture));
 };

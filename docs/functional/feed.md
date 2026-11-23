@@ -50,7 +50,7 @@ Dopo ogni 3 schede arriva una domanda della stessa lezione, scelta tra quelle su
 La risposta mostra subito quella giusta e la spiegazione. Una risposta giusta vale **10 punti**, più **2 per ogni risposta giusta di fila** oltre la prima (fino a +8). In M3 il risultato non si salva per il ripasso.
 
 ## Sessioni da 5 minuti
-L'anello in alto si riempie in 5 minuti. Passati i 5 minuti, alla scheda successiva compare il riepilogo: punti, minuti, schede viste, risposte giuste e serie migliore. **Altri 5 minuti** riparte, **Basta per ora** porta a *Io*.
+L'anello in alto si riempie in 5 minuti. Passati i 5 minuti, alla scheda successiva compare il riepilogo: punti, minuti, schede viste, risposte giuste e serie migliore, e la sessione si conta tra quelle completate. **Altri 5 minuti** riparte, **Basta per ora** porta a *Io*.
 
 ## Lingua
 Le schede partono nella **lingua di studio** e le domande nella **lingua delle domande** (inglese di base, perché l'esame è in inglese), scelte in *Io*. **IT/EN** in alto cambia la lingua della scheda o della domanda che si sta guardando.
@@ -62,7 +62,7 @@ Le schede partono nella **lingua di studio** e le domande nella **lingua delle d
 - **Contenuti**: Le mie lezioni, Estensione, Claude Desktop. In fondo, *Esci*.
 
 ## Cosa resta sul telefono
-Punti, serie, schede salvate, posizione nel feed, preferenze e la copia della materia restano **solo su questo dispositivo** ([ADR 0003](../decisions/0003-risultati-sul-dispositivo.md)); tema e accento stanno in un cookie per colorare la pagina già al primo caricamento. Il feed riparte dall'ultima scheda vista. Se la connessione manca, il feed usa la copia salvata e lo dice in alto.
+Punti, serie, schede salvate, posizione nel feed, preferenze e la copia della materia restano **solo su questo dispositivo** ([ADR 0003](../decisions/0003-risultati-sul-dispositivo.md)); tema e accento stanno in un cookie per colorare la pagina già al primo caricamento. Il feed riparte dall'ultima scheda vista (anche quella aperta da *Salvati*), anche dopo essere passati da *Io* o aver chiuso l'app. Si apre subito dalla copia salvata, senza aspettare la rete; intanto controlla se ci sono lezioni nuove o aggiornate e, se ci sono, le aggiunge restando sulla stessa scheda. Se la connessione manca, il feed usa la copia salvata e lo dice in alto.
 
 ## Installare l'app e usarla senza rete
 EpicFeed si installa come un'app: su Android, Chrome propone *Installa app* (o dal menu ⋮ → *Aggiungi a schermata Home*); su iPhone, in Safari, *Condividi → Aggiungi alla schermata Home*. Si apre a schermo intero con la sua icona.

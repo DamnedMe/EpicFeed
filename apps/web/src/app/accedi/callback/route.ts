@@ -21,7 +21,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   if (error) return to('/accedi?errore=link');
 
   // getCurrentUser ricontrolla anche l'elenco delle email ammesse.
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ verifyWithServer: true });
   if (!user) {
     await supabase.auth.signOut();
     return to('/accedi?errore=link');

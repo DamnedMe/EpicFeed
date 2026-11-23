@@ -54,7 +54,7 @@ Supabase Auth con email ([ADR 0007](../decisions/0007-generazione-via-mcp-e-logi
 3. entrato, al primo accesso imposta una password (salvata da Supabase; `user_metadata.password_set` ricorda che l'ha fatto);
 4. dalle volte successive entra con email e password.
 
-Ogni pagina protetta richiama `requireUser()` (sessione verificata con Supabase, non solo letta dal cookie) e ricontrolla l'allowlist.
+Ogni pagina protetta richiama `requireUser()`, che ricontrolla l'allowlist. La sessione non è solo letta dal cookie: `getClaims` verifica in locale firma (ES256, chiave pubblica del progetto tenuta in memoria) e scadenza del token, senza una chiamata al server di autenticazione per pagina. Le pagine e azioni di accesso, il ritorno dal link e la creazione o revoca dei token chiedono invece conferma al server (`getCurrentUser({ verifyWithServer: true })`, cioè `getUser`), come pure il caso in cui il token dica che la password non è ancora impostata. Motivi e compromesso nell'[ADR 0016](../decisions/0016-reattivita-app.md).
 
 Le letture del catalogo passano da `withUserRls`: la query gira con il ruolo `authenticated` e l'id dell'utente nei claim, quindi la RLS del database decide cosa si vede anche se il server usa una connessione privilegiata.
 
@@ -80,7 +80,7 @@ Le regole pure stanno nel core ([core.md](core.md#feed-di-studio)): `storyOf` (b
 | File | Ruolo |
 |---|---|
 | `model.ts` | Dalla risposta dell'API agli elementi da scorrere (`buildEntries`), indice dei capitoli, posizione da cui riprendere, minuto leggibile |
-| `feed-client.ts` | `loadFeed`: materia scelta (ultima aperta con lezioni pronte), copia sul dispositivo mostrata subito, `If-None-Match` con la versione salvata, `304` → copia; senza rete la copia, con l'avviso *offline* |
+| `feed-client.ts` | `readCachedFeed`: copia sul dispositivo, validata una volta e poi tenuta in memoria; `loadFeed`: materia scelta (ultima aperta con lezioni pronte), `If-None-Match` con la versione salvata, `304` → copia; senza rete la copia, con l'avviso *offline*. `FeedApp` mostra subito la copia e poi applica l'esito di `loadFeed`: se la materia è cambiata la sostituisce restando sulla scheda della posizione salvata |
 | `storage.ts`, `local-state.ts` | `localStorage` con prefisso `ef:`, ogni lettura validata con zod e ogni errore assorbito; valori condivisi tra i componenti con `useSyncExternalStore` (sul server e al primo render valgono i predefiniti, quindi niente differenze di idratazione) |
 | `gestures.ts` | `GestureRecognizer` senza DOM, con timer sostituibili: tocco (destra/sinistra, quota sinistra 30%), doppio tocco entro 230 ms, pressione di 500 ms, tolleranza di 12 px oltre la quale è uno scroll; `swipeAnswer` per il vero/falso (80 px, soprattutto orizzontale) |
 | `feed-app.tsx` | Composizione: scroll verticale nativo con `scroll-snap`, solo le schede entro ±2 da quella visibile sono disegnate (le altre sono segnaposto vuoti alti uno schermo), le schede non visibili sono `inert`; sessione, punti, toast, sintesi vocale, tastiera, avanzamento automatico |
@@ -92,6 +92,11 @@ Le regole pure stanno nel core ([core.md](core.md#feed-di-studio)): `storyOf` (b
 **Aspetto**: `/io` salva tema e accento con la server action `saveAppearance` in due cookie `httpOnly` (`ef-theme`, `ef-accent`, un anno, valori validati con `isThemePreference`/`isAccentName`); il layout li legge con `readAppearance` e li mette su `<html>`, così la pagina nasce nei colori scelti. Nel frattempo il client cambia subito gli attributi di `<html>`.
 
 **Font**: Space Grotesk, Inter e JetBrains Mono con `next/font/google`, scaricati alla build e serviti dall'app (`font-src 'self'`); la classe `ef-fonts` su `<html>` li collega ai token `--sf-font-*`.
+
+### Navigazione
+- `src/app/loading.tsx`: schermata di attesa con la barra in basso, mostrata appena si tocca un collegamento (Next.js la scarica in anticipo con il prefetch dei link) mentre il server prepara la pagina.
+- Pulsanti, voci della barra e righe di *Io* reagiscono subito alla pressione (`:active`), senza l'evidenziazione dei browser mobili.
+- La barra in basso è in vetro su un fondo quasi pieno (90% del colore di fondo) con sfocatura. In CSS si scrive solo `backdrop-filter`: con anche la forma `-webkit-` Lightning CSS teneva solo quella, e Chrome restava senza sfocatura.
 
 ### PWA e uso senza rete
 - **Manifest** (`src/app/manifest.ts`, servito come `/manifest.webmanifest`): nome *EpicFeed*, apertura su `/`, schermo intero verticale, colori ossidiana; icone in `public/icon.svg` e `public/icons/` (192, 512, 512 *maskable*, 180 per iOS). Il layout aggiunge l'icona per la schermata Home di iOS e `appleWebApp`.
@@ -117,6 +122,8 @@ Esempio commentato in `apps/web/.env.example`. In locale vanno in `apps/web/.env
 La build in CI non ha bisogno di nessuna variabile: vengono lette e validate solo quando arriva una richiesta.
 
 ## Messa online (Vercel)
+Le funzioni girano a **Dublino** (`apps/web/vercel.json`, `regions: ["dub1"]`), accanto a database e autenticazione di Supabase (`eu-west-1`, Irlanda): con la regione predefinita di Vercel (Virginia) ogni query attraversava l'Atlantico ([ADR 0016](../decisions/0016-reattivita-app.md)).
+
 Una volta sola:
 1. Vercel → *Add New → Project* → importa `DamnedMe/study-feed`; *Root Directory* `apps/web` (Vercel riconosce pnpm e Turborepo).
 2. Aggiungi le variabili della tabella. Per `DATABASE_URL`: in Supabase *Connect → Transaction pooler*; la password, se non la conosci, si reimposta da *Database → Settings → Reset database password* (meglio solo lettere e numeri).
@@ -134,4 +141,4 @@ pnpm --filter @study-feed/web dev              # http://localhost:3000
 ## Test
 `src/server/*.test.ts` (Vitest): `handleImport` con servizi finti (ogni caso di errore), controllo dell'origine e lettura del bearer. I flussi con il database sono coperti dai test di `packages/adapters` e dalla prova end-to-end descritta in [import.md](import.md#come-è-testato). `src/features/feed/*.test.ts`: modello del feed, salvataggi sul dispositivo, gesti e caricamento della materia.
 
-**Feed sul telefono (Playwright, `apps/web/e2e`)**: `pnpm --filter @study-feed/web test:e2e`, dopo la build. Un banco di prova (`e2e/harness/build.mjs`) impacchetta con esbuild il vero `FeedApp` con una materia di prova (`fixture.ts`, validata dallo stesso schema dell'API) e un `fetch` finto, al posto di `next/link` e `next/navigation` mette due sostituti minimi, e prende i CSS e i font dalla build di Next (`.next/static`). I test servono i file con `page.route` (nessun server, nessun database) e con una CSP come quella di produzione per gli stili, quindi un attributo `style` nell'HTML o un errore in console fanno fallire il test. Chromium con le viste di **iPhone 13** e **Pixel 7** (tocco attivo): spiegazione dei gesti al primo avvio, battute avanti e indietro, parola da indovinare, doppio tocco, tieni premuto con il minuto sul portale, scorrimento con domanda in inglese e codice, vero/falso con lo swipe, foglio dei capitoli, tastiera, ripresa dall'ultima scheda.
+**Feed sul telefono (Playwright, `apps/web/e2e`)**: `pnpm --filter @study-feed/web test:e2e`, dopo la build. Un banco di prova (`e2e/harness/build.mjs`) impacchetta con esbuild il vero `FeedApp` con una materia di prova (`fixture.ts`, validata dallo stesso schema dell'API) e un `fetch` finto, al posto di `next/link` e `next/navigation` mette due sostituti minimi, e prende i CSS e i font dalla build di Next (`.next/static`). I test servono i file con `page.route` (nessun server, nessun database) e con una CSP come quella di produzione per gli stili, quindi un attributo `style` nell'HTML o un errore in console fanno fallire il test. Chromium con le viste di **iPhone 13** e **Pixel 7** (tocco attivo): spiegazione dei gesti al primo avvio, battute avanti e indietro, parola da indovinare, doppio tocco, tieni premuto con il minuto sul portale, scorrimento con domanda in inglese e codice, vero/falso con lo swipe, foglio dei capitoli, tastiera, ripresa dall'ultima scheda; apertura dalla copia con la rete lenta (`?rete=lenta`) o assente (`?rete=assente`); andata e ritorno da *Io* con posizione e punti conservati; sessione da 5 minuti contata alla fine (orologio simulato). Il banco ha anche la pagina *Io* (`io-entry.tsx`, server action sostituita da una funzione vuota): righe allineate sui telefoni stretti, nessuno scorrimento orizzontale, barra in basso sfocata e coprente.

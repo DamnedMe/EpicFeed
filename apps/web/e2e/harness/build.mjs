@@ -21,10 +21,24 @@ if (!existsSync(chunks)) throw new Error('Manca la build di Next.js: esegui prim
 
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
+// La server action di Io (`saveAppearance`) qui non esiste: la si sostituisce
+// con una funzione vuota (il tema cambia comunque subito sulla pagina).
+const serverActions = {
+  name: 'server-actions',
+  setup(builder) {
+    builder.onResolve({ filter: /^\.\/actions$/ }, () => ({ path: 'actions', namespace: 'stub' }));
+    builder.onLoad({ filter: /.*/, namespace: 'stub' }, () => ({
+      contents: 'export async function saveAppearance() {}',
+      loader: 'js',
+    }));
+  },
+};
+
 await build({
-  entryPoints: [join(here, 'entry.tsx')],
+  entryPoints: { app: join(here, 'entry.tsx'), io: join(here, 'io-entry.tsx') },
   bundle: true,
-  outfile: join(out, 'app.js'),
+  outdir: out,
+  plugins: [serverActions],
   jsx: 'automatic',
   alias: {
     '@': join(app, 'src'),
@@ -44,8 +58,8 @@ const fontClasses = [...styles.matchAll(/\.([\w-]+)\{--ef-font-/g)].map((m) => m
 const links = css
   .map((name) => `<link rel="stylesheet" href="/_next/static/chunks/${name}">`)
   .join('');
-writeFileSync(
-  join(out, 'index.html'),
-  `<!doctype html><html lang="it" data-theme="dark" data-accent="racing-red" class="ef-fonts ${fontClasses.join(' ')}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">${links}</head><body class="min-h-dvh bg-background text-text"><div id="root"></div><script src="/app.js"></script></body></html>`,
-);
+const page = (script) =>
+  `<!doctype html><html lang="it" data-theme="dark" data-accent="racing-red" class="ef-fonts ${fontClasses.join(' ')}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">${links}</head><body class="min-h-dvh bg-background text-text"><div id="root"></div><script src="/${script}.js"></script></body></html>`;
+writeFileSync(join(out, 'index.html'), page('app'));
+writeFileSync(join(out, 'io.html'), page('io'));
 console.log(`Banco di prova pronto in ${out}`);

@@ -6,7 +6,7 @@ import { PasswordForm } from './password-form';
 export const metadata: Metadata = { title: 'Imposta la password' };
 
 export default async function PasswordPage() {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ verifyWithServer: true });
   if (!user) redirect('/accedi');
 
   return (
