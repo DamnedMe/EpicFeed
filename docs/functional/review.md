@@ -30,4 +30,14 @@ Alla fine compare il riepilogo: concetti ripassati, risposte giuste, punti e la 
 La sezione **Esame** (stesso tab, oppure `/ripasso#esame`) arriva con le prossime versioni di M4, tutta in inglese come all'esame ([ADR 0014](../decisions/0014-preparazione-esame.md)): quiz di modulo da 50 domande, esercizi d'esame con timer, editor e test del codice, correzione di Claude e simulazione scritta del colloquio di 20 minuti in forma di chat.
 
 ## Dove restano i dati
-I progressi del ripasso (stato di ogni concetto, storico delle risposte, serie di giorni) stanno sul dispositivo, in IndexedDB. Con la prossima versione si sincronizzano tra telefono e PC in forma **cifrata sul dispositivo**: il server ne conserva una copia che non può leggere. In navigazione privata alcuni browser non permettono di salvarli: la schermata lo dice e il ripasso non viene ricordato.
+I progressi del ripasso (stato di ogni concetto, storico delle risposte, giorni di ripasso) stanno sul dispositivo, in IndexedDB. In navigazione privata alcuni browser non permettono di salvarli: la schermata lo dice e il ripasso non viene ricordato.
+
+## Telefono e PC
+I progressi si **sincronizzano** tra i dispositivi in forma **cifrata sul dispositivo** ([ADR 0018](../decisions/0018-sincronizzazione-cifrata-progressi.md)): la chiave nasce dalla password nel browser e il server ne conserva una copia che non può leggere.
+
+- Si sincronizza da solo: all'apertura del feed e del Ripasso, poco dopo le risposte, alla fine di un ripasso e quando l'app va in secondo piano. In fondo alla home del Ripasso una riga dice *Progressi sincronizzati*, *in attesa della rete* o *non riuscita: riprovo più tardi*.
+- Le risposte date su due dispositivi, anche offline, si sommano: nessuna si perde, e il ripasso di ogni concetto si ricalcola da tutte.
+- All'accesso con la password la chiave si prepara da sola. Se manca (per esempio dopo l'accesso con il codice via email), il Ripasso mostra **Sincronizza telefono e PC**: si scrive la password e si tocca **Sblocca**.
+- Se la password cambia su un dispositivo, sugli altri compare **La password è cambiata**: si scrive quella nuova e i progressi si uniscono. Il dispositivo su cui si è cambiata la password rifà la copia sul server con i suoi progressi.
+- Con un altro account sullo stesso browser i progressi del primo spariscono dal dispositivo, invece di mescolarsi.
+- Punti, salvati, posizione nel feed e preferenze restano sul dispositivo, come prima.

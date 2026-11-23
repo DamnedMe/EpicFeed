@@ -32,6 +32,7 @@ import type { QuizAnswer } from './quiz-slide';
 import { QuizSlide } from './quiz-slide';
 import { ActionSheet, ChapterSheet } from './sheets';
 import { readValue, STORAGE_KEYS, writeValue } from './storage';
+import { useProgressSync } from '../sync/engine';
 
 /** Quante schede si disegnano intorno a quella visibile: le altre sono segnaposto vuoti. */
 const WINDOW = 2;
@@ -79,9 +80,13 @@ function prefersReducedMotion(): boolean {
 /**
  * Feed di studio (M3, ADR 0015): la materia in ordine, una scheda per
  * schermata raccontata a battute, con domande, punti, sessioni da 5 minuti e
- * gesti al posto dei pulsanti. Tutto lo stato di studio resta sul dispositivo.
+ * gesti al posto dei pulsanti. Tutto lo stato di studio resta sul dispositivo;
+ * i progressi del ripasso si sincronizzano cifrati (ADR 0018).
+ *
+ * @param props.account - Utente della sessione (per la sincronizzazione).
  */
-export function FeedApp() {
+export function FeedApp({ account }: { account: string }) {
+  useProgressSync(account);
   const router = useRouter();
   const prefs = useLocalValue(preferences);
   const saved = useLocalValue(savedCards);

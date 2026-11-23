@@ -95,6 +95,12 @@ Regole pure del feed sul telefono ([ADR 0015](../decisions/0015-feed-di-studio-m
 - Serie di giorni: `extendDayStreak`, `currentDayStreak`, `localDay` (giorno nell'ora del dispositivo).
 - Porta `ProgressStore` e casi d'uso `recordAnswer` (stato + storico con fonte e lingua), `completeReviewSession` (serie), `planReviewSession` (fino a 10 concetti: scaduti dal più in ritardo, altrimenti in anticipo i meno ricordati; mai concetti non ancora visti o senza domande; domanda successiva all'ultima fatta, a giro), `summarizeReview` (scaduti, deboli, avanzamento per modulo).
 
+## Sincronizzazione dei progressi
+`application/progress-sync.ts` (M4, [ADR 0018](../decisions/0018-sincronizzazione-cifrata-progressi.md)). Niente cifratura qui: la fanno gli adapter.
+- `ProgressSnapshot`: risposte, giorni di ripasso (ultimi 400) e serie migliore. `mergeSnapshots` unisce due copie senza doppioni (`answerKey`: momento, concetto, fonte, domanda) in un ordine che non dipende da chi unisce; `addsToSnapshot` dice se un'unione porta qualcosa di nuovo; `replayAnswers` ricalcola gli stati FSRS ripassando le risposte in ordine di tempo (stesso risultato delle risposte date una alla volta); `streakFromDays` ricostruisce la serie.
+- Porte `SyncableProgressStore` (dispositivo: `loadSnapshot`, `mergeSnapshot`), `ProgressVault` (copia cifrata sul server: `pull`, `push` con concorrenza ottimistica) e `EncryptedProgressRepository` (lato server: righe cifrate per utente).
+- `syncProgress`: legge, unisce, riscrive solo se il dispositivo ha qualcosa in più; riprova fino a 3 volte se un altro dispositivo scrive nello stesso momento; con una copia che non si decifra si ferma (`locked`), oppure la rifà da questo dispositivo se la chiave è appena verificata (`replaceUnreadable`).
+
 ## Prova di possesso
 `grantByPossessionProof(user, version, presentedHash, now)` concede il permesso solo se l'impronta del contenuto presentato coincide con quella della versione. L'impronta va calcolata **dal server** sul contenuto ricevuto, mai presa dal client: non basta dichiarare di avere una lezione, bisogna inviarne il contenuto.
 

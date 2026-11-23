@@ -20,7 +20,7 @@ export default async function PasswordPage() {
           resta per il recupero.
         </p>
       </div>
-      <PasswordForm />
+      <PasswordForm email={user.email} account={user.id} />
     </main>
   );
 }

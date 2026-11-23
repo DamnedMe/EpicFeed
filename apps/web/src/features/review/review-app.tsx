@@ -13,6 +13,8 @@ import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BottomNav } from '@/components/bottom-nav';
 import { Icon } from '../feed/icons';
+import { syncNow, useProgressSync } from '../sync/engine';
+import { SyncPanel } from '../sync/sync-panel';
 import { preferences, useLocalValue } from '../feed/local-state';
 import type { ReviewCatalog } from './catalog';
 import { notifyProgress, progressStore } from './progress-store';
@@ -31,8 +33,12 @@ function sectionFromHash(): Section {
 /**
  * Tab *Ripasso* (M4, ADR 0017): in alto le due sezioni Ripasso ed Esame
  * (scelta 1 di Damian: l'Esame sta qui dentro, la barra in basso non cambia).
+ * I progressi si sincronizzano cifrati tra i dispositivi (ADR 0018).
+ *
+ * @param props.account - Utente della sessione.
  */
-export function ReviewApp() {
+export function ReviewApp({ account }: { account: string }) {
+  useProgressSync(account);
   const { data } = useReviewData();
   const [section, setSection] = useState<Section>('review');
   const [plan, setPlan] = useState<readonly PlannedReview[] | null>(null);
@@ -75,6 +81,8 @@ export function ReviewApp() {
             setOutcome({ ...result, streak });
             setPlan(null);
             notifyProgress();
+            // Fine sessione: i progressi partono subito per gli altri dispositivi.
+            void syncNow(account);
           });
         }}
       />
@@ -130,6 +138,7 @@ export function ReviewApp() {
       ) : (
         <ExamSoon />
       )}
+      {section === 'review' ? <SyncPanel account={account} /> : null}
       <BottomNav active="review" />
     </div>
   );

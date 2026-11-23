@@ -1,12 +1,27 @@
-import type { AnswerRecord, ConceptReviewState, DayStreak, ProgressStore } from '@study-feed/core';
-import { EMPTY_DAY_STREAK } from '@study-feed/core';
+import type {
+  AnswerRecord,
+  ConceptReviewState,
+  DayStreak,
+  ProgressSnapshot,
+  ProgressStore,
+  SyncableProgressStore,
+} from '@study-feed/core';
+import {
+  EMPTY_DAY_STREAK,
+  MAX_REVIEW_DAYS,
+  PROGRESS_SNAPSHOT_VERSION,
+  mergeSnapshots,
+  replayAnswers,
+  streakFromDays,
+} from '@study-feed/core';
 import { z } from 'zod';
 
 /**
  * Progressi del ripasso in IndexedDB (M4, ADR 0017): stati FSRS dei concetti,
- * storico delle risposte e serie di giorni. Restano sul dispositivo; dalla
- * PR successiva una copia cifrata sul dispositivo si sincronizza tra telefono
- * e PC.
+ * storico delle risposte, giorni di ripasso e serie. Restano sul dispositivo;
+ * una copia cifrata nel browser si sincronizza tra telefono e PC (ADR 0018)
+ * attraverso {@link IndexedDbProgressStore.loadSnapshot} e
+ * {@link IndexedDbProgressStore.mergeSnapshot}.
  *
  * Ogni valore letto passa da uno schema: un record corrotto o scritto da una
  * versione futura viene ignorato invece di rompere il ripasso.
@@ -18,6 +33,7 @@ const REVIEWS = 'reviews';
 const ANSWERS = 'answers';
 const META = 'meta';
 const STREAK_KEY = 'dayStreak';
+const DAYS_KEY = 'reviewDays';
 
 const isoDate = z.string().max(40);
 
@@ -45,6 +61,26 @@ const streakSchema: z.ZodType<DayStreak> = z.object({
   days: z.number().int().min(0),
   best: z.number().int().min(0),
 });
+
+export const answerSchema: z.ZodType<AnswerRecord> = z.object({
+  conceptId: z.string().min(1).max(200),
+  questionId: z.string().max(300).nullable(),
+  source: z.enum(['feed', 'review', 'quiz', 'exercise', 'interview']),
+  grade: z.enum(['again', 'hard', 'good']),
+  language: z.enum(['it', 'en']),
+  at: z.iso.datetime(),
+});
+
+const daySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const daysSchema = z.array(daySchema).max(MAX_REVIEW_DAYS * 2);
+
+/** Valori validi di un elenco letto da IndexedDB (gli altri si scartano). */
+function valid<T>(schema: z.ZodType<T>, rows: readonly unknown[]): T[] {
+  return rows.flatMap((row) => {
+    const parsed = schema.safeParse(row);
+    return parsed.success ? [parsed.data] : [];
+  });
+}
 
 /** Promessa di una richiesta IndexedDB. */
 function done<T>(request: IDBRequest<T>): Promise<T> {
@@ -93,7 +129,7 @@ export function openProgressDb(factory: IDBFactory = indexedDB): Promise<IDBData
 }
 
 /** Progressi in IndexedDB. */
-export class IndexedDbProgressStore implements ProgressStore {
+export class IndexedDbProgressStore implements ProgressStore, SyncableProgressStore {
   /**
    * @param db - Database aperto con {@link openProgressDb}.
    */
@@ -136,8 +172,56 @@ export class IndexedDbProgressStore implements ProgressStore {
   /** @inheritdoc */
   async saveDayStreak(streak: DayStreak): Promise<void> {
     const transaction = this.db.transaction(META, 'readwrite');
-    transaction.objectStore(META).put(streak, STREAK_KEY);
+    const meta = transaction.objectStore(META);
+    meta.put(streak, STREAK_KEY);
+    // Anche il giorno, per unire le serie di più dispositivi.
+    const day = streak.lastDay;
+    if (day) {
+      const request = meta.get(DAYS_KEY);
+      request.onsuccess = () => {
+        const parsed = daysSchema.safeParse(request.result);
+        const days = parsed.success ? parsed.data : [];
+        if (!days.includes(day)) meta.put([...days, day].sort().slice(-MAX_REVIEW_DAYS), DAYS_KEY);
+      };
+    }
     await committed(transaction);
+  }
+
+  /** @inheritdoc */
+  async loadSnapshot(): Promise<ProgressSnapshot> {
+    const transaction = this.db.transaction([ANSWERS, META]);
+    const answers = done(transaction.objectStore(ANSWERS).getAll());
+    const days = done(transaction.objectStore(META).get(DAYS_KEY));
+    const streak = done(transaction.objectStore(META).get(STREAK_KEY));
+    return toSnapshot(await answers, await days, await streak);
+  }
+
+  /** @inheritdoc */
+  mergeSnapshot(remote: ProgressSnapshot): Promise<ProgressSnapshot> {
+    // Una sola transazione: si rilegge quello che c'è adesso (anche risposte
+    // date mentre la copia arrivava dal server), si unisce e si riscrive.
+    const transaction = this.db.transaction([REVIEWS, ANSWERS, META], 'readwrite');
+    const answersStore = transaction.objectStore(ANSWERS);
+    const meta = transaction.objectStore(META);
+    let merged: ProgressSnapshot | null = null;
+    const answers = answersStore.getAll();
+    const days = meta.get(DAYS_KEY);
+    const streak = meta.get(STREAK_KEY);
+    streak.onsuccess = () => {
+      const local = toSnapshot(answers.result, days.result, streak.result);
+      merged = mergeSnapshots(local, remote);
+      const reviews = transaction.objectStore(REVIEWS);
+      reviews.clear();
+      for (const state of replayAnswers(merged.answers)) reviews.put(state);
+      answersStore.clear();
+      for (const answer of merged.answers) answersStore.add(answer);
+      meta.put(merged.reviewDays, DAYS_KEY);
+      meta.put(streakFromDays(merged.reviewDays, merged.bestStreak), STREAK_KEY);
+    };
+    return committed(transaction).then(() => {
+      if (!merged) throw new Error('Unione dei progressi non riuscita');
+      return merged;
+    });
   }
 
   /**
@@ -155,6 +239,22 @@ export class IndexedDbProgressStore implements ProgressStore {
     for (const name of [REVIEWS, ANSWERS, META]) transaction.objectStore(name).clear();
     await committed(transaction);
   }
+}
+
+/** Copia dei progressi dai valori grezzi di IndexedDB. */
+function toSnapshot(answers: unknown, days: unknown, streak: unknown): ProgressSnapshot {
+  const parsedDays = daysSchema.safeParse(days);
+  const parsedStreak = streakSchema.safeParse(streak);
+  const reviewDays = parsedDays.success ? parsedDays.data : [];
+  // Progressi di prima della sincronizzazione: l'ultimo giorno della serie.
+  const lastDay = parsedStreak.success ? parsedStreak.data.lastDay : null;
+  const allDays = lastDay && !reviewDays.includes(lastDay) ? [...reviewDays, lastDay] : reviewDays;
+  return {
+    version: PROGRESS_SNAPSHOT_VERSION,
+    answers: valid(answerSchema, Array.isArray(answers) ? answers : []),
+    reviewDays: [...allDays].sort().slice(-MAX_REVIEW_DAYS),
+    bestStreak: parsedStreak.success ? parsedStreak.data.best : 0,
+  };
 }
 
 let shared: Promise<IndexedDbProgressStore | null> | null = null;

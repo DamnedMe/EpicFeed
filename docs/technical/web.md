@@ -1,6 +1,6 @@
 # Web app (`apps/web`)
 
-Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailwind 4 con i token di `packages/ui`. Stato: milestone **M3** in corso (accesso, Le mie lezioni, collegamento dell'estensione e di Claude Desktop, API di import e di generazione, feed di studio con *Io*).
+Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailwind 4 con i token di `packages/ui`. Stato: milestone **M4** in corso (accesso, Le mie lezioni, collegamento dell'estensione e di Claude Desktop, API di import e di generazione, feed di studio con *Io*, ripasso dei concetti e sincronizzazione cifrata dei progressi).
 
 ## Pagine e API
 | Percorso | Cosa fa | Accesso |
@@ -12,6 +12,8 @@ Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailw
 | `/io` | **Io**: aspetto, preferenze di studio, totali, collegamenti | sessione |
 | `/io/salvati` | Schede salvate sul dispositivo | sessione |
 | `/ripasso` | **Ripasso** dei concetti a battute e sezione **Esame** (`#esame`) ([review.md](../functional/review.md)) | sessione |
+| `GET /api/progress` | Copia cifrata dei progressi (`404` se non c'è) ([sincronizzazione](#sincronizzazione-dei-progressi-m4)) | sessione |
+| `PUT /api/progress` | Scrive la copia cifrata se `baseRevision` è ancora quella (`409` altrimenti) | sessione, stessa origine |
 | `/lezioni` | **Le mie lezioni**: lezioni importate raggruppate per materia e capitolo, con numero di parti, sottotitoli e stato di generazione | sessione |
 | `/estensione` | Collega l'estensione, elenca e revoca i collegamenti | sessione |
 | `/claude-desktop` | Crea il token "genera" per Claude Desktop (mostrato una volta), elenca e revoca i token | sessione |
@@ -104,13 +106,29 @@ Decisioni in [ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md); regole pure n
 
 | File (`src/features/review`) | Ruolo |
 |---|---|
-| `progress-store.ts` | `IndexedDbProgressStore`, adapter della porta `ProgressStore`: database `epicfeed-progress` con `reviews` (stato FSRS per concetto, chiave `conceptId`), `answers` (storico, chiave automatica) e `meta` (serie di giorni). Stato e risposta nella stessa transazione; ogni record letto passa da uno schema zod e quelli non validi si ignorano. `progressStore()` apre il database una volta sola e restituisce `null` se IndexedDB non c'è; `onProgress`/`notifyProgress` avvisano le schermate aperte |
+| `progress-store.ts` | `IndexedDbProgressStore`, adapter delle porte `ProgressStore` e `SyncableProgressStore`: database `epicfeed-progress` con `reviews` (stato FSRS per concetto, chiave `conceptId`), `answers` (storico, chiave automatica) e `meta` (serie di giorni e giorni di ripasso). `loadSnapshot` esporta lo storico per la sincronizzazione; `mergeSnapshot` unisce una copia remota e ricalcola gli stati in una sola transazione, così le risposte date nel frattempo restano. Stato e risposta nella stessa transazione; ogni record letto passa da uno schema zod e quelli non validi si ignorano. `progressStore()` apre il database una volta sola e restituisce `null` se IndexedDB non c'è; `onProgress`/`notifyProgress` avvisano le schermate aperte |
 | `record.ts` | `recordStudyAnswer`: porta una risposta nel ripasso con `recordAnswer` del core; non lancia mai (lo studio non si ferma se IndexedDB fallisce). La usano il feed (`onAnswer` in `feed-app.tsx`, fonte `feed`) e la sessione di ripasso (fonte `review`) |
 | `catalog.ts` | `buildReviewCatalog`: dalla materia scaricata ai concetti (uno per chiave, testi dalla prima lezione, termini da tutte le schede sul concetto) e alle domande, con l'id dell'elemento del feed (`lezione:quiz:id`, unico nella materia); `recallBlank` sceglie la parola da coprire con `pickBlank` del core o, in mancanza, il nome del concetto |
 | `use-review-data.ts` | Materia (prima la copia sul dispositivo, poi `loadFeed` come il feed) e progressi, ricaricati a ogni risposta |
 | `review-app.tsx` | Tab Ripasso: sezioni *Ripasso*/*Esame*, home (scaduti, serie, concetti deboli, barre per modulo), riepilogo di fine sessione |
 | `review-session.tsx` | Sessione a battute a tutto schermo: richiamo con la parola da indovinare, poi la domanda con `QuizSlide` del feed (prop `continueHint={null}` e pulsante *Avanti*) |
 | `review.css` | Stili del ripasso con i token `--sf-*`; le larghezze delle barre sono variabili CSS impostate dal client (CSP) |
+
+### Sincronizzazione dei progressi (M4)
+Decisioni in [ADR 0018](../decisions/0018-sincronizzazione-cifrata-progressi.md); unione e ricalcolo puri nel core ([core.md](core.md#sincronizzazione-dei-progressi)).
+
+| File (`src/features/sync`) | Ruolo |
+|---|---|
+| `crypto.ts` | WebCrypto: `derivePasswordKey` (PBKDF2-SHA256 600.000 iterazioni, sale dall'email → chiave HKDF non estraibile), `encryptSnapshot`/`decryptSnapshot` (HKDF con sale casuale → AES-GCM 256, iv casuale, gzip, dati associati con il `kdf`); la copia decifrata passa da uno schema zod |
+| `key-store.ts` | Database `epicfeed-sync`: la chiave (`CryptoKey` non estraibile, email, account, `trusted`) e il proprietario dei progressi del dispositivo |
+| `vault.ts` | `HttpProgressVault`, adapter della porta `ProgressVault`: `GET`/`PUT /api/progress`, `409` → `{ ok: false }`, errori di rete → `SyncHttpError` |
+| `engine.ts` | `syncNow` (una alla volta, con coda), `useProgressSync` (apertura, 20 s dopo l'ultima risposta, secondo piano, ritorno della rete), `useSyncStatus`, `rememberPasswordKey`/`forgetPasswordKey`; controllo del proprietario dei progressi |
+| `actions.ts` | Server action `confirmPassword`: verifica la password dell'utente collegato per lo sblocco |
+| `sync-panel.tsx` | Stato in fondo alla home del Ripasso e richiesta della password (*Sincronizza telefono e PC*, *La password è cambiata*) |
+
+- La chiave si prepara nel form di accesso (`login-form.tsx`) e in quello della password (`password-form.tsx`) **prima** di mandare il form: è l'unico momento in cui il browser ha la password. Se l'accesso o il salvataggio non riescono, la chiave si cancella.
+- Lato server: `src/server/progress-handler.ts` (handler puri, testati senza Next.js), `progress-deps.ts`, `src/app/api/progress/route.ts`; `DrizzleProgressRepository` in `packages/adapters` (lettura con la RLS dello studente, scrittura con `revision = base` e incremento atomico).
+- Nel banco di prova Playwright `confirmPassword` è una funzione vuota e non c'è chiave: la home del Ripasso mostra la richiesta della password, il resto non cambia.
 
 ### PWA e uso senza rete
 - **Manifest** (`src/app/manifest.ts`, servito come `/manifest.webmanifest`): nome *EpicFeed*, apertura su `/`, schermo intero verticale, colori ossidiana; icone in `public/icon.svg` e `public/icons/` (192, 512, 512 *maskable*, 180 per iOS). Il layout aggiunge l'icona per la schermata Home di iOS e `appleWebApp`.

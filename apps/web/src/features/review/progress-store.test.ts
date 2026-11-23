@@ -63,3 +63,62 @@ describe('IndexedDbProgressStore', () => {
     expect(await store.loadReviews()).toEqual([]);
   });
 });
+
+describe('IndexedDbProgressStore e sincronizzazione', () => {
+  const answer = (at: string, concept: string, grade: 'again' | 'good' = 'good') => ({
+    conceptId: concept,
+    questionId: null,
+    source: 'feed' as const,
+    grade,
+    language: 'en' as const,
+    at,
+  });
+
+  it('esporta risposte, giorni di ripasso e serie migliore', async () => {
+    const store = await freshStore();
+    await recordAnswer(store, clock, {
+      subjectId: 's1',
+      conceptKey: 'stack',
+      questionId: null,
+      source: 'feed',
+      grade: 'good',
+      language: 'it',
+    });
+    await completeReviewSession(store, clock);
+    const snapshot = await store.loadSnapshot();
+    expect(snapshot.answers).toHaveLength(1);
+    expect(snapshot.reviewDays).toEqual(['2026-11-23']);
+    expect(snapshot.bestStreak).toBe(1);
+    // Lo stesso giorno non si ripete.
+    await completeReviewSession(store, clock);
+    expect((await store.loadSnapshot()).reviewDays).toEqual(['2026-11-23']);
+  });
+
+  it('unisce una copia remota e ricalcola stati e serie', async () => {
+    const store = await freshStore();
+    const local = answer('2026-11-22T09:00:00.000Z', 's1:stack', 'again');
+    await store.saveAnswer(applyReview(undefined, 's1:stack', 'again', new Date(local.at)), local);
+    const remote = answer('2026-11-23T09:00:00.000Z', 's1:stack');
+    const merged = await store.mergeSnapshot({
+      version: 1,
+      answers: [remote, local],
+      reviewDays: ['2026-11-21', '2026-11-22'],
+      bestStreak: 5,
+    });
+    expect(merged.answers).toEqual([local, remote]);
+    expect(await store.countAnswers()).toBe(2);
+    const state = await store.getReview('s1:stack');
+    expect(state?.reps).toBe(2);
+    expect(state?.wrong).toBe(1);
+    expect(await store.loadDayStreak()).toEqual({ lastDay: '2026-11-22', days: 2, best: 5 });
+    expect((await store.loadSnapshot()).reviewDays).toEqual(['2026-11-21', '2026-11-22']);
+  });
+
+  it('nella copia porta anche la serie di prima della sincronizzazione', async () => {
+    const store = await freshStore();
+    await store.saveDayStreak({ lastDay: '2026-11-20', days: 3, best: 4 });
+    const snapshot = await store.loadSnapshot();
+    expect(snapshot.reviewDays).toEqual(['2026-11-20']);
+    expect(snapshot.bestStreak).toBe(4);
+  });
+});

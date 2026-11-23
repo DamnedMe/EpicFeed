@@ -21,14 +21,17 @@ if (!existsSync(chunks)) throw new Error('Manca la build di Next.js: esegui prim
 
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
-// La server action di Io (`saveAppearance`) qui non esiste: la si sostituisce
-// con una funzione vuota (il tema cambia comunque subito sulla pagina).
+// Le server action (`saveAppearance` di Io, `confirmPassword` dello sblocco)
+// qui non esistono: le si sostituisce con funzioni vuote (il tema cambia
+// comunque subito sulla pagina; senza server la password non si verifica).
 const serverActions = {
   name: 'server-actions',
   setup(builder) {
     builder.onResolve({ filter: /^\.\/actions$/ }, () => ({ path: 'actions', namespace: 'stub' }));
     builder.onLoad({ filter: /.*/, namespace: 'stub' }, () => ({
-      contents: 'export async function saveAppearance() {}',
+      contents:
+        'export async function saveAppearance() {}\n' +
+        'export async function confirmPassword() { return { ok: false, email: null }; }',
       loader: 'js',
     }));
   },
