@@ -1,6 +1,7 @@
 import 'server-only';
 import {
   DrizzleCatalogRepository,
+  DrizzleExamPackRepository,
   DrizzleGenerationRepository,
   DrizzleProgressRepository,
   DrizzleStudyFeedRepository,
@@ -14,13 +15,16 @@ import {
 import {
   ImportLesson,
   ImportLessonSlides,
+  ListLessonsForExam,
   ListLessonsToGenerate,
   ListOwnedLessons,
   ListStudySubjects,
   PossessionProofVerifier,
+  ReadLessonForExam,
   ReadLessonForGeneration,
   ReadSubjectFeed,
   RealignLessonFeeds,
+  SaveExamPack,
   SaveLessonFeed,
   systemClock,
 } from '@study-feed/core';
@@ -50,6 +54,9 @@ export interface Services {
   readonly realignLessonFeeds: RealignLessonFeeds;
   /** Copie cifrate dei progressi (ADR 0018). */
   readonly progress: DrizzleProgressRepository;
+  readonly listLessonsForExam: ListLessonsForExam;
+  readonly readLessonForExam: ReadLessonForExam;
+  readonly saveExamPack: SaveExamPack;
 }
 
 let services: Services | undefined;
@@ -78,6 +85,7 @@ export function getServices(): Services {
   const generation = new DrizzleGenerationRepository(db);
   const catalog = new DrizzleCatalogRepository(db);
   const studyFeed = new DrizzleStudyFeedRepository(db);
+  const exams = new DrizzleExamPackRepository(db);
   const verifier = new PossessionProofVerifier(systemClock);
   services = {
     importLesson: new ImportLesson({ catalog, verifier, clock: systemClock }),
@@ -100,6 +108,9 @@ export function getServices(): Services {
     readSubjectFeed: new ReadSubjectFeed(studyFeed),
     realignLessonFeeds: new RealignLessonFeeds(generation, studyFeed),
     progress: new DrizzleProgressRepository(db),
+    listLessonsForExam: new ListLessonsForExam(exams),
+    readLessonForExam: new ReadLessonForExam(exams),
+    saveExamPack: new SaveExamPack({ repository: exams, clock: systemClock }),
   };
   return services;
 }

@@ -34,6 +34,12 @@ M4 chiude l'MVP: ripasso giornaliero dei concetti deboli e sezione Esame in ingl
 ### Sincronizzazione (PR 2)
 I progressi escono dal dispositivo solo cifrati: la chiave si ricava dalla password al momento dell'accesso e resta sul dispositivo; il server conserva dati che non può leggere, con permessi per utente. Se la password cambia, la copia sul server si rifà dal primo dispositivo che si apre (i dati locali restano). Dettagli e protocollo nell'[ADR 0018](0018-sincronizzazione-cifrata-progressi.md).
 
+### Pacchetti d'esame: dettagli tecnici (PR 3)
+- Il pacchetto **non cambia il contratto del feed** (diversamente dal §6 dell'ADR 0014, che prevedeva un campo `examQuestions` nel feed): sta nella tabella `lesson_exam_packs`, uno per feed, con domande a scelta multipla e domande aperte insieme. Così i 31 feed già generati restano come sono e il pacchetto si aggiunge con un passaggio separato.
+- Claude scrive il pacchetto dal **feed corrente** della lezione in inglese, non dalle fonti: le domande restano su ciò che le schede insegnano e usano le stesse chiavi dei concetti, quindi ogni risposta aggiorna lo stesso ripasso.
+- Strumenti MCP `lezioni_per_esame`, `leggi_lezione_esame`, `salva_domande_esame` e prompt `genera_domande_esame`; regole nel core (`checkExamPack`), ripetute dal server MCP e dall'API. Dettagli in [generation.md](../technical/generation.md#pacchetti-desame-m4).
+- La banca degli esercizi del corso dal materiale *Exam Prep* (§2 dell'ADR 0014, con 2 varianti per esercizio) segue in una PR a parte, con il proprio strumento.
+
 ## Alternative scartate
 - **Esame come quinta voce della barra o dentro *Io***: proposte, Damian ha preferito tenerlo dentro Ripasso.
 - **Ripasso solo con domande o elenco stile quiz**: più veloce ma senza il richiamo del concetto.

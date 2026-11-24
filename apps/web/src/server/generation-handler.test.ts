@@ -12,8 +12,11 @@ import { MAX_FEED_BODY_BYTES, MAX_SLIDES_BODY_BYTES } from '@study-feed/contract
 import {
   handleImportSlides,
   handleListCatalog,
+  handleListExamLessons,
   handleListLessons,
   handleReadLesson,
+  handleReadLessonForExam,
+  handleSaveExamPack,
   handleSaveFeed,
   type GenerationHandlerDeps,
 } from './generation-handler';
@@ -91,6 +94,40 @@ const feed = {
 };
 const saveBody = { lessonId, sourcesHash: 'a'.repeat(64), promptVersion: '2026-11-21.1', feed };
 
+const feedId = '50000000-0000-4000-8000-000000000001';
+const examMaterial = {
+  lessonId: lessonId as LessonId,
+  lessonTitle: 'Binary trees',
+  chapterTitle: 'Trees',
+  subjectTitle: 'DSA',
+  feedId,
+  hasExamPack: false,
+  concepts: [{ key: 'avl-tree', name: 'AVL tree', description: 'A balanced BST.' }],
+  cards: [
+    {
+      title: 'AVL tree',
+      keyPoint: 'A balanced BST.',
+      body: 'It rebalances.',
+      code: { language: 'python', source: 'x = 1' },
+      conceptKeys: ['avl-tree'],
+    },
+  ],
+  feedQuestions: ['Is an AVL a BST?'],
+};
+const examPack = {
+  questions: Array.from({ length: 10 }, (_, i) => ({
+    id: `q-${i}`,
+    question: `Question ${i}?`,
+    options: ['a', 'b', 'c', 'd'],
+    correctIndex: 0,
+    explanation: 'Because.',
+    conceptKey: 'avl-tree',
+    difficulty: 2,
+  })),
+  openQuestions: [],
+};
+const examBody = { lessonId, feedId, promptVersion: '2026-11-24.1', pack: examPack };
+
 const record = vi.fn(() => Promise.resolve());
 const logError = vi.fn();
 
@@ -124,6 +161,21 @@ function deps(overrides: Partial<GenerationHandlerDeps> = {}): GenerationHandler
           pages: p.content.pages.length,
         })),
       ),
+    listExamLessons: () =>
+      Promise.resolve({
+        lessons: [
+          {
+            lessonId: lessonId as LessonId,
+            lessonTitle: 'Binary trees',
+            chapterTitle: 'Trees',
+            subjectTitle: 'DSA',
+          },
+        ],
+        totals: { lessons: 2, ready: 1, toGenerate: 1 },
+      }),
+    readLessonForExam: () => Promise.resolve(examMaterial),
+    saveExamPack: () =>
+      Promise.resolve({ packId: feedId, created: true, questions: 10, openQuestions: 1 }),
     logError,
     ...overrides,
   };
@@ -375,5 +427,73 @@ describe('POST /api/generation/lessons/:id/slides', () => {
       'x',
     );
     expect((await handleImportSlides(anonymous, lessonId, deps())).status).toBe(401);
+  });
+});
+
+describe("pacchetti d'esame", () => {
+  const examUrl = `/api/generation/lessons/${lessonId}/exam`;
+  const postExam = (payload: unknown) =>
+    request(examUrl, { method: 'POST', body: JSON.stringify(payload) });
+
+  it('elenca le lezioni senza pacchetto', async () => {
+    const response = await handleListExamLessons(request('/api/generation/exam'), deps());
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ totals: { toGenerate: 1 } });
+  });
+
+  it('legge il feed della lezione e registra la lettura', async () => {
+    const d = deps();
+    const response = await handleReadLessonForExam(request(examUrl), lessonId, d);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(examMaterial);
+    expect(record).toHaveBeenCalledWith(user, 'read', lessonId);
+  });
+
+  it('risponde 404 per una lezione senza feed e 400 per un id non valido', async () => {
+    const missing = await handleReadLessonForExam(
+      request(examUrl),
+      lessonId,
+      deps({ readLessonForExam: () => Promise.reject(new DomainError('NOT_FOUND', 'x')) }),
+    );
+    expect(missing.status).toBe(404);
+    expect((await handleReadLessonForExam(request(examUrl), 'nope', deps())).status).toBe(400);
+  });
+
+  it('salva il pacchetto e risponde 201', async () => {
+    const saveExamPack = vi.fn(() =>
+      Promise.resolve({ packId: feedId, created: true, questions: 10, openQuestions: 1 }),
+    );
+    const response = await handleSaveExamPack(postExam(examBody), lessonId, deps({ saveExamPack }));
+    expect(response.status).toBe(201);
+    expect(saveExamPack).toHaveBeenCalledWith(user, expect.objectContaining({ feedId }));
+    expect(record).toHaveBeenCalledWith(user, 'save', lessonId);
+  });
+
+  it('rifiuta forma, lezione diversa, problemi del pacchetto e feed cambiato', async () => {
+    const shape = await handleSaveExamPack(postExam({ ...examBody, pack: {} }), lessonId, deps());
+    expect(shape.status).toBe(422);
+    const other = await handleSaveExamPack(
+      postExam({ ...examBody, lessonId: partId }),
+      lessonId,
+      deps(),
+    );
+    expect(other.status).toBe(400);
+    const invalid = await handleSaveExamPack(
+      postExam(examBody),
+      lessonId,
+      deps({
+        saveExamPack: () =>
+          Promise.reject(
+            new FeedValidationError([{ path: 'openQuestions', message: 'x' }], 'Il pacchetto'),
+          ),
+      }),
+    );
+    expect((await errorOf(invalid)).issues).toEqual([{ path: 'openQuestions', message: 'x' }]);
+    const changed = await handleSaveExamPack(
+      postExam(examBody),
+      lessonId,
+      deps({ saveExamPack: () => Promise.reject(new DomainError('SOURCES_CHANGED', 'nuovo')) }),
+    );
+    expect(changed.status).toBe(409);
   });
 });

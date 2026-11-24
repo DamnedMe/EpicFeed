@@ -4,7 +4,7 @@
   "display_name": "EpicFeed",
   "version": "0.0.0",
   "description": "Genera schede, quiz e concetti in italiano e in inglese delle lezioni Epicode importate in EpicFeed.",
-  "long_description": "Collega Claude Desktop a EpicFeed: chiedi \"genera le lezioni nuove di EpicFeed\" e Claude legge le lezioni che hai importato, crea il feed di schede, quiz e concetti nelle due lingue e lo salva nell'app. Il server gira sul tuo PC e parla solo con EpicFeed, con un token che permette solo la generazione. Puoi anche indicare lo zip delle slide scaricato dal portale (Course downloads › Download all PDFs): i PDF restano sul PC, a EpicFeed arriva solo il testo.",
+  "long_description": "Collega Claude Desktop a EpicFeed: chiedi \"genera le lezioni nuove di EpicFeed\" e Claude legge le lezioni che hai importato, crea il feed di schede, quiz e concetti nelle due lingue e lo salva nell'app. Il server gira sul tuo PC e parla solo con EpicFeed, con un token che permette solo la generazione. Con \"genera le domande d'esame di EpicFeed\" aggiunge a ogni lezione domande d'esame in inglese: 10 a scelta multipla e 1-2 aperte con soluzione e griglia. Puoi anche indicare lo zip delle slide scaricato dal portale (Course downloads › Download all PDFs): i PDF restano sul PC, a EpicFeed arriva solo il testo.",
   "author": {
     "name": "Damian"
   },
@@ -41,6 +41,18 @@
     {
       "name": "importa_slide",
       "description": "Importa le slide delle lezioni dallo zip di Course downloads."
+    },
+    {
+      "name": "lezioni_per_esame",
+      "description": "Elenca le lezioni con il feed ma senza domande d'esame."
+    },
+    {
+      "name": "leggi_lezione_esame",
+      "description": "Feed di una lezione in inglese e istruzioni per le domande d'esame."
+    },
+    {
+      "name": "salva_domande_esame",
+      "description": "Controlla e salva le domande d'esame di una lezione."
     }
   ],
   "prompts": [
@@ -48,6 +60,11 @@
       "name": "genera_lezioni",
       "description": "Genera schede, quiz e concetti per tutte le lezioni ancora da generare.",
       "text": "Genera il feed di tutte le lezioni EpicFeed ancora da generare, una alla volta, con gli strumenti di EpicFeed."
+    },
+    {
+      "name": "genera_domande_esame",
+      "description": "Scrive le domande d'esame in inglese per tutte le lezioni con il feed.",
+      "text": "Scrivi le domande d'esame di tutte le lezioni EpicFeed che non le hanno ancora, una lezione alla volta, con gli strumenti di EpicFeed."
     }
   ],
   "user_config": {

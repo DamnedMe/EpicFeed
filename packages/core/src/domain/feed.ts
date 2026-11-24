@@ -447,9 +447,13 @@ export interface LessonFeedDocument {
 export class FeedValidationError extends DomainError {
   /**
    * @param issues - Problemi trovati (almeno uno).
+   * @param subject - Cosa è stato rifiutato, per il messaggio (feed o pacchetto d'esame).
    */
-  constructor(readonly issues: readonly FeedIssue[]) {
-    super('INVALID_FEED', `Il feed ha ${issues.length} problemi da correggere`);
+  constructor(
+    readonly issues: readonly FeedIssue[],
+    subject = 'Il feed',
+  ) {
+    super('INVALID_FEED', `${subject} ha ${issues.length} problemi da correggere`);
     this.name = 'FeedValidationError';
   }
 }

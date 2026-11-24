@@ -1,5 +1,9 @@
 import type {
   ImportedSlidesResult,
+  LessonExamMaterial,
+  LessonsForExamResult,
+  SaveExamPackInput,
+  SaveExamPackResult,
   LessonForGeneration,
   LessonId,
   LessonsToGenerateResult,
@@ -12,15 +16,20 @@ import type {
 import { DomainError, FeedValidationError, parseId } from '@study-feed/core';
 import type {
   ImportSlidesResponse,
+  LessonForExamResponse,
+  LessonsForExamResponse,
+  SaveExamPackResponse,
   LessonSourcesResponse,
   LessonsToGenerateResponse,
   OwnedLessonsResponse,
   SaveLessonFeedResponse,
 } from '@study-feed/contracts';
 import {
+  MAX_EXAM_BODY_BYTES,
   MAX_FEED_BODY_BYTES,
   MAX_SLIDES_BODY_BYTES,
   importSlidesRequestSchema,
+  saveExamPackRequestSchema,
   saveLessonFeedRequestSchema,
 } from '@study-feed/contracts';
 import { z } from 'zod';
@@ -54,6 +63,9 @@ export interface GenerationHandlerDeps {
     lessonId: LessonId,
     presentations: readonly SlidesPresentationInput[],
   ): Promise<ImportedSlidesResult[]>;
+  listExamLessons(userId: UserId, limit: number): Promise<LessonsForExamResult>;
+  readLessonForExam(userId: UserId, lessonId: LessonId): Promise<LessonExamMaterial>;
+  saveExamPack(userId: UserId, input: SaveExamPackInput): Promise<SaveExamPackResult>;
   /** Registra un errore inatteso (senza contenuti). */
   logError(error: unknown): void;
 }
@@ -84,20 +96,28 @@ async function authorize(request: Request, deps: GenerationHandlerDeps): Promise
   return { userId: parseId(userId, 'UserId') };
 }
 
-/** Traduce gli errori del dominio nelle risposte HTTP della generazione. */
-function domainErrorResponse(error: unknown, deps: GenerationHandlerDeps): Response {
+/**
+ * Traduce gli errori del dominio nelle risposte HTTP della generazione.
+ *
+ * @param subject - Cosa si stava salvando, per il messaggio dei problemi.
+ * @param notFound - Messaggio per una lezione non trovata.
+ */
+function domainErrorResponse(
+  error: unknown,
+  deps: GenerationHandlerDeps,
+  subject = 'Il feed',
+  notFound = 'Lezione non trovata tra quelle che hai importato.',
+): Response {
   if (error instanceof FeedValidationError) {
     return apiError(
       'INVALID_FEED',
-      'Il feed non rispetta le regole: correggi i problemi elencati e salva di nuovo.',
+      `${subject} non rispetta le regole: correggi i problemi elencati e salva di nuovo.`,
       {},
       error.issues,
     );
   }
   if (error instanceof DomainError) {
-    if (error.code === 'NOT_FOUND') {
-      return apiError('NOT_FOUND', 'Lezione non trovata tra quelle che hai importato.');
-    }
+    if (error.code === 'NOT_FOUND') return apiError('NOT_FOUND', notFound);
     if (error.code === 'SOURCES_CHANGED') return apiError('CONFLICT', error.message);
     return apiError('INVALID_CONTENT', error.message);
   }
@@ -325,5 +345,131 @@ export async function handleImportSlides(
     return apiOk(response);
   } catch (error) {
     return domainErrorResponse(error, deps);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Pacchetti d'esame (M4)
+// ---------------------------------------------------------------------------
+
+const EXAM_PACK = "Il pacchetto d'esame";
+const NO_FEED = 'Lezione senza feed tra quelle che hai importato: genera prima il feed.';
+
+/**
+ * `GET /api/generation/exam?limit=20`: lezioni con un feed ma senza pacchetto
+ * d'esame, e totali.
+ *
+ * @param request - Richiesta HTTP.
+ * @param deps - Servizi.
+ * @returns La risposta HTTP.
+ */
+export async function handleListExamLessons(
+  request: Request,
+  deps: GenerationHandlerDeps,
+): Promise<Response> {
+  const auth = await authorize(request, deps);
+  if ('response' in auth) return auth.response;
+  const limit = limitSchema.parse(new URL(request.url).searchParams.get('limit') ?? undefined);
+  try {
+    const result = await deps.listExamLessons(auth.userId, limit);
+    const body: LessonsForExamResponse = {
+      lessons: result.lessons.map((lesson) => ({ ...lesson })),
+      totals: { ...result.totals },
+    };
+    return apiOk(body);
+  } catch (error) {
+    return domainErrorResponse(error, deps, EXAM_PACK, NO_FEED);
+  }
+}
+
+/**
+ * `GET /api/generation/lessons/:id/exam`: il feed della lezione in inglese,
+ * per scrivere il pacchetto d'esame.
+ *
+ * @param request - Richiesta HTTP.
+ * @param rawLessonId - Id della lezione dal percorso.
+ * @param deps - Servizi.
+ * @returns La risposta HTTP.
+ */
+export async function handleReadLessonForExam(
+  request: Request,
+  rawLessonId: string,
+  deps: GenerationHandlerDeps,
+): Promise<Response> {
+  const auth = await authorize(request, deps);
+  if ('response' in auth) return auth.response;
+  const lessonId = lessonIdFrom(rawLessonId);
+  if (!lessonId) return apiError('INVALID_REQUEST', 'Id della lezione non valido.');
+  await deps.record(auth.userId, 'read', lessonId);
+  try {
+    const material = await deps.readLessonForExam(auth.userId, lessonId);
+    const body: LessonForExamResponse = {
+      lessonId: material.lessonId,
+      feedId: material.feedId,
+      lessonTitle: material.lessonTitle,
+      chapterTitle: material.chapterTitle,
+      subjectTitle: material.subjectTitle,
+      hasExamPack: material.hasExamPack,
+      concepts: material.concepts.map((concept) => ({ ...concept })),
+      cards: material.cards.map((card) => ({
+        title: card.title,
+        keyPoint: card.keyPoint,
+        body: card.body,
+        ...(card.steps ? { steps: [...card.steps] } : {}),
+        ...(card.code ? { code: { ...card.code } } : {}),
+        conceptKeys: [...card.conceptKeys],
+      })),
+      feedQuestions: [...material.feedQuestions],
+    };
+    return apiOk(body);
+  } catch (error) {
+    return domainErrorResponse(error, deps, EXAM_PACK, NO_FEED);
+  }
+}
+
+/**
+ * `POST /api/generation/lessons/:id/exam`: salva il pacchetto d'esame.
+ *
+ * @param request - Richiesta HTTP (corpo: `saveExamPackRequestSchema`).
+ * @param rawLessonId - Id della lezione dal percorso.
+ * @param deps - Servizi.
+ * @returns La risposta HTTP.
+ */
+export async function handleSaveExamPack(
+  request: Request,
+  rawLessonId: string,
+  deps: GenerationHandlerDeps,
+): Promise<Response> {
+  const auth = await authorize(request, deps);
+  if ('response' in auth) return auth.response;
+  const lessonId = lessonIdFrom(rawLessonId);
+  if (!lessonId) return apiError('INVALID_REQUEST', 'Id della lezione non valido.');
+
+  await deps.record(auth.userId, 'save', lessonId);
+  const body = await readJsonBody(request, MAX_EXAM_BODY_BYTES, `${EXAM_PACK} è troppo grande.`);
+  if (body instanceof Response) return body;
+  const parsed = saveExamPackRequestSchema.safeParse(body.json);
+  if (!parsed.success) {
+    return apiError(
+      'INVALID_FEED',
+      `${EXAM_PACK} non ha la forma attesa.`,
+      {},
+      zodIssues(parsed.error),
+    );
+  }
+  if (parsed.data.lessonId.toLowerCase() !== lessonId) {
+    return apiError('INVALID_REQUEST', 'La lezione del pacchetto non corrisponde al percorso.');
+  }
+
+  try {
+    const result = await deps.saveExamPack(auth.userId, {
+      ...parsed.data,
+      lessonId,
+      feedId: parsed.data.feedId.toLowerCase(),
+    });
+    const response: SaveExamPackResponse = { ...result };
+    return apiOk(response, result.created ? 201 : 200);
+  } catch (error) {
+    return domainErrorResponse(error, deps, EXAM_PACK, NO_FEED);
   }
 }

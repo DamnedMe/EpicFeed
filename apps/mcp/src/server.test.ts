@@ -115,6 +115,9 @@ async function connect(
         presentations: [{ number: 1, lessonPartId: partId, newVersion: true, pages: 2 }],
       }),
     ),
+    listExamLessons: vi.fn(() => Promise.reject(new Error('non usato'))),
+    readLessonForExam: vi.fn(() => Promise.reject(new Error('non usato'))),
+    saveExamPack: vi.fn(() => Promise.reject(new Error('non usato'))),
     ...overrides,
   };
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
@@ -134,17 +137,21 @@ async function connect(
 }
 
 describe('server MCP di EpicFeed', () => {
-  it('espone i 4 strumenti, il prompt e le istruzioni', async () => {
+  it('espone gli strumenti, i prompt e le istruzioni', async () => {
     const { client } = await connect();
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
       'importa_slide',
       'leggi_lezione',
+      'leggi_lezione_esame',
       'lezioni_da_generare',
+      'lezioni_per_esame',
+      'salva_domande_esame',
       'salva_feed_lezione',
       'stato_generazione',
     ]);
     expect(client.getInstructions()).toContain('lezioni_da_generare');
+    expect(client.getInstructions()).toContain('lezioni_per_esame');
     const prompt = await client.getPrompt({ name: 'genera_lezioni' });
     const first = prompt.messages[0]?.content as { text: string };
     expect(first.text).toContain(PROMPT_VERSION);

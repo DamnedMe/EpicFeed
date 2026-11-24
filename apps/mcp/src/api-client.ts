@@ -1,5 +1,9 @@
 import type {
   ImportSlidesRequest,
+  LessonForExamResponse,
+  LessonsForExamResponse,
+  SaveExamPackRequest,
+  SaveExamPackResponse,
   ImportSlidesResponse,
   LessonSourcesResponse,
   LessonsToGenerateResponse,
@@ -10,7 +14,10 @@ import type {
 import {
   apiErrorSchema,
   importSlidesResponseSchema,
+  lessonForExamResponseSchema,
+  lessonsForExamResponseSchema,
   ownedLessonsResponseSchema,
+  saveExamPackResponseSchema,
   lessonSourcesResponseSchema,
   lessonsToGenerateResponseSchema,
   saveLessonFeedResponseSchema,
@@ -147,6 +154,48 @@ export class EpicFeedApi {
       `/api/generation/lessons/${encodeURIComponent(lessonId)}/slides`,
       { method: 'POST', body: JSON.stringify(body) },
       importSlidesResponseSchema,
+    );
+  }
+
+  /**
+   * Lezioni con un feed ma senza pacchetto d'esame, e totali.
+   *
+   * @param limit - Massimo di lezioni (1–100).
+   * @returns La risposta validata.
+   */
+  async listExamLessons(limit: number): Promise<LessonsForExamResponse> {
+    return this.request(
+      `/api/generation/exam?limit=${String(limit)}`,
+      { method: 'GET' },
+      lessonsForExamResponseSchema,
+    );
+  }
+
+  /**
+   * Feed di una lezione (in inglese) per scrivere il pacchetto d'esame.
+   *
+   * @param lessonId - Id della lezione.
+   * @returns La risposta validata.
+   */
+  async readLessonForExam(lessonId: string): Promise<LessonForExamResponse> {
+    return this.request(
+      `/api/generation/lessons/${encodeURIComponent(lessonId)}/exam`,
+      { method: 'GET' },
+      lessonForExamResponseSchema,
+    );
+  }
+
+  /**
+   * Salva il pacchetto d'esame di una lezione.
+   *
+   * @param body - Richiesta già validata.
+   * @returns La risposta validata.
+   */
+  async saveExamPack(body: SaveExamPackRequest): Promise<SaveExamPackResponse> {
+    return this.request(
+      `/api/generation/lessons/${encodeURIComponent(body.lessonId)}/exam`,
+      { method: 'POST', body: JSON.stringify(body) },
+      saveExamPackResponseSchema,
     );
   }
 

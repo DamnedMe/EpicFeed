@@ -10,6 +10,7 @@ export * from './content-hash.js';
 export * from './content-version.js';
 export * from './entitlement.js';
 export * from './errors.js';
+export * from './exam.js';
 export * from './feed.js';
 export * from './import.js';
 export * from './ids.js';

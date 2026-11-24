@@ -2,15 +2,18 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import type { LessonSourcesResponse } from '@study-feed/contracts';
 import { lessonFeedDraftSchema } from '@study-feed/contracts';
-import type { FeedIssue } from '@study-feed/core';
 import { checkLessonFeed } from '@study-feed/core';
 import { z } from 'zod';
 import type { EpicFeedApi } from './api-client.js';
 import { ApiRequestError } from './api-client.js';
+import { EXAM_SERVER_INSTRUCTIONS } from './exam-prompt.js';
+import type { ExamApi } from './exam-tools.js';
+import { registerExamTools } from './exam-tools.js';
 import { GENERATION_INSTRUCTIONS, PROMPT_VERSION, SERVER_INSTRUCTIONS } from './prompt.js';
 import type { SlidesToolkit } from './slides/toolkit.js';
 import { defaultSlidesToolkit } from './slides/toolkit.js';
 import { importSlides, newImportSession, slideImagesFor } from './slides/tools.js';
+import { issuesResult, text, withErrors } from './tool-results.js';
 
 /** Versione del server MCP, mostrata a Claude Desktop. */
 export const SERVER_VERSION = '0.1.0';
@@ -19,12 +22,14 @@ export const SERVER_VERSION = '0.1.0';
 export type GenerationApi = Pick<
   EpicFeedApi,
   'listLessons' | 'readLesson' | 'saveFeed' | 'listCatalog' | 'importSlides'
->;
+> &
+  ExamApi;
 
 /**
  * Crea il server MCP di EpicFeed con gli strumenti di generazione (M2):
  * `lezioni_da_generare`, `leggi_lezione`, `salva_feed_lezione`,
- * `stato_generazione`, `importa_slide` e il prompt `genera_lezioni`.
+ * `stato_generazione`, `importa_slide` e il prompt `genera_lezioni`; più
+ * quelli dei pacchetti d'esame (M4, {@link registerExamTools}).
  *
  * Il server non tiene segreti oltre al token (dentro `api`) e ricorda solo,
  * in memoria, le parti delle lezioni lette, per controllare il feed prima di
@@ -40,7 +45,7 @@ export function createEpicFeedServer(
 ): McpServer {
   const server = new McpServer(
     { name: 'epicfeed', title: 'EpicFeed', version: SERVER_VERSION },
-    { instructions: SERVER_INSTRUCTIONS },
+    { instructions: `${SERVER_INSTRUCTIONS}\n\n${EXAM_SERVER_INSTRUCTIONS}` },
   );
   // Parti di ogni lezione letta in questa sessione: servono al controllo locale.
   const partsByLesson = new Map<string, ReadonlySet<string>>();
@@ -254,6 +259,7 @@ export function createEpicFeedServer(
     }),
   );
 
+  registerExamTools(server, api);
   return server;
 }
 
@@ -307,43 +313,4 @@ export function formatLesson(lesson: LessonSourcesResponse): string {
     for (const entry of lesson.glossary) out.push(`- ${entry.term} — ${entry.translation}`);
   }
   return out.join('\n');
-}
-
-function text(value: string): CallToolResult {
-  return { content: [{ type: 'text', text: value }] };
-}
-
-function issuesResult(issues: readonly FeedIssue[]): CallToolResult {
-  const list = issues.map((issue) => `- ${issue.path}: ${issue.message}`).join('\n');
-  return {
-    isError: true,
-    content: [
-      {
-        type: 'text',
-        text: `Il feed non è stato salvato: ${String(issues.length)} problemi da correggere.\n${list}\nCorreggi solo questi punti e chiama di nuovo salva_feed_lezione.`,
-      },
-    ],
-  };
-}
-
-/** Trasforma gli errori dell'API in risultati leggibili per Claude. */
-async function withErrors(work: () => Promise<CallToolResult>): Promise<CallToolResult> {
-  try {
-    return await work();
-  } catch (error) {
-    if (error instanceof ApiRequestError) {
-      if (error.issues.length > 0) return issuesResult(error.issues);
-      const hint =
-        error.code === 'UNAUTHORIZED'
-          ? ' Crea un nuovo token nella pagina Claude Desktop di EpicFeed e incollalo nelle impostazioni dell’estensione.'
-          : error.code === 'CONFLICT'
-            ? ' Chiama di nuovo leggi_lezione e rigenera il feed dalle fonti aggiornate.'
-            : '';
-      return { isError: true, content: [{ type: 'text', text: `${error.message}${hint}` }] };
-    }
-    return {
-      isError: true,
-      content: [{ type: 'text', text: 'Errore inatteso nel server MCP di EpicFeed.' }],
-    };
-  }
 }

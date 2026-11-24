@@ -90,6 +90,8 @@ Gira sul PC dello studente dentro Claude Desktop, come estensione `.mcpb`. Parla
 | `src/prompt.ts` | Istruzioni di generazione versionate (`PROMPT_VERSION`, formato `AAAA-MM-GG.n`): gerarchia delle fonti, tipi di scheda, quiz, concetti, glossario. Ogni feed salvato porta la versione: se le istruzioni cambiano si sa quali lezioni rigenerare. Cambiare il testo significa aumentare la versione. |
 | `src/api-client.ts` | `EpicFeedApi`: token solo nell'header `Authorization`, solo HTTPS (HTTP solo verso localhost), `redirect: 'error'`, timeout di 30 s, risposte validate con gli schemi di `@study-feed/contracts`. Errori come `ApiRequestError(status, code, message, issues)`. |
 | `src/server.ts` | `createEpicFeedServer(api)`: strumenti e prompt (sotto). Ricorda in memoria solo le parti delle lezioni lette, per il controllo locale. |
+| `src/exam-prompt.ts`, `src/exam-tools.ts` | Istruzioni versionate (`EXAM_PROMPT_VERSION`) e strumenti dei pacchetti d'esame (`registerExamTools`). Ricorda in memoria concetti e domande del feed letto, per il controllo locale. |
+| `src/tool-results.ts` | Risultati comuni: testo, elenco dei problemi da correggere, errori dell'API spiegati a Claude. |
 | `src/config.ts` | Legge `EPICFEED_TOKEN` e `EPICFEED_API_URL` (dalle impostazioni dell'estensione). Senza token valido il server parte lo stesso e ogni strumento risponde come crearne uno. |
 | `src/main.ts` | Avvio su stdio; i log vanno solo su stderr (stdout è il canale MCP). |
 
@@ -102,8 +104,11 @@ Strumenti (nomi in italiano, perché Claude li mostra allo studente):
 | `salva_feed_lezione { lessonId, sourcesHash, feed }` | Controlla il feed in locale con `checkLessonFeed` (stesse regole dell'API, nessuna chiamata sprecata), poi lo invia con `PROMPT_VERSION`. I problemi, locali o dell'API, tornano a Claude come elenco da correggere. |
 | `stato_generazione` | Totali: importate, pronte, da generare. |
 | `importa_slide { percorso, materia?, aggiorna? }` | Slide dallo zip "Download all PDFs" o dalla cartella estratta (sezione sotto). |
+| `lezioni_per_esame { limite? }` | Lezioni con il feed ma senza pacchetto d'esame, con i totali (sezione *Pacchetti d'esame*). |
+| `leggi_lezione_esame { lessonId }` | Feed corrente della lezione in inglese, `feedId` e istruzioni del pacchetto. |
+| `salva_domande_esame { lessonId, feedId, pack }` | Controlla il pacchetto con `checkExamPack` e lo invia con `EXAM_PROMPT_VERSION`. |
 
-Il prompt MCP `genera_lezioni` avvia la generazione di tutte le lezioni nuove. Le istruzioni del server (`SERVER_INSTRUCTIONS`) dicono a Claude l'ordine degli strumenti e di non chiedere conferma lezione per lezione. Un `409 CONFLICT` suggerisce di rileggere la lezione; un `401` di creare un nuovo token. Gli errori inattesi non mostrano dettagli.
+Il prompt MCP `genera_lezioni` avvia la generazione di tutte le lezioni nuove; `genera_domande_esame` quella dei pacchetti d'esame. Le istruzioni del server (`SERVER_INSTRUCTIONS`) dicono a Claude l'ordine degli strumenti e di non chiedere conferma lezione per lezione. Un `409 CONFLICT` suggerisce di rileggere la lezione; un `401` di creare un nuovo token. Gli errori inattesi non mostrano dettagli.
 
 ### Slide dallo zip (`importa_slide`, ADR 0012)
 Tutto avviene sul PC; a EpicFeed arriva solo il testo.
@@ -128,6 +133,29 @@ Tutto avviene sul PC; a EpicFeed arriva solo il testo.
 Installazione (una volta): in EpicFeed, pagina **Claude**, *Crea token*; in Claude Desktop, Impostazioni › Estensioni, trascinare `epicfeed.mcpb`, incollare il token. Poi in una chat: "genera le lezioni nuove di EpicFeed". Per aggiornare il server basta installare il nuovo `.mcpb`.
 
 Test: `apps/mcp/src/*.test.ts` con un `fetch` finto (client) e il trasporto in memoria dell'SDK (server e strumenti); le slide con PDF e zip veri in `apps/mcp/test/fixtures` (testo, diagramma, logo del modello) e con un toolkit in memoria per gli strumenti.
+
+## Pacchetti d'esame (M4)
+Decisioni: [ADR 0014](../decisions/0014-preparazione-esame.md) (§6 e §8) e [ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md) (scelta 3). Ogni lezione con un feed riceve un **pacchetto d'esame** separato dal feed, così schede e domande già studiate non cambiano:
+
+- **10 domande a scelta multipla** in più (limiti accettati 8–12), 4 opzioni, spiegazione, concetto e difficoltà: con le 6–8 del feed fanno circa 90 domande per modulo, da cui il quiz di modulo ne pesca 50;
+- **1–2 domande aperte** "stile esame": `code` (firma della funzione e 2–8 test `{ call, expected }` da eseguire nel browser), `explain` o `analyze` (con il codice da analizzare); suggerimenti progressivi `{ it, en }` (1–3), soluzione modello, griglia di 3–5 criteri con punti interi 1–5, 1–3 concetti, domanda di approfondimento per il colloquio.
+
+Tutto in inglese tranne i suggerimenti. Tipi e regole in `packages/core/src/domain/exam.ts`, schemi in `packages/contracts/src/exam.ts`.
+
+```
+Claude Desktop ──▶ server MCP ──▶ API EpicFeed ──▶ Postgres
+   │  lezioni_per_esame       GET  /api/generation/exam
+   │  leggi_lezione_esame     GET  /api/generation/lessons/:id/exam   (feed corrente in inglese + feedId)
+   │  (Claude scrive il pacchetto)
+   └─ salva_domande_esame     POST /api/generation/lessons/:id/exam   checkExamPack → salva
+```
+
+- **Feed corrente**: il più recente tra quelli visibili allo studente (RLS). Il pacchetto si lega a quel feed (`lesson_exam_packs.lesson_feed_id`, uno per feed): se la lezione ha poi un feed nuovo, torna tra quelle da completare. Al salvataggio l'API rilegge il feed corrente: se il `feedId` letto da Claude non è più quello, risponde `409` (i concetti potrebbero essere cambiati).
+- **Materiale per Claude**: solo la parte inglese del feed (concetti, schede con passi e codice, domande già presenti), meno testo e la lingua dell'esame. Le fonti originali non servono: il pacchetto non deve insegnare nulla che il feed non insegni.
+- **Controlli** (`checkExamPack`, tutti i problemi con il percorso): quantità; id in kebab-case e unici tra domande chiuse e aperte; 4 opzioni non ripetute e risposta tra le opzioni; concetti esistenti nel feed; domanda non già presente nel feed né ripetuta (confronto senza maiuscole e punteggiatura); firma e test solo per `code`, codice per `analyze`; suggerimenti, criteri e punti nei limiti. Il server MCP li applica prima di inviare, l'API li ripete.
+- **Come per i feed**: vale il primo pacchetto di un feed (un secondo salvataggio risponde `200` senza cambiare nulla); letture e salvataggi contano nel limite di 120 chiamate all'ora; corpo ≤ 256 KB; il pacchetto salvato (`storedExamPackSchema`) porta `lessonId`, `feedId`, `promptVersion` e `generatedAt`.
+
+Uso: in Claude Desktop, "genera le domande d'esame di EpicFeed" (o il prompt `genera_domande_esame`). La sezione *Esame* dell'app che le usa arriva con la PR successiva di M4.
 
 ## Prossimi passi
 - Prova su 2–3 lezioni DSA reali, valutata da Damian; taratura di soglia e tetto delle figure.

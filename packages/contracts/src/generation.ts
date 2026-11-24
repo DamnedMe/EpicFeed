@@ -1,13 +1,15 @@
-import type { ConceptKey, LessonFeedDraft, LessonPartId } from '@study-feed/core';
-import {
-  FEED_LIMITS,
-  MAX_PRESENTATIONS_PER_LESSON,
-  MAX_SLIDE_PAGES,
-  MAX_SLUG_LENGTH,
-  SLUG_PATTERN,
-} from '@study-feed/core';
+import type { LessonFeedDraft, LessonPartId } from '@study-feed/core';
+import { FEED_LIMITS, MAX_PRESENTATIONS_PER_LESSON, MAX_SLIDE_PAGES } from '@study-feed/core';
 import { z } from 'zod';
 import { lessonPartContentSchema } from './import.js';
+import {
+  bilingual,
+  conceptKeySchema,
+  line,
+  paragraph,
+  promptVersionSchema,
+  slug,
+} from './schema-helpers.js';
 
 /**
  * Contratti della generazione (M2, ADR 0011 e ADR 0013): il feed di una
@@ -24,28 +26,6 @@ import { lessonPartContentSchema } from './import.js';
  * chiave fino a 140 caratteri, accettata fino a 220): un testo appena più
  * lungo non deve far rifare la lezione, uno chiaramente fuori misura sì.
  */
-
-/** Testo breve su una riga, non vuoto. */
-const line = (max: number) =>
-  z
-    .string()
-    .trim()
-    .min(1)
-    .max(max)
-    .refine((value) => !value.includes('\n'), 'Il testo deve stare su una riga');
-
-/** Testo che può andare a capo (spiegazioni), non vuoto. */
-const paragraph = (max: number) => z.string().trim().min(1).max(max);
-
-/** Coppia italiano/inglese dello stesso testo (ADR 0011). */
-const bilingual = <T extends z.ZodType>(schema: T) => z.strictObject({ it: schema, en: schema });
-
-const slug = z
-  .string()
-  .max(MAX_SLUG_LENGTH)
-  .regex(SLUG_PATTERN, 'Usa il kebab-case: lettere minuscole, cifre e trattini');
-
-const conceptKeySchema = slug.transform((value) => value as ConceptKey);
 
 const partIdSchema = z.uuid().transform((value) => value.toLowerCase() as LessonPartId);
 
@@ -145,10 +125,7 @@ export type DraftMatchesDomain = Assert<
   LessonFeedDraftInput extends LessonFeedDraft ? true : false
 >;
 
-/** Versione delle istruzioni di generazione (prompt MCP), es. `2026-11-21.1`. */
-export const promptVersionSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}\.\d{1,3}$/, 'Versione del prompt non valida');
+export { promptVersionSchema };
 
 /**
  * Corpo della richiesta con cui il server MCP salva il feed di una lezione.

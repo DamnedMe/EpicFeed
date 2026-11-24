@@ -5,6 +5,7 @@
  * @packageDocumentation
  */
 export * from './errors.js';
+export * from './exam.js';
 export * from './extension.js';
 export * from './generation.js';
 export * from './import.js';

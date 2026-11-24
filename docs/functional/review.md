@@ -29,6 +29,9 @@ Alla fine compare il riepilogo: concetti ripassati, risposte giuste, punti e la 
 ## Esame
 La sezione **Esame** (stesso tab, oppure `/ripasso#esame`) arriva con le prossime versioni di M4, tutta in inglese come all'esame ([ADR 0014](../decisions/0014-preparazione-esame.md)): quiz di modulo da 50 domande, esercizi d'esame con timer, editor e test del codice, correzione di Claude e simulazione scritta del colloquio di 20 minuti in forma di chat.
 
+### Preparare le domande d'esame
+Le domande della sezione si preparano con Claude Desktop, come il feed: dopo aver generato le lezioni si chiede **"genera le domande d'esame di EpicFeed"**. Per ogni lezione Claude aggiunge, in inglese, **10 domande a scelta multipla** nuove (non ripete quelle del feed) e **1 o 2 domande aperte** come al colloquio: scrivere una funzione Python con i suoi test, spiegare un concetto o analizzare un codice, ognuna con suggerimenti in italiano e in inglese, soluzione modello, griglia di correzione e una domanda di approfondimento. Le schede e le domande del feed restano come sono. Se una lezione viene rigenerata, le sue domande d'esame vanno rifatte.
+
 ## Dove restano i dati
 I progressi del ripasso (stato di ogni concetto, storico delle risposte, giorni di ripasso) stanno sul dispositivo, in IndexedDB. In navigazione privata alcuni browser non permettono di salvarli: la schermata lo dice e il ripasso non viene ricordato.
 

@@ -49,5 +49,8 @@ function missingTokenApi(): GenerationApi {
     saveFeed: fail,
     listCatalog: fail,
     importSlides: fail,
+    listExamLessons: fail,
+    readLessonForExam: fail,
+    saveExamPack: fail,
   };
 }
