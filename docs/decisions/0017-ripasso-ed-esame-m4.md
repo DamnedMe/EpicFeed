@@ -47,6 +47,13 @@ I progressi escono dal dispositivo solo cifrati: la chiave si ricava dalla passw
 - **Pyodide 0.29.5** copiato al build in `public/pyodide/<versione>/` (circa 12 MB, solo runtime e libreria standard). Gira in un Web Worker con una CSP propria: WebAssembly è permesso solo lì, le pagine non cambiano CSP. Dopo il caricamento il worker toglie gli strumenti di rete e blocca il ponte verso JavaScript; il tempo massimo è 5 secondi per test, poi il worker si termina. La versione 314 (nuova numerazione, uscita il 13/11/2026) è rimandata.
 - **Autovalutazione** con la griglia già in questa PR: il punteggio aggiorna il ripasso con le soglie dell'ADR 0014; bozze, punteggi e lingua dei suggerimenti restano sul dispositivo. La correzione di Claude arriva nella PR 5.
 
+### Correzione del codice: come si mostra (PR 5)
+Indicazione di Damian del 24/11/2026: la correzione di Claude sul codice scritto dallo studente (esercizi e colloquio) si mostra come un **suggerimento di revisione** in stile code review, una scheda per ogni problema:
+- **titolo breve** con la correzione (per esempio *Use a set for visited nodes*) e **spiegazione** di una o due frasi, in inglese;
+- **diff delle righe**: la riga sbagliata in rosso con `−` e il numero di riga della risposta, la riga corretta in verde con `+`, qualche riga di contesto attorno;
+- i commenti generali (complessità, stile) senza diff, sotto le schede.
+Per questo `salva_correzione` riceverà, oltre a punteggio per criterio e commento, un elenco di suggerimenti `{ title, explanation, fromLine, toLine, replacement }` riferiti alle righe della risposta inviata, validati nel core (righe esistenti, sostituzione non vuota o rimozione esplicita).
+
 ## Alternative scartate
 - **Esame come quinta voce della barra o dentro *Io***: proposte, Damian ha preferito tenerlo dentro Ripasso.
 - **Ripasso solo con domande o elenco stile quiz**: più veloce ma senza il richiamo del concetto.
