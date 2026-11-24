@@ -1,5 +1,5 @@
 import 'server-only';
-import { z } from 'zod';
+import * as z from 'zod';
 
 /**
  * Variabili d'ambiente del server, validate alla prima lettura (non al build:

@@ -38,8 +38,18 @@ function sectionFromHash(): Section {
  *
  * @param props.account - Utente della sessione.
  * @param props.nonce - Nonce della CSP (per l'editor del codice nella sezione Esame).
+ * @param props.syncKey - `false` se il dispositivo non ha la chiave della
+ *   sincronizzazione (dal cookie): la richiesta della password è già nella pagina.
  */
-export function ReviewApp({ account, nonce = null }: { account: string; nonce?: string | null }) {
+export function ReviewApp({
+  account,
+  nonce = null,
+  syncKey = true,
+}: {
+  account: string;
+  nonce?: string | null;
+  syncKey?: boolean;
+}) {
   useProgressSync(account);
   const { data } = useReviewData();
   const [section, setSection] = useState<Section>('review');
@@ -121,6 +131,11 @@ export function ReviewApp({ account, nonce = null }: { account: string; nonce?: 
           Esame
         </button>
       </div>
+      {/* Senza chiave la richiesta della password sta in cima: è già nella pagina
+          del server e il ripasso che arriva dopo non la sposta. */}
+      {section === 'review' && !syncKey ? (
+        <SyncPanel account={account} keyExpected={false} />
+      ) : null}
       {outcome ? (
         <ReviewEnd
           outcome={outcome}
@@ -144,7 +159,7 @@ export function ReviewApp({ account, nonce = null }: { account: string; nonce?: 
           nonce={nonce}
         />
       )}
-      {section === 'review' ? <SyncPanel account={account} /> : null}
+      {section === 'review' && syncKey ? <SyncPanel account={account} /> : null}
       <BottomNav active="review" />
     </div>
   );

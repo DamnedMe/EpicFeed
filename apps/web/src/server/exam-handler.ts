@@ -1,7 +1,7 @@
 import type { ExamContent, ExamSubmissionDraft, StoredSubmission, UserId } from '@study-feed/core';
 import { DomainError, parseId } from '@study-feed/core';
 import { examSubmissionRequestSchema, MAX_SUBMISSION_BODY_BYTES } from '@study-feed/contracts';
-import { z } from 'zod';
+import * as z from 'zod';
 import { apiError, apiOk, isSameOrigin, matchesEtag, readLimited } from './http';
 
 /**

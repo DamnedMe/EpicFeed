@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useLocalValue } from '../feed/local-state';
 import { readValue, removeValue, STORAGE_KEYS, writeValue } from '../feed/storage';
 import { recordStudyAnswer } from '../review/record';
-import { z } from 'zod';
+import * as z from 'zod';
 import type { ExamExerciseItem } from './catalog';
 import { CodeEditor } from './code-editor';
 import { CorrectionView } from './correction-view';

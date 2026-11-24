@@ -1,6 +1,6 @@
 import type { ExamCorrectionDraft, ExamSubmissionDraft } from '@study-feed/core';
 import { EXAM_CORRECTION_LIMITS } from '@study-feed/core';
-import { z } from 'zod';
+import * as z from 'zod';
 import { line, paragraph } from './schema-helpers.js';
 
 /**

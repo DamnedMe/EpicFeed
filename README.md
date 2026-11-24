@@ -27,9 +27,9 @@
 </picture>
 
 > [!TIP]
-> 🏁 Ultimo traguardo: **M3 Feed di studio** unita il 23/11: feed a battute con gesti, domande a gruppi di 3, punti e sessioni da 5 minuti, PWA installabile.
+> 🏁 Ultimo traguardo: **M4 Ripasso ed esame** chiusa il 24/11: ripasso FSRS, progressi sincronizzati e cifrati, sezione Esame con quiz di modulo, esercizi con Python nel browser, correzione di Claude e colloquio in chat. **MVP completo.**
 >
-> 🛠️ Ora: **M4 Ripasso ed esame**: ripasso, sincronizzazione cifrata, contenuti d'esame e sezione Esame uniti; in revisione la correzione di Claude e il colloquio in chat (PR 5 di 6).
+> 🛠️ Ora: **MVP completo** (M0–M4). Prossima milestone: **M5 Segnala errore**.
 
 <!-- stato:fine -->
 

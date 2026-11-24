@@ -1,7 +1,7 @@
 import type { OutdatedFeed, ReadSubjectFeedResult, StudySubject, UserId } from '@study-feed/core';
 import { DomainError, parseId } from '@study-feed/core';
 import type { StudySubjectsResponse, SubjectFeedResponse } from '@study-feed/contracts';
-import { z } from 'zod';
+import * as z from 'zod';
 import { apiError, matchesEtag } from './http';
 
 /**
@@ -92,7 +92,18 @@ export async function handleReadSubjectFeed(
     return new Response(null, { status: 304, headers });
   }
   const { feed } = result;
-  const body: SubjectFeedResponse = {
+  return Response.json(subjectFeedBody(feed), { headers });
+}
+
+/**
+ * Materia nella forma della risposta dell'API (usata anche dalla prima
+ * schermata del feed disegnata sul server).
+ *
+ * @param feed - Materia letta dal core.
+ * @returns Il corpo della risposta.
+ */
+export function subjectFeedBody(feed: ReadSubjectFeedResult['feed']): SubjectFeedResponse {
+  return {
     subjectId: feed.subjectId,
     title: feed.title,
     version: feed.version,
@@ -116,5 +127,4 @@ export async function handleReadSubjectFeed(
       })),
     })),
   };
-  return Response.json(body, { headers });
 }

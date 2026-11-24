@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { FeedLesson, SubjectFeed } from './model';
-import { buildEntries, chapterIndex, entryKey, formatMinute, resumeIndex } from './model';
+import {
+  buildEntries,
+  chapterIndex,
+  entryKey,
+  feedPreview,
+  formatMinute,
+  PREVIEW_VERSION_PREFIX,
+  resumeIndex,
+} from './model';
 
 const bi = (it: string, en: string) => ({ it, en });
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -144,5 +152,24 @@ describe('formatMinute', () => {
     expect(formatMinute(134_000)).toBe('2:14');
     expect(formatMinute(-5)).toBe('0:00');
     expect(formatMinute(3_725_000)).toBe('1:02:05');
+  });
+});
+
+describe('feedPreview', () => {
+  it('tiene tutti i titoli ma il feed solo della prima lezione pronta', () => {
+    const preview = feedPreview(feed);
+    expect(preview?.version).toBe(`${PREVIEW_VERSION_PREFIX}${feed.version}`);
+    const lessons = preview?.chapters.flatMap((chapter) => chapter.lessons) ?? [];
+    expect(lessons).toHaveLength(4);
+    expect(lessons.map((lesson) => lesson.feed !== null)).toEqual([true, false, false, false]);
+    expect(lessons[0]?.feed).toBe(feed.chapters[0]?.lessons[0]?.feed);
+  });
+
+  it('senza lezioni pronte non c’è anteprima', () => {
+    const empty: SubjectFeed = {
+      ...feed,
+      chapters: [{ chapterId: id(803), title: '4. Heaps', lessons: [lesson(5, false)] }],
+    };
+    expect(feedPreview(empty)).toBeNull();
   });
 });

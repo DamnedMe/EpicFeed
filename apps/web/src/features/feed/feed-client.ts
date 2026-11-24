@@ -1,9 +1,10 @@
 import type { StudySubjectsResponse } from '@study-feed/contracts';
 import { studySubjectsResponseSchema, subjectFeedResponseSchema } from '@study-feed/contracts';
+import { FEED_COPY_COOKIE, setDeviceFlag } from '../device-flags';
 import type { SubjectFeed } from './model';
 import type { KeyValueStore } from './storage';
 import { defaultStore, readValue, STORAGE_KEYS, writeValue } from './storage';
-import { z } from 'zod';
+import * as z from 'zod';
 
 /**
  * Scaricamento della materia dalla web app (ADR 0015, punto 6).
@@ -158,7 +159,7 @@ export async function loadFeed(
     }
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const feed = subjectFeedResponseSchema.parse(await response.json());
-    writeValue(STORAGE_KEYS.feed(subject.subjectId), feed, kv);
+    if (writeValue(STORAGE_KEYS.feed(subject.subjectId), feed, kv)) rememberFeedCopy();
     remember(kv, feed);
     return { status: 'ready', subjects, feed, offline: false };
   } catch {
@@ -166,4 +167,9 @@ export async function loadFeed(
       ? { status: 'ready', subjects, feed: cached, offline: true }
       : { status: 'error' };
   }
+}
+
+/** Segna nel cookie che il dispositivo ha una copia della materia. */
+export function rememberFeedCopy(): void {
+  setDeviceFlag(FEED_COPY_COOKIE, true);
 }

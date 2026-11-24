@@ -43,7 +43,7 @@ import {
   saveExamPackRequestSchema,
   saveLessonFeedRequestSchema,
 } from '@study-feed/contracts';
-import { z } from 'zod';
+import * as z from 'zod';
 import { apiError, apiOk, bearerToken, readLimited } from './http';
 
 /**

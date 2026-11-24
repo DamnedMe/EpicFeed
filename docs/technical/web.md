@@ -142,6 +142,25 @@ Decisioni in [ADR 0014](../decisions/0014-preparazione-esame.md) e [ADR 0017](..
 
 Lato server: `src/server/exam-handler.ts` (handler puri), `exam-deps.ts`, `src/app/api/exam/subjects/[id]/route.ts`, `src/app/api/exam/submissions/`; per Claude Desktop `src/app/api/generation/exam/submissions/` con il token "genera"; caso d'uso `ReadExamContent` nel core e `loadExamContent` di `DrizzleExamPackRepository` (una lettura con la RLS dello studente: materia visibile, pacchetto del feed corrente di ogni lezione, banca propria). L'ETag è l'impronta degli id di pacchetti e banca, che non cambiano mai: un feed nuovo ha un pacchetto nuovo.
 
+### Budget Lighthouse
+`apps/web/perf/lighthouse.mjs` (`pnpm --filter @study-feed/web perf`, dopo `pnpm build`; nella CI dopo i test Playwright). Lighthouse 13 con la configurazione mobile (telefono emulato, 4G lenta, CPU rallentata 4 volte) applicata davvero al browser (`throttlingMethod: 'devtools'`): la stima simulata conta nel LCP anche gli script che non lo bloccano e su queste pagine lo gonfia di circa un secondo. Ogni pagina si misura 3 volte e vale la mediana; il riepilogo va in `perf/.results/summary.json`.
+
+| Pagina | Come si serve | LCP | Misura del 24/11/2026 |
+|---|---|---|---|
+| *Accedi* | `next start` (configurazione finta, nessuna rete) | ≤ 2,5 s | 1,6 s |
+| Feed e Ripasso, prima apertura | banco di prova, Chrome nuovo (niente cache, dati né cookie) | ≤ 2,5 s | Feed 1,7 s, Ripasso 1,6 s |
+| Feed e Ripasso, visita di ritorno | banco di prova, cache e dati del dispositivo già presenti | ≤ 2,5 s | Feed 1,6 s, Ripasso 0,7 s |
+
+Per tutte: TBT ≤ 300 ms e CLS ≤ 0,1. Le pagine protette si misurano sul banco di prova di Playwright (stesso codice e CSS della build, dati di prova; script in moduli ES con preload di font e script come fa Next, serviti compressi e con cache come su Vercel). Il banco **disegna le pagine in Node** come il server (`e2e/harness/prerender.tsx`, `renderToString`) e il browser le idrata (`mount.tsx`); il server di prova sceglie la variante dai cookie come la pagina vera (`index.html` con l'anteprima o `index-copy.html`, `ripasso.html` con la richiesta della password o `ripasso-key.html`). Lighthouse non cancella i cookie tra una misura e l'altra: ogni prima apertura usa quindi un Chrome nuovo.
+
+#### Prima schermata dal server
+Su 4G lenta gli script (circa 150 KB compressi) arrivano dopo 2,5 s: alla prima apertura la schermata principale deve essere già nell'HTML.
+
+- **Feed**: senza il cookie `ef-feed-copy` la pagina (`src/app/page.tsx`) legge l'anteprima con `loadFeedPreview` (`src/server/feed-preview.ts`): tutti i capitoli e i titoli, ma il feed solo della prima lezione pronta (`feedPreview` in `model.ts`, versione con il prefisso `anteprima:`). `FeedApp` parte da lì (`preview`), poi la materia intera la sostituisce restando sulla scheda. Con la copia sul dispositivo il server non legge il feed.
+- **Ripasso**: senza il cookie `ef-sync-key` la richiesta della password è già nella pagina, in cima (il ripasso che arriva dopo non la sposta). Con la chiave lo stato della sincronizzazione resta in fondo.
+- I cookie (`src/features/device-flags.ts`) contengono solo `1`, durano un anno e non portano dati di studio: `ef-feed-copy` si accende quando la materia è salvata sul dispositivo, `ef-sync-key` segue la chiave a ogni sincronizzazione (si spegne se manca). Se un cookie sbaglia (cancellato a mano) la pagina si corregge appena gli script leggono il dispositivo.
+- **zod** si importa come `import * as z from 'zod'`: con `import { z }` esbuild includeva tutta la libreria (443 KB invece di 97 KB minificati).
+
 ### Sincronizzazione dei progressi (M4)
 Decisioni in [ADR 0018](../decisions/0018-sincronizzazione-cifrata-progressi.md); unione e ricalcolo puri nel core ([core.md](core.md#sincronizzazione-dei-progressi)).
 
@@ -152,7 +171,7 @@ Decisioni in [ADR 0018](../decisions/0018-sincronizzazione-cifrata-progressi.md)
 | `vault.ts` | `HttpProgressVault`, adapter della porta `ProgressVault`: `GET`/`PUT /api/progress`, `409` → `{ ok: false }`, errori di rete → `SyncHttpError` |
 | `engine.ts` | `syncNow` (una alla volta, con coda), `useProgressSync` (apertura, 20 s dopo l'ultima risposta, secondo piano, ritorno della rete), `useSyncStatus`, `rememberPasswordKey`/`forgetPasswordKey`; controllo del proprietario dei progressi |
 | `actions.ts` | Server action `confirmPassword`: verifica la password dell'utente collegato per lo sblocco |
-| `sync-panel.tsx` | Stato in fondo alla home del Ripasso e richiesta della password (*Sincronizza telefono e PC*, *La password è cambiata*) |
+| `sync-panel.tsx` | Stato in fondo alla home del Ripasso e richiesta della password (*Sincronizza telefono e PC*, *La password è cambiata*); senza chiave (`keyExpected={false}`) la richiesta sta in cima e si mostra subito |
 
 - La chiave si prepara nel form di accesso (`login-form.tsx`) e in quello della password (`password-form.tsx`) **prima** di mandare il form: è l'unico momento in cui il browser ha la password. Se l'accesso o il salvataggio non riescono, la chiave si cancella.
 - Lato server: `src/server/progress-handler.ts` (handler puri, testati senza Next.js), `progress-deps.ts`, `src/app/api/progress/route.ts`; `DrizzleProgressRepository` in `packages/adapters` (lettura con la RLS dello studente, scrittura con `revision = base` e incremento atomico).

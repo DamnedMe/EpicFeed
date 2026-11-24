@@ -52,8 +52,18 @@ async function answer(conceptKey: string) {
   });
 }
 
+/** Cookie scritti dall'app (il segnale della chiave per il server). */
+let cookies: string[] = [];
+
 beforeEach(() => {
   vi.stubGlobal('fetch', fakeFetch);
+  cookies = [];
+  vi.stubGlobal('window', { location: { protocol: 'http:' } });
+  vi.stubGlobal('document', {
+    set cookie(value: string) {
+      cookies.push(value);
+    },
+  });
 });
 
 afterEach(() => {
@@ -66,6 +76,7 @@ describe('sincronizzazione dei progressi', () => {
     vi.stubGlobal('fetch', spy);
     expect(await syncNow(ANNA)).toEqual({ state: 'nokey' });
     expect(spy).not.toHaveBeenCalled();
+    expect(cookies.at(-1)).toMatch(/^ef-sync-key=; .*Max-Age=0/);
   });
 
   it('con la chiave dell’accesso cifra e manda i progressi', async () => {
@@ -74,6 +85,7 @@ describe('sincronizzazione dei progressi', () => {
     const status = await syncNow(ANNA);
     expect(status.state).toBe('synced');
     expect(currentSyncStatus()).toEqual(status);
+    expect(cookies.at(-1)).toMatch(/^ef-sync-key=1; /);
     expect(stored?.revision).toBe(1);
     expect(stored?.ciphertext).not.toContain('stack');
     const key = await derivePasswordKey(EMAIL, PASSWORD);

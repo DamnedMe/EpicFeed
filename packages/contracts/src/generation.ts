@@ -1,6 +1,6 @@
 import type { LessonFeedDraft, LessonPartId } from '@study-feed/core';
 import { FEED_LIMITS, MAX_PRESENTATIONS_PER_LESSON, MAX_SLIDE_PAGES } from '@study-feed/core';
-import { z } from 'zod';
+import * as z from 'zod';
 import { lessonPartContentSchema } from './import.js';
 import {
   bilingual,

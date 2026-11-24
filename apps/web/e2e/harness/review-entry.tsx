@@ -3,9 +3,9 @@
  * con la stessa API del feed simulata del banco del feed, più i contenuti
  * d'esame. I progressi stanno nell'IndexedDB vero del browser di prova.
  */
-import { createRoot } from 'react-dom/client';
-import { ReviewApp } from '@/features/review/review-app';
 import { examFixture, fixture } from './fixture';
+import { mount } from './mount';
+import { ReviewPage } from './pages';
 
 const subjects = {
   subjects: [
@@ -97,9 +97,5 @@ window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
   return Promise.resolve(Response.json(url.endsWith('/api/feed/subjects') ? subjects : fixture));
 };
 
-const root = document.getElementById('root');
-if (root)
-  createRoot(root).render(
-    // Lo stesso nonce della CSP del banco di prova: lo usa l'editor del codice per i suoi stili.
-    <ReviewApp account="0a0a0a0a-0000-4000-8000-00000000000a" nonce="e2e-nonce" />,
-  );
+// Come la pagina del server: la richiesta della password solo senza chiave.
+mount(<ReviewPage syncKey={/(^|; )ef-sync-key=1/.test(document.cookie)} />);

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod';
 
 /**
  * Codici di errore delle API. Stabili: estensione e web app mostrano il

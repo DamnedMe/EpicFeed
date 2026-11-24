@@ -1,6 +1,7 @@
 'use client';
 
 import { syncProgress } from '@study-feed/core';
+import { setDeviceFlag, SYNC_KEY_COOKIE } from '../device-flags';
 import { useEffect, useSyncExternalStore } from 'react';
 import { notifyProgress, onProgress, progressStore } from '../review/progress-store';
 import { derivePasswordKey, normalizeEmail } from './crypto';
@@ -72,6 +73,8 @@ async function syncOnce(account: string): Promise<SyncStatus> {
     await keys.clearKey();
     record = null;
   }
+  // Il server lo legge per disegnare subito il Ripasso giusto (con o senza password).
+  setDeviceFlag(SYNC_KEY_COOKIE, record !== null);
   if (!record) return { state: 'nokey' };
   if (!record.account) {
     record = { ...record, account };

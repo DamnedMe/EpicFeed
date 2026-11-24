@@ -1,6 +1,6 @@
 import type { ConceptKey } from '@study-feed/core';
 import { MAX_SLUG_LENGTH, SLUG_PATTERN } from '@study-feed/core';
-import { z } from 'zod';
+import * as z from 'zod';
 
 /**
  * Mattoni comuni agli schemi dei contenuti generati da Claude (feed e

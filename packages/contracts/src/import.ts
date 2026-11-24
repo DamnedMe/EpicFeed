@@ -4,7 +4,7 @@ import {
   MAX_SUBTITLE_TRACKS,
   MAX_TEXT_LENGTH,
 } from '@study-feed/core';
-import { z } from 'zod';
+import * as z from 'zod';
 
 /**
  * Contratto dell'import di una lezione: è il corpo di `POST /api/import` che

@@ -3,7 +3,7 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import type { LessonSourcesResponse } from '@study-feed/contracts';
 import { lessonFeedDraftSchema } from '@study-feed/contracts';
 import { checkLessonFeed } from '@study-feed/core';
-import { z } from 'zod';
+import * as z from 'zod';
 import type { EpicFeedApi } from './api-client.js';
 import { ApiRequestError } from './api-client.js';
 import { CORRECTION_SERVER_INSTRUCTIONS } from './correction-prompt.js';

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
+import { SYNC_KEY_COOKIE } from '@/features/device-flags';
 import { ReviewApp } from '@/features/review/review-app';
 import { requireUser } from '@/server/auth';
 
@@ -15,5 +16,6 @@ export default async function ReviewPage() {
   const user = await requireUser();
   // Il nonce della CSP serve all'editor del codice della sezione Esame (stili di CodeMirror).
   const nonce = (await headers()).get('x-nonce');
-  return <ReviewApp account={user.id} nonce={nonce} />;
+  const syncKey = (await cookies()).has(SYNC_KEY_COOKIE);
+  return <ReviewApp account={user.id} nonce={nonce} syncKey={syncKey} />;
 }

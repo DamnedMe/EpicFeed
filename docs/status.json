@@ -1,8 +1,8 @@
 {
   "aggiornato": "2026-11-24",
   "mvpFinoA": "M4",
-  "ultimoTraguardo": "**M3 Feed di studio** unita il 23/11: feed a battute con gesti, domande a gruppi di 3, punti e sessioni da 5 minuti, PWA installabile.",
-  "inCorso": "**M4 Ripasso ed esame**: ripasso, sincronizzazione cifrata, contenuti d'esame e sezione Esame uniti; in revisione la correzione di Claude e il colloquio in chat (PR 5 di 6).",
+  "ultimoTraguardo": "**M4 Ripasso ed esame** chiusa il 24/11: ripasso FSRS, progressi sincronizzati e cifrati, sezione Esame con quiz di modulo, esercizi con Python nel browser, correzione di Claude e colloquio in chat. **MVP completo.**",
+  "inCorso": "**MVP completo** (M0–M4). Prossima milestone: **M5 Segnala errore**.",
   "milestone": [
     {
       "id": "M0",
@@ -31,9 +31,8 @@
     {
       "id": "M4",
       "nome": "Ripasso ed esame",
-      "stato": "in-corso",
-      "avanzamento": 0.85,
-      "nota": "PR 5 di 6"
+      "stato": "fatta",
+      "data": "2026-11-24"
     },
     {
       "id": "M5",

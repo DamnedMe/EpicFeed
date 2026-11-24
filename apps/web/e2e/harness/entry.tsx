@@ -3,9 +3,9 @@
  * Supabase, con l'API del feed simulata. Così i test girano in CI senza
  * credenziali, sulla stessa UI che va in produzione.
  */
-import { createRoot } from 'react-dom/client';
-import { FeedApp } from '@/features/feed/feed-app';
 import { fixture } from './fixture';
+import { mount, readPreview } from './mount';
+import { FeedPage } from './pages';
 
 const subjects = {
   subjects: [
@@ -32,5 +32,4 @@ window.fetch = (input: RequestInfo | URL) => {
   return Promise.resolve(Response.json(url.endsWith('/api/feed/subjects') ? subjects : fixture));
 };
 
-const root = document.getElementById('root');
-if (root) createRoot(root).render(<FeedApp account="0a0a0a0a-0000-4000-8000-00000000000a" />);
+mount(<FeedPage preview={readPreview()} />);

@@ -7,7 +7,7 @@ import {
   submitResponseSchema,
 } from '@study-feed/contracts';
 import { gradeFromScore, rubricScore } from '@study-feed/core';
-import { z } from 'zod';
+import * as z from 'zod';
 import type { LocalValue } from '../feed/local-state';
 import { localValue } from '../feed/local-state';
 import type { AnswerToRecord } from '../review/record';

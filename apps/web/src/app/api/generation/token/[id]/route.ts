@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod';
 import { getCurrentUser } from '@/server/auth';
 import { getServices } from '@/server/container';
 import { apiError, apiOk, isSameOrigin } from '@/server/http';

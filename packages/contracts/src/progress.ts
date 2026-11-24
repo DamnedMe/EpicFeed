@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod';
 
 /**
  * Contratto dell'API dei progressi sincronizzati (M4, ADR 0018): la web app
