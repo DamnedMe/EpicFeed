@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: light)" srcset="https://study-feed-steel.vercel.app/readme/app-chiaro.png">
-    <img src="https://study-feed-steel.vercel.app/readme/app-scuro.png" alt="Le schermate di EpicFeed: feed di studio, quiz di fine capitolo e ripasso" width="100%">
+    <source media="(prefers-color-scheme: light)" srcset="https://study-feed-steel.vercel.app/readme/app-chiaro.png?v=2026-11-24">
+    <img src="https://study-feed-steel.vercel.app/readme/app-scuro.png?v=2026-11-24" alt="Le schermate di EpicFeed: feed a battute, domande, Ripasso e Io" width="100%">
   </picture>
 </p>
 
