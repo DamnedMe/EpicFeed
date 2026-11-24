@@ -3,6 +3,8 @@ import type {
   CurrentLessonFeed,
   ExamBankDocument,
   ExamBankRepository,
+  ExamContentRepository,
+  ExamContentRows,
   SubjectForExam,
   CurrentLessonFeedWithDocument,
   ExamPackDocument,
@@ -25,13 +27,16 @@ import { withUserRls } from './database.js';
 
 /**
  * Persistenza dei pacchetti d'esame e delle banche degli esercizi su Postgres
- * (porte `ExamPackRepository` ed `ExamBankRepository` del core, M4).
+ * (porte `ExamPackRepository`, `ExamBankRepository` ed `ExamContentRepository`
+ * del core, M4).
  *
  * Le **letture** passano dalla RLS dello studente: si vedono solo i feed di cui
  * possiede tutte le fonti, e quindi solo i loro pacchetti. La **scrittura** usa
  * la connessione del server, dopo che il caso d'uso ha verificato il feed.
  */
-export class DrizzleExamPackRepository implements ExamPackRepository, ExamBankRepository {
+export class DrizzleExamPackRepository
+  implements ExamPackRepository, ExamBankRepository, ExamContentRepository
+{
   /**
    * @param db - Database con permessi di scrittura (solo lato server).
    */
@@ -90,6 +95,54 @@ export class DrizzleExamPackRepository implements ExamPackRepository, ExamBankRe
       .where(eq(lessonExamPacks.lessonFeedId, document.feedId));
     if (!existing) throw new Error('Pacchetto non trovato dopo il conflitto');
     return { packId: existing.id, created: false };
+  }
+
+  /** {@inheritDoc ExamContentRepository.loadExamContent} */
+  async loadExamContent(userId: UserId, subjectId: string): Promise<ExamContentRows | null> {
+    return withUserRls(this.db, userId, async (tx) => {
+      const [subject] = await tx
+        .select({ id: subjects.id })
+        .from(subjects)
+        .where(eq(subjects.id, subjectId));
+      if (!subject) return null;
+
+      // Feed corrente di ogni lezione della materia, con il suo pacchetto se c'è.
+      const current = await tx
+        .selectDistinctOn([lessonFeeds.lessonId], {
+          lessonId: lessonFeeds.lessonId,
+          packId: lessonExamPacks.id,
+          pack: lessonExamPacks.pack,
+        })
+        .from(lessonFeeds)
+        .innerJoin(lessons, eq(lessons.id, lessonFeeds.lessonId))
+        .innerJoin(chapters, eq(chapters.id, lessons.chapterId))
+        .leftJoin(lessonExamPacks, eq(lessonExamPacks.lessonFeedId, lessonFeeds.id))
+        .where(eq(chapters.subjectId, subject.id))
+        .orderBy(lessonFeeds.lessonId, desc(lessonFeeds.generatedAt), asc(lessonFeeds.id));
+
+      // La RLS mostra solo la banca dello studente.
+      const [bank] = await tx
+        .select({ id: subjectExamBanks.id, bank: subjectExamBanks.bank })
+        .from(subjectExamBanks)
+        .where(eq(subjectExamBanks.subjectId, subject.id));
+
+      return {
+        subjectId: subject.id,
+        packs: current.flatMap((row) =>
+          row.packId && row.pack
+            ? [
+                {
+                  packId: row.packId,
+                  lessonId: parseId(row.lessonId, 'LessonId'),
+                  // Validato con gli schemi dei contratti al salvataggio.
+                  document: row.pack as ExamPackDocument,
+                },
+              ]
+            : [],
+        ),
+        bank: bank ? { bankId: bank.id, document: bank.bank as ExamBankDocument } : null,
+      };
+    });
   }
 
   /** {@inheritDoc ExamBankRepository.listSubjectsForExam} */

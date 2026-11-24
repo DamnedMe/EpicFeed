@@ -239,3 +239,19 @@ export const saveExamBankResponseSchema = z.strictObject({
 
 /** Risposta di `POST /api/generation/exam/subjects/:id/bank`. */
 export type SaveExamBankResponse = z.infer<typeof saveExamBankResponseSchema>;
+
+/**
+ * Risposta di `GET /api/exam/subjects/:id` (sezione Esame della web app):
+ * pacchetti dei feed correnti della materia e banca degli esercizi dello
+ * studente, con l'impronta usata come ETag. Stessi schemi del salvataggio:
+ * l'app li rivalida prima di conservarli sul dispositivo.
+ */
+export const examContentResponseSchema = z.strictObject({
+  subjectId: z.uuid(),
+  version: z.string().regex(/^[0-9a-f]{64}$/),
+  packs: z.array(storedExamPackSchema),
+  bank: storedExamBankSchema.nullable(),
+});
+
+/** Risposta di `GET /api/exam/subjects/:id`. */
+export type ExamContentResponse = z.infer<typeof examContentResponseSchema>;

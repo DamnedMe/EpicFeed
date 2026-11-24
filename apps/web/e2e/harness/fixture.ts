@@ -1,4 +1,4 @@
-import type { SubjectFeedResponse } from '@study-feed/contracts';
+import type { ExamContentResponse, SubjectFeedResponse } from '@study-feed/contracts';
 
 /**
  * Materia di prova per i test sul telefono: una lezione per tipo di scheda,
@@ -219,3 +219,88 @@ export const fixture: SubjectFeedResponse = {
     },
   ],
 } as SubjectFeedResponse;
+
+/** Esercizio di codice di prova: la funzione e i suoi test. */
+const reverseExercise = {
+  kind: 'code' as const,
+  prompt: 'Write reverse(items) that returns a new list with the items in reverse order.',
+  signature: 'def reverse(items: list) -> list:',
+  tests: [
+    { call: 'reverse([1, 2, 3])', expected: '[3, 2, 1]' },
+    { call: 'reverse([])', expected: '[]' },
+  ],
+  hints: [bi('Parti dalla tail.', 'Start from the tail.')],
+  modelAnswer: 'def reverse(items):\n    return items[::-1]',
+  rubric: [
+    { criterion: 'Returns the reversed list', points: 3 },
+    { criterion: 'Handles the empty list', points: 1 },
+    { criterion: 'Does not modify the input', points: 1 },
+  ],
+  conceptKeys: ['linked-list'],
+  followUp: 'How would you reverse a linked list in place?',
+};
+
+/** Contenuti d'esame di prova: il pacchetto della lezione e una banca minima. */
+export const examFixture: ExamContentResponse = {
+  subjectId: id(1),
+  version: 'b'.repeat(64),
+  packs: [
+    {
+      lessonId: id(20),
+      feedId: id(30),
+      promptVersion: '2026-11-24.1',
+      generatedAt: '2026-11-24T10:00:00.000Z',
+      questions: [
+        {
+          id: 'x-head',
+          question: 'What does the head of a linked list store?',
+          options: ['The last node', 'The first node', 'The length', 'Nothing'],
+          correctIndex: 1,
+          explanation: 'The head references the first node.',
+          conceptKey: 'linked-list',
+          difficulty: 1,
+        },
+      ],
+      openQuestions: [
+        {
+          id: 'explain-list',
+          kind: 'explain',
+          prompt: 'Explain when a linked list is better than an array.',
+          hints: [bi('Pensa agli inserimenti.', 'Think about insertions.')],
+          modelAnswer: 'When you insert or remove often at the ends.',
+          rubric: [
+            { criterion: 'Mentions insertion cost', points: 2 },
+            { criterion: 'Mentions access cost', points: 2 },
+            { criterion: 'Gives an example', points: 1 },
+          ],
+          conceptKeys: ['linked-list'],
+          followUp: 'What about memory usage?',
+        },
+      ],
+    },
+  ],
+  bank: {
+    subjectId: id(1),
+    promptVersion: '2026-11-24.1',
+    generatedAt: '2026-11-24T10:00:00.000Z',
+    exercises: [
+      { id: 'reverse', title: 'Reverse a list', origin: 'official', page: 3, ...reverseExercise },
+      {
+        id: 'reverse-a',
+        title: 'Reverse a string',
+        origin: 'variant',
+        variantOf: 'reverse',
+        page: 3,
+        ...reverseExercise,
+      },
+      {
+        id: 'reverse-b',
+        title: 'Reverse words',
+        origin: 'variant',
+        variantOf: 'reverse',
+        page: 3,
+        ...reverseExercise,
+      },
+    ],
+  },
+} as ExamContentResponse;

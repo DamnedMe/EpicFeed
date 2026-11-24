@@ -2,7 +2,7 @@ import type { OutdatedFeed, ReadSubjectFeedResult, StudySubject, UserId } from '
 import { DomainError, parseId } from '@study-feed/core';
 import type { StudySubjectsResponse, SubjectFeedResponse } from '@study-feed/contracts';
 import { z } from 'zod';
-import { apiError } from './http';
+import { apiError, matchesEtag } from './http';
 
 /**
  * Handler delle API del feed di studio (M3, ADR 0015), usati dalla web app con
@@ -52,15 +52,6 @@ export async function handleListSubjects(deps: FeedHandlerDeps): Promise<Respons
     deps.logError(error);
     return apiError('INTERNAL', 'Errore del server. Riprova più tardi.');
   }
-}
-
-/** Valore di `If-None-Match` che corrisponde all'ETag (anche in forma debole o in elenco). */
-function matchesEtag(header: string | null, etag: string): boolean {
-  if (!header) return false;
-  return header
-    .split(',')
-    .map((value) => value.trim().replace(/^W\//, ''))
-    .some((value) => value === etag || value === '*');
 }
 
 /**

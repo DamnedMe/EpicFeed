@@ -15,6 +15,9 @@ const TYPES: Record<string, string> = {
   '.js': 'text/javascript',
   '.css': 'text/css',
   '.woff2': 'font/woff2',
+  '.wasm': 'application/wasm',
+  '.json': 'application/json',
+  '.zip': 'application/zip',
 };
 /** Pagine dell'app servite dal banco di prova. */
 const PAGES: Record<string, string> = {
@@ -23,7 +26,9 @@ const PAGES: Record<string, string> = {
   '/ripasso': 'ripasso.html',
 };
 const CSP =
-  "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self'";
+  "default-src 'self'; script-src 'self'; style-src 'self' 'nonce-e2e-nonce'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self'";
+/** CSP del worker dei test Python, come in produzione (`next.config.ts`). */
+const WORKER_CSP = "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'";
 
 let problems: string[];
 
@@ -41,7 +46,7 @@ test.beforeEach(async ({ page }) => {
       status: 200,
       body: readFileSync(file),
       contentType: TYPES[extname(file)] ?? 'application/octet-stream',
-      headers: { 'Content-Security-Policy': CSP },
+      headers: { 'Content-Security-Policy': path === '/python-worker.js' ? WORKER_CSP : CSP },
     });
   });
 });
@@ -362,9 +367,73 @@ test('una risposta sbagliata nel feed entra nel Ripasso, che si fa a battute', a
 test('Ripasso ed Esame stanno nello stesso tab', async ({ page }) => {
   await page.goto(`${ORIGIN}/ripasso`);
   await page.getByRole('tab', { name: 'Esame' }).click();
-  await expect(page.getByText('simulazione scritta del colloquio')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Allenati come all’esame' })).toBeVisible();
   await expect(page).toHaveURL(/#esame$/);
   await expect(page.locator('.ef-nav .on')).toHaveText('Ripasso');
+});
+
+test('il quiz di modulo mescola feed e domande d’esame, in inglese', async ({ page }) => {
+  await page.goto(`${ORIGIN}/ripasso#esame`);
+  await page.getByRole('button', { name: /1\. Linked lists/ }).click();
+  await expect(page.getByText('Questo modulo ha 3 domande')).toBeVisible();
+  for (let i = 0; i < 3; i += 1) {
+    await page.locator('.ef-opt').first().click();
+    await expect(page.locator('.ef-fb')).toBeVisible();
+    await page.getByRole('button', { name: i < 2 ? 'Avanti' : 'Vedi il risultato' }).click();
+  }
+  await expect(page.getByRole('heading', { name: '1. Linked lists' })).toBeVisible();
+  await expect(page.getByText(/\/3giuste/)).toBeVisible();
+  await page.getByRole('button', { name: 'Torna all’Esame' }).click();
+  await expect(page.getByRole('heading', { name: 'Esercizi d’esame' })).toBeVisible();
+});
+
+test('esercizio di codice: suggerimento, test con Python nel browser e griglia', async ({
+  page,
+}) => {
+  test.setTimeout(90_000);
+  await page.goto(`${ORIGIN}/ripasso#esame`);
+  await page.getByRole('button', { name: /Reverse a list/ }).click();
+  await expect(page.getByRole('heading', { name: 'Reverse a list' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Mostra un suggerimento' }).click();
+  await expect(page.getByText('Parti dalla tail.')).toBeVisible();
+  await page.getByRole('button', { name: 'Lingua dei suggerimenti' }).click();
+  await expect(page.getByText('Start from the tail.')).toBeVisible();
+
+  // L'editor (CodeMirror) parte con la firma della funzione.
+  const editor = page.getByRole('textbox', { name: 'Your code' });
+  await expect(editor).toContainText('def reverse(items: list) -> list:');
+  await editor.click();
+  await page.keyboard.press('ControlOrMeta+End');
+  await page.keyboard.type('return items[::-1]');
+  await page.getByRole('button', { name: 'Esegui i test' }).click();
+  await expect(page.getByText('2/2 test superati')).toBeVisible({ timeout: 60_000 });
+
+  await page.getByRole('button', { name: 'Mostra soluzione e griglia' }).click();
+  await page
+    .getByRole('group', { name: 'Punti: Returns the reversed list' })
+    .getByText('3')
+    .click();
+  await page.getByRole('group', { name: 'Punti: Handles the empty list' }).getByText('1').click();
+  await expect(page.getByText('4/5 punti (80%)')).toBeVisible();
+  await page.getByRole('button', { name: 'Salva il punteggio' }).click();
+  await expect(page.getByText('Punteggio salvato: 80%.')).toBeVisible();
+  await expect(page.getByText('How would you reverse a linked list in place?')).toBeVisible();
+
+  await page.getByRole('button', { name: '← Esame' }).click();
+  await expect(page.getByRole('button', { name: /Reverse a list/ })).toContainText('80%');
+});
+
+test('un ciclo infinito si interrompe dopo 5 secondi per test', async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.goto(`${ORIGIN}/ripasso#esame`);
+  await page.getByRole('button', { name: /Reverse words/ }).click();
+  const editor = page.getByRole('textbox', { name: 'Your code' });
+  await editor.click();
+  await page.keyboard.press('ControlOrMeta+End');
+  await page.keyboard.type('while True: pass');
+  await page.getByRole('button', { name: 'Esegui i test' }).click();
+  await expect(page.getByText(/Tempo scaduto: il codice/)).toBeVisible({ timeout: 70_000 });
 });
 
 test('senza chiave il Ripasso chiede la password per sincronizzare', async ({ page }) => {

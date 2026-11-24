@@ -4,6 +4,7 @@
  * @packageDocumentation
  */
 export * from './exam-generation.js';
+export * from './exam-study.js';
 export * from './generation.js';
 export * from './import-lesson.js';
 export * from './ports.js';

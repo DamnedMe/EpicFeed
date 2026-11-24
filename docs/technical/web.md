@@ -1,6 +1,6 @@
 # Web app (`apps/web`)
 
-Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailwind 4 con i token di `packages/ui`. Stato: milestone **M4** in corso (accesso, Le mie lezioni, collegamento dell'estensione e di Claude Desktop, API di import e di generazione, feed di studio con *Io*, ripasso dei concetti e sincronizzazione cifrata dei progressi).
+Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailwind 4 con i token di `packages/ui`. Stato: milestone **M4** in corso (accesso, Le mie lezioni, collegamento dell'estensione e di Claude Desktop, API di import e di generazione, feed di studio con *Io*, ripasso dei concetti, sincronizzazione cifrata dei progressi e sezione Esame).
 
 ## Pagine e API
 | Percorso | Cosa fa | Accesso |
@@ -24,6 +24,7 @@ Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailw
 | `DELETE /api/generation/token/{id}` | Revoca un token "genera" | sessione, stessa origine |
 | `GET /api/feed/subjects` | Materie con lezioni importate e quante hanno un feed ([feed di studio](#feed-di-studio-m3)) | sessione |
 | `GET /api/feed/subjects/{id}` | Feed di tutta la materia, con ETag (`304` se invariato) | sessione |
+| `GET /api/exam/subjects/{id}` | Contenuti d'esame della materia: pacchetti dei feed correnti e banca dello studente, con ETag ([esame](#esame-m4)) | sessione |
 | `POST /api/import` | Import di una lezione ([import.md](import.md#api-post-apiimport)) | token di import |
 | `POST /api/extension/token` | Crea un token di import | sessione, stessa origine |
 | `DELETE /api/extension/token/{id}` | Revoca un token | sessione, stessa origine |
@@ -102,7 +103,7 @@ Le regole pure stanno nel core ([core.md](core.md#feed-di-studio)): `storyOf` (b
 - La barra in basso è in vetro su un fondo quasi pieno (90% del colore di fondo) con sfocatura. In CSS si scrive solo `backdrop-filter`: con anche la forma `-webkit-` Lightning CSS teneva solo quella, e Chrome restava senza sfocatura.
 
 ## Ripasso (M4)
-Decisioni in [ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md); regole pure nel core ([core.md](core.md#ripasso)). Il tab `/ripasso` contiene anche la sezione Esame (`#esame`), che si riempie con le PR successive di M4.
+Decisioni in [ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md); regole pure nel core ([core.md](core.md#ripasso)). Il tab `/ripasso` contiene anche la sezione [Esame](#esame-m4) (`#esame`).
 
 | File (`src/features/review`) | Ruolo |
 |---|---|
@@ -110,9 +111,32 @@ Decisioni in [ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md); regole pure n
 | `record.ts` | `recordStudyAnswer`: porta una risposta nel ripasso con `recordAnswer` del core; non lancia mai (lo studio non si ferma se IndexedDB fallisce). La usano il feed (`onAnswer` in `feed-app.tsx`, fonte `feed`) e la sessione di ripasso (fonte `review`) |
 | `catalog.ts` | `buildReviewCatalog`: dalla materia scaricata ai concetti (uno per chiave, testi dalla prima lezione, termini da tutte le schede sul concetto) e alle domande, con l'id dell'elemento del feed (`lezione:quiz:id`, unico nella materia); `recallBlank` sceglie la parola da coprire con `pickBlank` del core o, in mancanza, il nome del concetto |
 | `use-review-data.ts` | Materia (prima la copia sul dispositivo, poi `loadFeed` come il feed) e progressi, ricaricati a ogni risposta |
-| `review-app.tsx` | Tab Ripasso: sezioni *Ripasso*/*Esame*, home (scaduti, serie, concetti deboli, barre per modulo), riepilogo di fine sessione |
+| `review-app.tsx` | Tab Ripasso: sezioni *Ripasso*/*Esame*, home (scaduti, serie, concetti deboli, barre per modulo), riepilogo di fine sessione; passa materia, catalogo e nonce della CSP alla sezione Esame |
 | `review-session.tsx` | Sessione a battute a tutto schermo: richiamo con la parola da indovinare, poi la domanda con `QuizSlide` del feed (prop `continueHint={null}` e pulsante *Avanti*) |
 | `review.css` | Stili del ripasso con i token `--sf-*`; le larghezze delle barre sono variabili CSS impostate dal client (CSP) |
+
+### Esame (M4)
+Decisioni in [ADR 0014](../decisions/0014-preparazione-esame.md) e [ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md); regole pure nel core (`domain/exam-practice.ts`: estrazione delle 50 domande, punteggio della griglia, esito dei test). Contenuti generati da Claude Desktop ([generation.md](generation.md#pacchetti-desame-m4)).
+
+| File (`src/features/exam`) | Ruolo |
+|---|---|
+| `exam-client.ts` | `loadExamContent`: `GET /api/exam/subjects/{id}` con `If-None-Match` dalla copia in `localStorage` (`ef:exam:{materia}`), validata con `examContentResponseSchema`; senza rete usa la copia |
+| `catalog.ts` | `buildExamCatalog`: per ogni modulo le domande del feed in inglese (il vero/falso come due opzioni) più quelle del pacchetto; esercizi della banca (ogni ufficiale seguito dalle sue varianti, in ordine di pagina) e domande aperte delle lezioni, con chiavi stabili (`bank:id`, `lezione:open:id`, `lezione:exam:id`) |
+| `use-exam-data.ts` | Copia sul dispositivo, poi aggiornamento dal server; catalogo ricalcolato solo se cambia la versione |
+| `exam-section.tsx` | Home della sezione (quiz per modulo, banca, domande aperte delle lezioni, avvisi su cosa manca) e passaggio alle schermate |
+| `module-quiz.tsx` | Quiz di modulo: 50 domande estratte a caso (`drawRandom`), spiegazione dopo ogni risposta, riepilogo con i concetti da rivedere; ogni risposta va nel ripasso (fonte `quiz`) |
+| `exercise-view.tsx` | Esercizio: timer facoltativo, suggerimenti uno alla volta (lingua IT/EN propria, `ef:exam-prefs`), bozza salvata (`ef:exam-draft:{chiave}`), editor, test, soluzione modello e autovalutazione con la griglia; il punteggio aggiorna il ripasso di ogni concetto collegato (fonte `exercise`, soglie dell'ADR 0014) e resta in `ef:exam-scores` |
+| `code-editor.tsx`, `codemirror-setup.ts` | CodeMirror 6 (Python, colori dai token `--sf-*`) caricato con `import()` al primo esercizio di codice: è in un file JS a parte, fuori dalle altre pagine. Gli stili di CodeMirror usano il nonce della CSP (`EditorView.cspNonce`), che la pagina legge da `x-nonce`. Finché non è pronto c'è un'area di testo con lo stesso contenuto |
+| `python-runner.ts` | `PythonRunner`: un Web Worker riusato, avviato al primo test; tempo massimo 5 secondi per test, poi il worker si termina e il successivo riparte; 90 secondi per il primo caricamento |
+| `exercise-timer.tsx` | Timer facoltativo (10, 15, 20 o 30 minuti), a fine tempo avvisa e continua in negativo |
+
+**Python nel browser (Pyodide 0.29.5, MPL 2.0)**:
+- `scripts/copy-pyodide.mjs`, eseguito da `pnpm dev` e `pnpm build`, copia dal pacchetto npm in `public/pyodide/<versione>/` solo i file che servono (circa 12 MB: runtime WebAssembly e libreria standard); la cartella non va in git ed è tra gli output di Turborepo. Un test verifica che `PYODIDE_VERSION` coincida con il pacchetto installato.
+- `public/python-worker.js` (scritto a mano): carica Pyodide, poi toglie dal worker `fetch`, `XMLHttpRequest`, `WebSocket`, `EventSource` e `importScripts` e blocca i moduli Python `js`, `pyodide_js` e `pyodide.http`. Esegue il codice in un namespace nuovo, poi ogni chiamata dei test, e restituisce `repr()` o l'ultima riga dell'errore; `print` è catturato e troncato a 4.000 caratteri.
+- `next.config.ts`: `/pyodide/*` con cache di un anno (la versione è nel percorso); `/python-worker.js` con `no-cache` e una CSP propria (`script-src 'self' 'wasm-unsafe-eval'`, `connect-src 'self'`): WebAssembly è permesso solo nel worker, le pagine restano con la CSP di sempre. `proxy.ts` esclude entrambi.
+- Il service worker tiene i file di Pyodide (prima la cache, solo la versione in uso) e il worker (prima la rete): dopo il primo uso i test girano anche offline.
+
+Lato server: `src/server/exam-handler.ts` (handler puro), `exam-deps.ts`, `src/app/api/exam/subjects/[id]/route.ts`; caso d'uso `ReadExamContent` nel core e `loadExamContent` di `DrizzleExamPackRepository` (una lettura con la RLS dello studente: materia visibile, pacchetto del feed corrente di ogni lezione, banca propria). L'ETag è l'impronta degli id di pacchetti e banca, che non cambiano mai: un feed nuovo ha un pacchetto nuovo.
 
 ### Sincronizzazione dei progressi (M4)
 Decisioni in [ADR 0018](../decisions/0018-sincronizzazione-cifrata-progressi.md); unione e ricalcolo puri nel core ([core.md](core.md#sincronizzazione-dei-progressi)).
@@ -136,6 +160,7 @@ Decisioni in [ADR 0018](../decisions/0018-sincronizzazione-cifrata-progressi.md)
 - **Service worker** (`public/sw.js`, scritto a mano, nessuna dipendenza), registrato da `ServiceWorkerRegistration` solo nella build di produzione:
   - `/_next/static/` (JS, CSS e font con l'impronta nel nome): prima la cache, poi la rete; al massimo 120 file, i più vecchi si scartano;
   - navigazione su `/` e `/ripasso`: prima la rete; la copia in cache serve solo se la rete manca. Si conserva solo una risposta 200 della pagina stessa: un rimando ad `/accedi`, un 401 o un 403 cancellano la copia, così dopo l'uscita il feed non si riapre offline;
+  - `/pyodide/` (M4): prima la cache, nella cache `epicfeed-pyodide` con la sola versione in uso; `/python-worker.js`: prima la rete, con la copia come riserva;
   - API, altre pagine e altri siti: non li tocca. La materia non passa dal service worker: la tiene `feed-client.ts` in `localStorage` e la rivaluta con l'ETag.
   - Le cache hanno la versione nel nome (`epicfeed-shell-v1`, `epicfeed-static-v1`): cambiare `VERSION` le svuota all'attivazione; `skipWaiting` e `clients.claim` fanno valere subito la versione nuova.
 - `next.config.ts` serve `/sw.js` con `Cache-Control: no-cache`, perché il browser controlli sempre se è cambiato; `proxy.ts` esclude `sw.js`, il manifest e le icone (niente sessione né CSP da rinnovare per file statici).
@@ -172,6 +197,6 @@ pnpm --filter @study-feed/web dev              # http://localhost:3000
 ```
 
 ## Test
-`src/server/*.test.ts` (Vitest): `handleImport` con servizi finti (ogni caso di errore), controllo dell'origine e lettura del bearer. I flussi con il database sono coperti dai test di `packages/adapters` e dalla prova end-to-end descritta in [import.md](import.md#come-è-testato). `src/features/feed/*.test.ts`: modello del feed, salvataggi sul dispositivo, gesti e caricamento della materia.
+`src/server/*.test.ts` (Vitest): `handleImport` con servizi finti (ogni caso di errore), controllo dell'origine e lettura del bearer. I flussi con il database sono coperti dai test di `packages/adapters` e dalla prova end-to-end descritta in [import.md](import.md#come-è-testato). `src/features/feed/*.test.ts`: modello del feed, salvataggi sul dispositivo, gesti e caricamento della materia. `src/features/exam/*.test.ts`: catalogo d'esame, caricamento con ETag e copia, esecutore Python con worker e timer finti.
 
-**Feed sul telefono (Playwright, `apps/web/e2e`)**: `pnpm --filter @study-feed/web test:e2e`, dopo la build. Un banco di prova (`e2e/harness/build.mjs`) impacchetta con esbuild il vero `FeedApp` con una materia di prova (`fixture.ts`, validata dallo stesso schema dell'API) e un `fetch` finto, al posto di `next/link` e `next/navigation` mette due sostituti minimi, e prende i CSS e i font dalla build di Next (`.next/static`). I test servono i file con `page.route` (nessun server, nessun database) e con una CSP come quella di produzione per gli stili, quindi un attributo `style` nell'HTML o un errore in console fanno fallire il test. Chromium con le viste di **iPhone 13** e **Pixel 7** (tocco attivo): spiegazione dei gesti al primo avvio, battute avanti e indietro, parola da indovinare, doppio tocco, tieni premuto con il minuto sul portale, scorrimento con domanda in inglese e codice, vero/falso con lo swipe, foglio dei capitoli, tastiera, ripresa dall'ultima scheda; apertura dalla copia con la rete lenta (`?rete=lenta`) o assente (`?rete=assente`); andata e ritorno da *Io* con posizione e punti conservati; sessione da 5 minuti contata alla fine (orologio simulato). Il banco ha anche la pagina *Io* (`io-entry.tsx`, server action sostituita da una funzione vuota): righe allineate sui telefoni stretti, nessuno scorrimento orizzontale, barra in basso sfocata e coprente.
+**Feed sul telefono (Playwright, `apps/web/e2e`)**: `pnpm --filter @study-feed/web test:e2e`, dopo la build. Un banco di prova (`e2e/harness/build.mjs`) impacchetta con esbuild il vero `FeedApp` con una materia di prova (`fixture.ts`, validata dallo stesso schema dell'API) e un `fetch` finto, al posto di `next/link` e `next/navigation` mette due sostituti minimi, e prende i CSS e i font dalla build di Next (`.next/static`). I test servono i file con `page.route` (nessun server, nessun database) e con una CSP come quella di produzione per gli stili, quindi un attributo `style` nell'HTML o un errore in console fanno fallire il test. Chromium con le viste di **iPhone 13** e **Pixel 7** (tocco attivo): spiegazione dei gesti al primo avvio, battute avanti e indietro, parola da indovinare, doppio tocco, tieni premuto con il minuto sul portale, scorrimento con domanda in inglese e codice, vero/falso con lo swipe, foglio dei capitoli, tastiera, ripresa dall'ultima scheda; apertura dalla copia con la rete lenta (`?rete=lenta`) o assente (`?rete=assente`); andata e ritorno da *Io* con posizione e punti conservati; sessione da 5 minuti contata alla fine (orologio simulato). Sezione Esame (`review-entry.tsx` con i contenuti d'esame di `fixture.ts`): quiz di modulo con domande del feed e del pacchetto, esercizio di codice con suggerimento, editor CodeMirror, test eseguiti davvero con Pyodide nel worker (stessa CSP del worker di produzione) e griglia, ciclo infinito interrotto dopo 5 secondi per test. Il banco usa un nonce fisso per gli stili dell'editor, come la CSP di produzione. Il banco ha anche la pagina *Io* (`io-entry.tsx`, server action sostituita da una funzione vuota): righe allineate sui telefoni stretti, nessuno scorrimento orizzontale, barra in basso sfocata e coprente.

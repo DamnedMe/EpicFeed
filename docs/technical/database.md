@@ -89,7 +89,7 @@ Progetto: **EpicFeed** (`https://nxuysaeevxcncchqjtep.supabase.co`), creato il 1
 - M2 (PR 4, slide): migrazione `0007_slides_part_kind`, che aggiunge il valore `slides` a `lesson_part_kind` e a `generation_action`. Non distruttiva.
 - M4 (PR 2, sincronizzazione): migrazioni `0008_progress_snapshots` (tabella `progress_snapshots`) e `0009_harden_grants_progress` (permessi), solo aggiunte; applicate il 24/11/2026.
 - M4 (PR 3, pacchetti d'esame): migrazioni `0010_exam_packs` (tabella `lesson_exam_packs`) e `0011_harden_grants_exam` (permessi), solo aggiunte; applicate il 24/11/2026.
-- M4 (PR 3, banca degli esercizi): migrazioni `0012_exam_banks` (tabella `subject_exam_banks`) e `0013_harden_grants_exam_banks` (permessi), solo aggiunte e quindi non distruttive: da applicare con il connettore dopo il merge.
+- M4 (PR 3, banca degli esercizi): migrazioni `0012_exam_banks` (tabella `subject_exam_banks`) e `0013_harden_grants_exam_banks` (permessi), solo aggiunte; applicate il 24/11/2026.
 
 ### Applicare le migrazioni con Claude (connettore Supabase)
 Con il connettore Supabase collegato, Claude può applicare le migrazioni nuove con `apply_migration`, aggiungendo nella stessa migrazione la riga in `drizzle.__drizzle_migrations` (hash SHA-256 del file `.sql` e campo `when` del journal). Non serve la password del database.

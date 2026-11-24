@@ -143,4 +143,8 @@ export const STORAGE_KEYS = {
   subject: 'subject',
   position: (subjectId: string) => `position:${subjectId}`,
   feed: (subjectId: string) => `feed:${subjectId}`,
+  /** Contenuti d'esame della materia (M4). */
+  exam: (subjectId: string) => `exam:${subjectId}`,
+  /** Bozza della risposta a un esercizio d'esame. */
+  examDraft: (exerciseKey: string) => `exam-draft:${exerciseKey}`,
 } as const;

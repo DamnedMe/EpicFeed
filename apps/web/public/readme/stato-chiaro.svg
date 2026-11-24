@@ -1,23 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="480" viewBox="0 0 1200 480" role="img" aria-label="Stato dello sviluppo di EpicFeed: MVP al 89%">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="480" viewBox="0 0 1200 480" role="img" aria-label="Stato dello sviluppo di EpicFeed: MVP al 93%">
 <defs><radialGradient id="glow" cx="85%" cy="0%" r="70%"><stop offset="0" stop-color="#E10600" stop-opacity="0.12"/><stop offset="1" stop-color="#E10600" stop-opacity="0"/></radialGradient></defs>
 <rect width="1200" height="480" rx="28" fill="#EDF0F3"/>
 <rect width="1200" height="480" rx="28" fill="url(#glow)"/>
 <rect x="0.5" y="0.5" width="1199" height="479" rx="28" fill="none" stroke="#CBD2D9"/>
-<text x="64" y="78" font-family="'JetBrains Mono', ui-monospace, Consolas, Menlo, monospace" font-size="15" letter-spacing="3" fill="#C80500">STATO DELLO SVILUPPO · 23/11/2026</text>
+<text x="64" y="78" font-family="'JetBrains Mono', ui-monospace, Consolas, Menlo, monospace" font-size="15" letter-spacing="3" fill="#C80500">STATO DELLO SVILUPPO · 24/11/2026</text>
 <text x="64" y="140" font-family="'Space Grotesk', Inter, 'Segoe UI', system-ui, sans-serif" font-size="58" font-weight="700" fill="#0B0B0E">EpicFeed<tspan fill="#E10600">.</tspan></text>
 <text x="64" y="178" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="20" fill="#5B6570">Il materiale Epicode diventa un feed di studio, quiz e ripasso.</text>
 <g transform="translate(860,62)">
 <rect width="276" height="128" rx="20" fill="#FFFFFF" fill-opacity="0.72" stroke="#CBD2D9"/>
 <text x="24" y="38" font-family="'JetBrains Mono', ui-monospace, Consolas, Menlo, monospace" font-size="13" letter-spacing="2" fill="#5B6570">MVP (M0–M4)</text>
-<text x="24" y="92" font-family="'Space Grotesk', Inter, 'Segoe UI', system-ui, sans-serif" font-size="50" font-weight="700" fill="#0B0B0E">89<tspan font-size="26">%</tspan></text>
+<text x="24" y="92" font-family="'Space Grotesk', Inter, 'Segoe UI', system-ui, sans-serif" font-size="50" font-weight="700" fill="#0B0B0E">93<tspan font-size="26">%</tspan></text>
 <text x="252" y="92" text-anchor="end" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="15" fill="#5B6570">4 di 10 milestone</text>
 <rect x="24" y="106" width="228" height="6" rx="3" fill="#CBD2D9"/>
-<rect x="24" y="106" width="202.92" height="6" rx="3" fill="#E10600"/>
+<rect x="24" y="106" width="212.04" height="6" rx="3" fill="#E10600"/>
 </g>
 <path d="M54 262 v-10 h514.2222222222222 v10" fill="none" stroke="#CBD2D9" stroke-width="2"/>
 <text x="311.1111111111111" y="244" text-anchor="middle" font-family="'JetBrains Mono', ui-monospace, Consolas, Menlo, monospace" font-size="13" letter-spacing="2" fill="#5B6570">MVP</text>
 <line x1="80" y1="330" x2="1120" y2="330" stroke="#CBD2D9" stroke-width="4" stroke-linecap="round"/>
-<line x1="80" y1="330" x2="478.6666666666667" y2="330" stroke="#E10600" stroke-width="4" stroke-linecap="round"/>
+<line x1="80" y1="330" x2="501.77777777777777" y2="330" stroke="#E10600" stroke-width="4" stroke-linecap="round"/>
 <circle cx="80" cy="330" r="15" fill="#E10600"/>
 <path d="M74 330 l4 4.5 l8 -9" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="80" y="382" text-anchor="middle" font-family="'JetBrains Mono', ui-monospace, Consolas, Menlo, monospace" font-size="15" font-weight="500" fill="#0B0B0E">M0</text>
@@ -47,7 +47,7 @@
 <text x="542.2222222222222" y="382" text-anchor="middle" font-family="'JetBrains Mono', ui-monospace, Consolas, Menlo, monospace" font-size="15" font-weight="500" fill="#C80500">M4</text>
 <text x="542.2222222222222" y="406" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="14" fill="#0B0B0E">Ripasso</text>
 <text x="542.2222222222222" y="424" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="14" fill="#0B0B0E">ed esame</text>
-<text x="542.2222222222222" y="450" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="13" fill="#C80500">in corso · PR 3 di 6</text>
+<text x="542.2222222222222" y="450" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="13" fill="#C80500">in corso · PR 4 di 6</text>
 <circle cx="657.7777777777778" cy="330" r="13" fill="#EDF0F3" stroke="#CBD2D9" stroke-width="3"/>
 <text x="657.7777777777778" y="382" text-anchor="middle" font-family="'JetBrains Mono', ui-monospace, Consolas, Menlo, monospace" font-size="15" font-weight="500" fill="#5B6570">M5</text>
 <text x="657.7777777777778" y="406" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="14" fill="#5B6570">Segnala</text>

@@ -8,6 +8,10 @@
  * Strategie:
  * - file di `/_next/static/` (JS, CSS, font): hanno l'impronta nel nome e non
  *   cambiano mai, quindi prima la cache, poi la rete;
+ * - Pyodide (`/pyodide/<versione>/`, M4): la versione è nel percorso, quindi
+ *   prima la cache; si tiene solo la versione in uso. Il worker dei test
+ *   (`/python-worker.js`) prima dalla rete, con la copia come riserva: così i
+ *   test del codice girano anche offline dopo il primo uso;
  * - pagine del feed e del ripasso (`/`, `/ripasso`): prima la rete, e la copia in cache solo se la rete
  *   manca. Una risposta che rimanda all'accesso cancella la copia: dopo
  *   l'uscita il feed non resta aperto offline;
@@ -18,6 +22,7 @@
 const VERSION = 'v1';
 const SHELL_CACHE = `epicfeed-shell-${VERSION}`;
 const STATIC_CACHE = `epicfeed-static-${VERSION}`;
+const PYODIDE_CACHE = 'epicfeed-pyodide';
 /** Pagine conservate per l'uso offline. */
 const OFFLINE_PAGES = ['/', '/ripasso'];
 /** Tetto ai file statici in cache: a ogni deploy cambiano nome, i vecchi si scartano. */
@@ -31,7 +36,7 @@ self.addEventListener('install', () => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
-      const keep = new Set([SHELL_CACHE, STATIC_CACHE]);
+      const keep = new Set([SHELL_CACHE, STATIC_CACHE, PYODIDE_CACHE]);
       for (const key of await caches.keys()) {
         if (key.startsWith('epicfeed-') && !keep.has(key)) await caches.delete(key);
       }
@@ -48,6 +53,14 @@ self.addEventListener('fetch', (event) => {
 
   if (url.pathname.startsWith('/_next/static/')) {
     event.respondWith(cacheFirst(request));
+    return;
+  }
+  if (url.pathname.startsWith('/pyodide/')) {
+    event.respondWith(pyodideFile(request, url.pathname));
+    return;
+  }
+  if (url.pathname === '/python-worker.js') {
+    event.respondWith(networkFirstPage(request, url.pathname));
     return;
   }
   if (request.mode === 'navigate' && OFFLINE_PAGES.includes(url.pathname)) {
@@ -75,7 +88,30 @@ async function cacheFirst(request) {
 }
 
 /**
- * Pagina del feed: dalla rete, con la copia in cache come riserva offline.
+ * File di Pyodide: dalla cache se c'è, altrimenti dalla rete. Quando arriva
+ * un file di una versione nuova, quelli delle altre versioni si cancellano.
+ *
+ * @param {Request} request
+ * @param {string} path
+ * @returns {Promise<Response>}
+ */
+async function pyodideFile(request, path) {
+  const cache = await caches.open(PYODIDE_CACHE);
+  const cached = await cache.match(request);
+  if (cached) return cached;
+  const response = await fetch(request);
+  if (response.ok && response.type === 'basic') {
+    const version = path.split('/')[2];
+    for (const key of await cache.keys()) {
+      if (new URL(key.url).pathname.split('/')[2] !== version) await cache.delete(key);
+    }
+    await cache.put(request, response.clone());
+  }
+  return response;
+}
+
+/**
+ * Pagina del feed (o worker dei test): dalla rete, con la copia in cache come riserva offline.
  * Si conserva solo una risposta 200 della pagina stessa (non un rimando
  * all'accesso); un rimando cancella la copia.
  *

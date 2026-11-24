@@ -40,6 +40,13 @@ I progressi escono dal dispositivo solo cifrati: la chiave si ricava dalla passw
 - Strumenti MCP `lezioni_per_esame`, `leggi_lezione_esame`, `salva_domande_esame` e prompt `genera_domande_esame`; regole nel core (`checkExamPack`), ripetute dal server MCP e dall'API. Dettagli in [generation.md](../technical/generation.md#pacchetti-desame-m4).
 - La **banca degli esercizi** dal materiale *Exam Prep* (§2 dell'ADR 0014, 2 varianti per esercizio) è in una PR a parte, con una semplificazione: il materiale non viene agganciato al corso sul server. `leggi_materiale_esame` lo legge dallo zip sul PC e a EpicFeed arriva solo la banca scritta da Claude, **privata** di chi la genera (tabella `subject_exam_banks`), perché senza il materiale sul server non c'è una prova di possesso da condividere. Dettagli in [generation.md](../technical/generation.md#banca-degli-esercizi-m4).
 
+### Sezione Esame: dettagli tecnici (PR 4)
+- **Una lettura per materia**: `GET /api/exam/subjects/{id}` restituisce i pacchetti dei feed correnti e la banca dello studente, con ETag; l'app li tiene sul dispositivo come il feed e li unisce al feed nel catalogo della sezione.
+- **Quiz di modulo**: 50 domande estratte a caso tra quelle del feed (in inglese, il vero/falso come due opzioni) e quelle del pacchetto, nuove a ogni tentativo.
+- **CodeMirror 6** solo con i pacchetti che servono (vista, stato, comandi, linguaggio, Python), caricato con `import()` al primo esercizio di codice; gli stili usano il nonce della CSP.
+- **Pyodide 0.29.5** copiato al build in `public/pyodide/<versione>/` (circa 12 MB, solo runtime e libreria standard). Gira in un Web Worker con una CSP propria: WebAssembly è permesso solo lì, le pagine non cambiano CSP. Dopo il caricamento il worker toglie gli strumenti di rete e blocca il ponte verso JavaScript; il tempo massimo è 5 secondi per test, poi il worker si termina. La versione 314 (nuova numerazione, uscita il 13/11/2026) è rimandata.
+- **Autovalutazione** con la griglia già in questa PR: il punteggio aggiorna il ripasso con le soglie dell'ADR 0014; bozze, punteggi e lingua dei suggerimenti restano sul dispositivo. La correzione di Claude arriva nella PR 5.
+
 ## Alternative scartate
 - **Esame come quinta voce della barra o dentro *Io***: proposte, Damian ha preferito tenerlo dentro Ripasso.
 - **Ripasso solo con domande o elenco stile quiz**: più veloce ma senza il richiamo del concetto.

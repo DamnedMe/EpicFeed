@@ -6,6 +6,7 @@ import { readAppearance } from '@/server/appearance';
 import './globals.css';
 import '@/features/feed/feed.css';
 import '@/features/review/review.css';
+import '@/features/exam/exam.css';
 
 // Font self-hosted da next/font: scaricati alla build, serviti dall'app (CSP `font-src 'self'`).
 const display = Space_Grotesk({
