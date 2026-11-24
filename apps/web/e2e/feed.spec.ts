@@ -369,7 +369,7 @@ test('Ripasso ed Esame stanno nello stesso tab', async ({ page }) => {
   await page.getByRole('tab', { name: 'Esame' }).click();
   await expect(page.getByRole('heading', { name: 'Allenati come all’esame' })).toBeVisible();
   await expect(page).toHaveURL(/#esame$/);
-  await expect(page.locator('.ef-nav .on')).toHaveText('Ripasso');
+  await expect(page.locator('.ef-nav .on')).toHaveAccessibleName('Ripasso');
 });
 
 test('il quiz di modulo mescola feed e domande d’esame, in inglese', async ({ page }) => {
