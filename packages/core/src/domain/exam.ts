@@ -167,10 +167,18 @@ function checkChoice(
   }
 }
 
+/**
+ * Regole di una domanda aperta, comuni ai pacchetti delle lezioni e alla
+ * banca degli esercizi della materia.
+ *
+ * @param conceptKeys - Concetti ammessi.
+ * @param scope - Dove stanno i concetti ammessi, per il messaggio.
+ */
 function checkOpen(
   item: ExamOpenQuestion,
   path: string,
-  context: ExamPackCheckContext,
+  conceptKeys: ReadonlySet<string>,
+  scope: string,
   add: AddIssue,
 ): void {
   checkCount(item.hints.length, EXAM_PACK_LIMITS.hints, `${path}.hints`, 'suggerimenti', add);
@@ -189,8 +197,8 @@ function checkOpen(
     add,
   );
   item.conceptKeys.forEach((key, i) => {
-    if (!context.conceptKeys.has(key)) {
-      add(`${path}.conceptKeys[${i}]`, `Concetto inesistente nel feed della lezione: ${key}`);
+    if (!conceptKeys.has(key)) {
+      add(`${path}.conceptKeys[${i}]`, `Concetto inesistente ${scope}: ${key}`);
     }
   });
   if (item.kind === 'code') {
@@ -243,7 +251,101 @@ export function checkExamPack(draft: ExamPackDraft, context: ExamPackCheckContex
     seen.add(text);
   });
   draft.openQuestions.forEach((item, i) => {
-    checkOpen(item, `openQuestions[${i}]`, context, add);
+    checkOpen(item, `openQuestions[${i}]`, context.conceptKeys, 'nel feed della lezione', add);
+  });
+  return issues;
+}
+
+// ---------------------------------------------------------------------------
+// Banca degli esercizi della materia (ADR 0014 §2, ADR 0017 scelta 8)
+// ---------------------------------------------------------------------------
+
+/**
+ * Esercizio della banca d'esame di una materia: una domanda aperta più la sua
+ * origine. Gli esercizi **ufficiali** trascrivono il materiale d'esame del
+ * corso (es. *Exam Prep*); le **varianti** cambiano dati o richiesta sullo
+ * stesso argomento e indicano l'ufficiale da cui nascono.
+ */
+export interface ExamExercise extends ExamOpenQuestion {
+  /** Titolo breve, per l'elenco degli esercizi. */
+  readonly title: string;
+  readonly origin: 'official' | 'variant';
+  /** Id dell'esercizio ufficiale da cui nasce (solo varianti). */
+  readonly variantOf?: string | undefined;
+  /** Pagina del PDF del materiale d'esame (dell'ufficiale, per le varianti). */
+  readonly page: number;
+}
+
+/** Banca degli esercizi come la produce Claude. */
+export interface ExamBankDraft {
+  readonly exercises: readonly ExamExercise[];
+}
+
+/** Banca salvata: privata di chi l'ha generata (vedi `subject_exam_banks`). */
+export interface ExamBankDocument extends ExamBankDraft {
+  readonly subjectId: string;
+  readonly promptVersion: string;
+  readonly generatedAt: string;
+}
+
+/** Quantità della banca: 14 esercizi ufficiali nel corso DSA, 2 varianti ciascuno. */
+export const EXAM_BANK_LIMITS = {
+  officials: { min: 1, max: 30 },
+  variantsPerOfficial: { min: 2, max: 2 },
+  exercises: { min: 3, max: 90 },
+  page: { min: 1, max: 200 },
+} as const;
+
+/**
+ * Controlla una banca d'esame: per ogni esercizio le regole delle domande
+ * aperte; id unici; ogni variante si riferisce a un ufficiale esistente; ogni
+ * ufficiale ha il numero di varianti previsto; concetti della materia.
+ *
+ * @param draft - Banca già validata nella forma.
+ * @param conceptKeys - Concetti dei feed della materia.
+ * @returns L'elenco dei problemi; vuoto se la banca è coerente.
+ */
+export function checkExamBank(draft: ExamBankDraft, conceptKeys: ReadonlySet<string>): FeedIssue[] {
+  const issues: FeedIssue[] = [];
+  const add: AddIssue = (path, message) => {
+    issues.push({ path, message });
+  };
+  const officials = draft.exercises.filter((item) => item.origin === 'official');
+  checkCount(draft.exercises.length, EXAM_BANK_LIMITS.exercises, 'exercises', 'esercizi', add);
+  checkCount(officials.length, EXAM_BANK_LIMITS.officials, 'exercises', 'esercizi ufficiali', add);
+
+  const officialIds = new Set(officials.map((item) => item.id));
+  const variants = new Map<string, number>();
+  const seen = new Set<string>();
+  draft.exercises.forEach((item, i) => {
+    const path = `exercises[${i}]`;
+    if (item.id.length > MAX_SLUG_LENGTH || !SLUG_PATTERN.test(item.id)) {
+      add(`${path}.id`, `"${item.id}" deve essere in kebab-case`);
+    }
+    if (seen.has(item.id)) add(`${path}.id`, `Id ripetuto: ${item.id}`);
+    seen.add(item.id);
+    const { min, max } = EXAM_BANK_LIMITS.page;
+    if (!Number.isInteger(item.page) || item.page < min || item.page > max) {
+      add(`${path}.page`, `Pagina da ${min} a ${max}`);
+    }
+    if (item.origin === 'official') {
+      if (item.variantOf) add(`${path}.variantOf`, 'Un esercizio ufficiale non è una variante');
+    } else if (!item.variantOf || !officialIds.has(item.variantOf)) {
+      add(`${path}.variantOf`, "Una variante indica l'id di un esercizio ufficiale della banca");
+    } else {
+      variants.set(item.variantOf, (variants.get(item.variantOf) ?? 0) + 1);
+    }
+    checkOpen(item, path, conceptKeys, 'nei feed della materia', add);
+  });
+  draft.exercises.forEach((item, i) => {
+    if (item.origin !== 'official') return;
+    checkCount(
+      variants.get(item.id) ?? 0,
+      EXAM_BANK_LIMITS.variantsPerOfficial,
+      `exercises[${i}]`,
+      'varianti',
+      add,
+    );
   });
   return issues;
 }

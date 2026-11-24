@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type {
   ConceptKey,
+  ExamBankDocument,
+  ExamExercise,
   ContentHash,
   ExamPackDocument,
   ExamPackDraft,
@@ -10,9 +12,15 @@ import type {
   UserId,
 } from '../domain/index.js';
 import { DomainError, FeedValidationError } from '../domain/index.js';
-import type { CurrentLessonFeedWithDocument, ExamPackRepository } from './exam-generation.js';
+import type {
+  CurrentLessonFeedWithDocument,
+  ExamBankRepository,
+  ExamPackRepository,
+} from './exam-generation.js';
 import {
   ListLessonsForExam,
+  ListSubjectsForExam,
+  SaveExamBank,
   ReadLessonForExam,
   SaveExamPack,
   examMaterialFromFeed,
@@ -204,5 +212,69 @@ describe('SaveExamPack', () => {
       'questions[0].question',
     ]);
     expect((error as FeedValidationError).message).toContain("Il pacchetto d'esame");
+  });
+});
+
+describe('SaveExamBank', () => {
+  const subjectId = '40000000-0000-4000-8000-000000000001';
+  const base = pack.openQuestions[0];
+  if (!base) throw new Error('fixture');
+  const exercise = (id: string, extra: Partial<ExamExercise> = {}): ExamExercise => ({
+    ...base,
+    id,
+    title: id,
+    origin: 'official',
+    page: 1,
+    ...extra,
+  });
+  const exercises = [
+    exercise('lifo'),
+    exercise('lifo-a', { origin: 'variant', variantOf: 'lifo' }),
+    exercise('lifo-b', { origin: 'variant', variantOf: 'lifo' }),
+  ];
+
+  class MemoryBanks implements ExamBankRepository {
+    saved: ExamBankDocument[] = [];
+    listSubjectsForExam() {
+      return Promise.resolve([
+        {
+          subjectId,
+          subjectTitle: 'DSA',
+          concepts: [{ key: 'stack', name: 'Stack', description: 'LIFO' }],
+          hasBank: this.saved.length > 0,
+        },
+      ]);
+    }
+    saveExamBank(input: { document: ExamBankDocument }) {
+      const created = this.saved.length === 0;
+      if (created) this.saved.push(input.document);
+      return Promise.resolve({ bankId: '80000000-0000-4000-8000-000000000001', created });
+    }
+  }
+
+  it('salva la banca e conta ufficiali e varianti', async () => {
+    const repo = new MemoryBanks();
+    expect(await new ListSubjectsForExam(repo).execute(user)).toHaveLength(1);
+    const result = await new SaveExamBank({ repository: repo, clock }).execute(user, {
+      subjectId,
+      promptVersion: '2026-11-24.1',
+      bank: { exercises },
+    });
+    expect(result).toMatchObject({ created: true, officials: 1, variants: 2 });
+    expect(repo.saved[0]?.generatedAt).toBe('2026-11-24T10:00:00.000Z');
+  });
+
+  it('rifiuta una materia sconosciuta e una banca incoerente', async () => {
+    const save = new SaveExamBank({ repository: new MemoryBanks(), clock });
+    await expect(
+      save.execute(user, { subjectId: 'x', promptVersion: '2026-11-24.1', bank: { exercises } }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    await expect(
+      save.execute(user, {
+        subjectId,
+        promptVersion: '2026-11-24.1',
+        bank: { exercises: exercises.slice(0, 2) },
+      }),
+    ).rejects.toBeInstanceOf(FeedValidationError);
   });
 });

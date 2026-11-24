@@ -2,6 +2,9 @@ import type {
   ImportSlidesRequest,
   LessonForExamResponse,
   LessonsForExamResponse,
+  SaveExamBankRequest,
+  SaveExamBankResponse,
+  SubjectsForExamResponse,
   SaveExamPackRequest,
   SaveExamPackResponse,
   ImportSlidesResponse,
@@ -17,7 +20,9 @@ import {
   lessonForExamResponseSchema,
   lessonsForExamResponseSchema,
   ownedLessonsResponseSchema,
+  saveExamBankResponseSchema,
   saveExamPackResponseSchema,
+  subjectsForExamResponseSchema,
   lessonSourcesResponseSchema,
   lessonsToGenerateResponseSchema,
   saveLessonFeedResponseSchema,
@@ -196,6 +201,33 @@ export class EpicFeedApi {
       `/api/generation/lessons/${encodeURIComponent(body.lessonId)}/exam`,
       { method: 'POST', body: JSON.stringify(body) },
       saveExamPackResponseSchema,
+    );
+  }
+
+  /**
+   * Materie con almeno un feed, con i concetti, per la banca d'esame.
+   *
+   * @returns La risposta validata.
+   */
+  async listExamSubjects(): Promise<SubjectsForExamResponse> {
+    return this.request(
+      '/api/generation/exam/subjects',
+      { method: 'GET' },
+      subjectsForExamResponseSchema,
+    );
+  }
+
+  /**
+   * Salva la banca degli esercizi d'esame di una materia.
+   *
+   * @param body - Richiesta già validata.
+   * @returns La risposta validata.
+   */
+  async saveExamBank(body: SaveExamBankRequest): Promise<SaveExamBankResponse> {
+    return this.request(
+      `/api/generation/exam/subjects/${encodeURIComponent(body.subjectId)}/bank`,
+      { method: 'POST', body: JSON.stringify(body) },
+      saveExamBankResponseSchema,
     );
   }
 

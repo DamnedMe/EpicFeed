@@ -7,6 +7,8 @@ import { z } from 'zod';
 import type { EpicFeedApi } from './api-client.js';
 import { ApiRequestError } from './api-client.js';
 import { EXAM_SERVER_INSTRUCTIONS } from './exam-prompt.js';
+import type { ExamBankApi } from './exam-bank-tools.js';
+import { registerExamBankTools } from './exam-bank-tools.js';
 import type { ExamApi } from './exam-tools.js';
 import { registerExamTools } from './exam-tools.js';
 import { GENERATION_INSTRUCTIONS, PROMPT_VERSION, SERVER_INSTRUCTIONS } from './prompt.js';
@@ -23,13 +25,15 @@ export type GenerationApi = Pick<
   EpicFeedApi,
   'listLessons' | 'readLesson' | 'saveFeed' | 'listCatalog' | 'importSlides'
 > &
-  ExamApi;
+  ExamApi &
+  ExamBankApi;
 
 /**
  * Crea il server MCP di EpicFeed con gli strumenti di generazione (M2):
  * `lezioni_da_generare`, `leggi_lezione`, `salva_feed_lezione`,
  * `stato_generazione`, `importa_slide` e il prompt `genera_lezioni`; più
- * quelli dei pacchetti d'esame (M4, {@link registerExamTools}).
+ * quelli dei pacchetti d'esame e della banca degli esercizi (M4,
+ * {@link registerExamTools}, {@link registerExamBankTools}).
  *
  * Il server non tiene segreti oltre al token (dentro `api`) e ricorda solo,
  * in memoria, le parti delle lezioni lette, per controllare il feed prima di
@@ -260,6 +264,7 @@ export function createEpicFeedServer(
   );
 
   registerExamTools(server, api);
+  registerExamBankTools(server, api, slides);
   return server;
 }
 

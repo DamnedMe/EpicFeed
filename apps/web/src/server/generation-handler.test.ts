@@ -13,9 +13,11 @@ import {
   handleImportSlides,
   handleListCatalog,
   handleListExamLessons,
+  handleListExamSubjects,
   handleListLessons,
   handleReadLesson,
   handleReadLessonForExam,
+  handleSaveExamBank,
   handleSaveExamPack,
   handleSaveFeed,
   type GenerationHandlerDeps,
@@ -176,6 +178,10 @@ function deps(overrides: Partial<GenerationHandlerDeps> = {}): GenerationHandler
     readLessonForExam: () => Promise.resolve(examMaterial),
     saveExamPack: () =>
       Promise.resolve({ packId: feedId, created: true, questions: 10, openQuestions: 1 }),
+    listExamSubjects: () =>
+      Promise.resolve([{ subjectId: lessonId, subjectTitle: 'DSA', concepts: [], hasBank: false }]),
+    saveExamBank: () =>
+      Promise.resolve({ bankId: feedId, created: true, officials: 1, variants: 2 }),
     logError,
     ...overrides,
   };
@@ -495,5 +501,59 @@ describe("pacchetti d'esame", () => {
       deps({ saveExamPack: () => Promise.reject(new DomainError('SOURCES_CHANGED', 'nuovo')) }),
     );
     expect(changed.status).toBe(409);
+  });
+});
+
+describe("banche d'esame", () => {
+  const url = `/api/generation/exam/subjects/${lessonId}/bank`;
+  const [open] = [
+    {
+      id: 'lifo',
+      kind: 'explain',
+      prompt: 'Explain LIFO.',
+      hints: [bi('Piatti.', 'Plates.')],
+      modelAnswer: 'Last in, first out.',
+      rubric: [
+        { criterion: 'a', points: 1 },
+        { criterion: 'b', points: 1 },
+        { criterion: 'c', points: 1 },
+      ],
+      conceptKeys: ['avl-tree'],
+      followUp: 'Why?',
+      title: 'LIFO',
+      origin: 'official',
+      page: 1,
+    },
+  ];
+  const body = {
+    subjectId: lessonId,
+    promptVersion: '2026-11-24.1',
+    bank: { exercises: [open] },
+  };
+  const postBank = (payload: unknown) =>
+    request(url, { method: 'POST', body: JSON.stringify(payload) });
+
+  it('elenca le materie', async () => {
+    const response = await handleListExamSubjects(request('/api/generation/exam/subjects'), deps());
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ subjects: [{ subjectTitle: 'DSA' }] });
+  });
+
+  it('salva la banca e rifiuta forma, materia diversa e materia sconosciuta', async () => {
+    expect((await handleSaveExamBank(postBank(body), lessonId, deps())).status).toBe(201);
+    expect(record).toHaveBeenCalledWith(user, 'save', null);
+    expect(
+      (await handleSaveExamBank(postBank({ ...body, bank: {} }), lessonId, deps())).status,
+    ).toBe(422);
+    expect(
+      (await handleSaveExamBank(postBank({ ...body, subjectId: partId }), lessonId, deps())).status,
+    ).toBe(400);
+    expect((await handleSaveExamBank(postBank(body), 'x', deps())).status).toBe(400);
+    const missing = await handleSaveExamBank(
+      postBank(body),
+      lessonId,
+      deps({ saveExamBank: () => Promise.reject(new DomainError('NOT_FOUND', 'x')) }),
+    );
+    expect(missing.status).toBe(404);
   });
 });

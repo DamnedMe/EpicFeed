@@ -1,6 +1,9 @@
-import { asc, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, sql } from 'drizzle-orm';
 import type {
   CurrentLessonFeed,
+  ExamBankDocument,
+  ExamBankRepository,
+  SubjectForExam,
   CurrentLessonFeedWithDocument,
   ExamPackDocument,
   ExamPackRepository,
@@ -9,19 +12,26 @@ import type {
   UserId,
 } from '@study-feed/core';
 import { parseId } from '@study-feed/core';
-import { chapters, lessonExamPacks, lessonFeeds, lessons, subjects } from '@study-feed/db';
+import {
+  chapters,
+  lessonExamPacks,
+  lessonFeeds,
+  lessons,
+  subjectExamBanks,
+  subjects,
+} from '@study-feed/db';
 import type { Database, DatabaseTransaction } from './database.js';
 import { withUserRls } from './database.js';
 
 /**
- * Persistenza dei pacchetti d'esame su Postgres (porta `ExamPackRepository`
- * del core, M4).
+ * Persistenza dei pacchetti d'esame e delle banche degli esercizi su Postgres
+ * (porte `ExamPackRepository` ed `ExamBankRepository` del core, M4).
  *
  * Le **letture** passano dalla RLS dello studente: si vedono solo i feed di cui
  * possiede tutte le fonti, e quindi solo i loro pacchetti. La **scrittura** usa
  * la connessione del server, dopo che il caso d'uso ha verificato il feed.
  */
-export class DrizzleExamPackRepository implements ExamPackRepository {
+export class DrizzleExamPackRepository implements ExamPackRepository, ExamBankRepository {
   /**
    * @param db - Database con permessi di scrittura (solo lato server).
    */
@@ -81,6 +91,77 @@ export class DrizzleExamPackRepository implements ExamPackRepository {
     if (!existing) throw new Error('Pacchetto non trovato dopo il conflitto');
     return { packId: existing.id, created: false };
   }
+
+  /** {@inheritDoc ExamBankRepository.listSubjectsForExam} */
+  async listSubjectsForExam(userId: UserId): Promise<SubjectForExam[]> {
+    const { feeds, banks } = await withUserRls(this.db, userId, async (tx) => ({
+      feeds: await currentFeeds(tx, true),
+      // La RLS mostra solo le banche dello studente.
+      banks: await tx.select({ subjectId: subjectExamBanks.subjectId }).from(subjectExamBanks),
+    }));
+    const withBank = new Set(banks.map((bank) => bank.subjectId));
+    const bySubject = new Map<
+      string,
+      SubjectForExam & { concepts: SubjectForExam['concepts'][number][] }
+    >();
+    const sorted = [...feeds].sort(
+      (a, b) => a.chapterPosition - b.chapterPosition || a.lessonPosition - b.lessonPosition,
+    );
+    for (const row of sorted) {
+      let subject = bySubject.get(row.subjectId);
+      if (!subject) {
+        subject = {
+          subjectId: row.subjectId,
+          subjectTitle: row.subjectTitle,
+          concepts: [],
+          hasBank: withBank.has(row.subjectId),
+        };
+        bySubject.set(row.subjectId, subject);
+      }
+      // Il documento è stato validato con gli schemi dei contratti al salvataggio.
+      for (const concept of (row.document as LessonFeedDocument).concepts) {
+        if (subject.concepts.some((known) => known.key === concept.key)) continue;
+        subject.concepts.push({
+          key: concept.key,
+          name: concept.name.en,
+          description: concept.description.en,
+        });
+      }
+    }
+    return [...bySubject.values()].sort((a, b) => a.subjectTitle.localeCompare(b.subjectTitle));
+  }
+
+  /** {@inheritDoc ExamBankRepository.saveExamBank} */
+  async saveExamBank(bank: {
+    readonly document: ExamBankDocument;
+    readonly generatedBy: UserId;
+  }): Promise<{ bankId: string; created: boolean }> {
+    const { document } = bank;
+    const [inserted] = await this.db
+      .insert(subjectExamBanks)
+      .values({
+        subjectId: document.subjectId,
+        generatedBy: bank.generatedBy,
+        promptVersion: document.promptVersion,
+        bank: document,
+        generatedAt: new Date(document.generatedAt),
+      })
+      // Vale la prima banca: gli esercizi già fatti restano gli stessi.
+      .onConflictDoNothing({ target: [subjectExamBanks.subjectId, subjectExamBanks.generatedBy] })
+      .returning({ id: subjectExamBanks.id });
+    if (inserted) return { bankId: inserted.id, created: true };
+    const [existing] = await this.db
+      .select({ id: subjectExamBanks.id })
+      .from(subjectExamBanks)
+      .where(
+        and(
+          eq(subjectExamBanks.subjectId, document.subjectId),
+          eq(subjectExamBanks.generatedBy, bank.generatedBy),
+        ),
+      );
+    if (!existing) throw new Error('Banca non trovata dopo il conflitto');
+    return { bankId: existing.id, created: false };
+  }
 }
 
 /**
@@ -99,6 +180,7 @@ function currentFeeds(tx: DatabaseTransaction, withDocument: boolean) {
       lessonPosition: lessons.position,
       chapterTitle: chapters.title,
       chapterPosition: chapters.position,
+      subjectId: subjects.id,
       subjectTitle: subjects.title,
       hasExamPack: sql<boolean>`exists (
         select 1 from ${lessonExamPacks} p where p.lesson_feed_id = ${lessonFeeds.id}

@@ -73,6 +73,14 @@ beforeAll(async () => {
      values ($1, '2026-11-24.1', '{}', $2)`,
     [feed, anna],
   );
+  // Banche d'esame: di Anna e di Carla, che vedono entrambe la materia.
+  for (const user of [anna, carla]) {
+    await db.query(
+      `insert into subject_exam_banks (subject_id, generated_by, prompt_version, bank)
+       values ($1, $2, '2026-11-24.1', '{}')`,
+      [subject, user],
+    );
+  }
   await db.query(
     `insert into glossary_terms (subject_id, term, term_key, translation, definition)
      values ($1, 'Balance Factor', 'balance factor', 'fattore di bilanciamento', '{"it":"x","en":"y"}')`,
@@ -126,9 +134,32 @@ describe('RLS delle tabelle di M2', () => {
     `insert into glossary_terms (subject_id, term, term_key, translation, definition) values ((select id from subjects limit 1), 'x', 'x', 'x', '{}')`,
     `delete from generation_events`,
     `update lesson_exam_packs set pack = '{"hacked":true}'`,
+    `update subject_exam_banks set bank = '{"hacked":true}'`,
     `insert into lesson_exam_packs (lesson_feed_id, prompt_version, pack) values ((select id from lesson_feeds limit 1), '2026-11-24.1', '{}')`,
   ])('scrittura negata dal client: %s', async (statement) => {
     await expect(asUser(db, anna, (q) => q(statement))).rejects.toThrow(/permission denied/);
+  });
+});
+
+describe("RLS delle banche d'esame", () => {
+  it('ognuno vede solo la propria banca', async () => {
+    const own = async (user: string) =>
+      asUser(db, user, (q) => q(`select generated_by from subject_exam_banks`));
+    expect(await own(anna)).toEqual([{ generated_by: anna }]);
+    expect(await own(carla)).toEqual([{ generated_by: carla }]);
+    expect(await own(bruno)).toEqual([]);
+    await expect(asUser(db, null, (q) => q(`select * from subject_exam_banks`))).rejects.toThrow(
+      /permission denied/,
+    );
+  });
+
+  it('una sola banca per studente e materia', async () => {
+    await expect(
+      db.query(
+        `insert into subject_exam_banks (subject_id, generated_by, prompt_version, bank) values ($1, $2, '2026-11-24.1', '{}')`,
+        [subject, anna],
+      ),
+    ).rejects.toThrow(/subject_exam_banks_subject_user_key/);
   });
 });
 

@@ -1,7 +1,7 @@
 import type { LessonSourcesResponse } from '@study-feed/contracts';
 import type { EpicFeedApi } from '../api-client.js';
 import { ApiRequestError } from '../api-client.js';
-import { matchSlideFiles } from './match.js';
+import { isExamMaterial, matchSlideFiles } from './match.js';
 import { pickFigurePages } from './pdf.js';
 import type { StoredDeck } from './store.js';
 import type { SlidesToolkit } from './toolkit.js';
@@ -74,8 +74,11 @@ export async function importSlides(
   options: ImportSlidesOptions,
 ): Promise<ImportSlidesOutcome> {
   const started = kit.now();
-  const files = await kit.listFiles(options.path);
-  if (files.length === 0) {
+  const allFiles = await kit.listFiles(options.path);
+  // Il materiale d'esame non è di una lezione: lo legge leggi_materiale_esame.
+  const examFiles = allFiles.filter((file) => isExamMaterial(file.fileName));
+  const files = allFiles.filter((file) => !isExamMaterial(file.fileName));
+  if (allFiles.length === 0) {
     return { isError: true, text: `In "${options.path}" non ci sono PDF.` };
   }
   const { lessons } = await api.listCatalog();
@@ -161,6 +164,12 @@ export async function importSlides(
   }
   if (failures.length > 0) {
     lines.push('', 'Non importate:', ...failures.map((f) => `- ${f}`));
+  }
+  if (examFiles.length > 0) {
+    lines.push(
+      '',
+      `Materiale d'esame trovato (${examFiles.map((file) => file.fileName).join(', ')}): per creare la banca degli esercizi chiama leggi_materiale_esame con lo stesso percorso.`,
+    );
   }
   if (unmatched.length > 0) {
     lines.push(

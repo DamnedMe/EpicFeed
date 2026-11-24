@@ -1,6 +1,12 @@
 import { checkExamPack } from '@study-feed/core';
 import { describe, expect, it } from 'vitest';
-import { examPackDraftSchema, saveExamPackRequestSchema, storedExamPackSchema } from './exam.js';
+import {
+  examBankDraftSchema,
+  examPackDraftSchema,
+  saveExamBankRequestSchema,
+  saveExamPackRequestSchema,
+  storedExamPackSchema,
+} from './exam.js';
 
 const LESSON = '11111111-1111-4111-8111-111111111111';
 const FEED = '22222222-2222-4222-8222-222222222222';
@@ -76,5 +82,44 @@ describe('storedExamPackSchema', () => {
       generatedAt: '2026-11-24T10:00:00.000Z',
     };
     expect(storedExamPackSchema.safeParse(stored).success).toBe(true);
+  });
+});
+
+describe('examBankDraftSchema', () => {
+  const [base] = pack.openQuestions;
+  const exercise = (id: string, extra: Record<string, unknown> = {}) => ({
+    ...base,
+    id,
+    title: 'Tree height',
+    origin: 'official',
+    page: 4,
+    ...extra,
+  });
+  const bank = {
+    exercises: [
+      exercise('height'),
+      exercise('height-a', { origin: 'variant', variantOf: 'height' }),
+      exercise('height-b', { origin: 'variant', variantOf: 'height' }),
+    ],
+  };
+
+  it('accetta una banca con ufficiali e varianti', () => {
+    expect(examBankDraftSchema.safeParse(bank).success).toBe(true);
+    expect(
+      saveExamBankRequestSchema.safeParse({
+        subjectId: LESSON,
+        promptVersion: '2026-11-24.1',
+        bank,
+      }).success,
+    ).toBe(true);
+  });
+
+  it('rifiuta origine o pagina non valide', () => {
+    expect(
+      examBankDraftSchema.safeParse({ exercises: [exercise('x', { origin: 'copy' })] }).success,
+    ).toBe(false);
+    expect(examBankDraftSchema.safeParse({ exercises: [exercise('x', { page: 0 })] }).success).toBe(
+      false,
+    );
   });
 });

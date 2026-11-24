@@ -578,6 +578,44 @@ export const lessonExamPacks = pgTable(
 ).enableRLS();
 
 /**
+ * Banca degli esercizi d'esame di una materia (M4, ADR 0014 §2): esercizi
+ * ufficiali trascritti dal materiale d'esame del corso e due varianti per
+ * ciascuno, in inglese. **Privata** di chi l'ha generata: il materiale d'esame
+ * resta sul suo PC e non c'è una prova di possesso da condividere.
+ */
+export const subjectExamBanks = pgTable(
+  'subject_exam_banks',
+  {
+    id: id(),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subjects.id, { onDelete: 'cascade' }),
+    generatedBy: uuid('generated_by')
+      .notNull()
+      .references(() => authUsers.id, { onDelete: 'cascade' }),
+    promptVersion: text('prompt_version').notNull(),
+    bank: jsonb('bank').notNull(),
+    generatedAt: timestamp('generated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('subject_exam_banks_subject_user_key').on(t.subjectId, t.generatedBy),
+    check(
+      'subject_exam_banks_prompt_version_check',
+      sql`prompt_version ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}[.][0-9]{1,3}$'`,
+    ),
+    // 42 esercizi pesano circa 150 KB: 1 MB ferma qualsiasi abuso.
+    check('subject_exam_banks_size_check', sql`pg_column_size(bank) <= 1048576`),
+    index('subject_exam_banks_generated_by_idx').on(t.generatedBy),
+    // Solo la propria banca, e solo per una materia che si vede ancora.
+    pgPolicy('subject_exam_banks_select_own', {
+      for: 'select',
+      to: authenticatedRole,
+      using: sql`${t.generatedBy} = ${authUid} and exists (select 1 from subjects s where s.id = ${t.subjectId})`,
+    }),
+  ],
+).enableRLS();
+
+/**
  * Registro delle chiamate del server MCP (lettura delle fonti, salvataggio):
  * serve al limite di frequenza (120 all'ora, ADR 0013). Non contiene contenuti.
  */

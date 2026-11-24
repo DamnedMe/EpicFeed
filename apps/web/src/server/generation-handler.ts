@@ -2,6 +2,9 @@ import type {
   ImportedSlidesResult,
   LessonExamMaterial,
   LessonsForExamResult,
+  SaveExamBankInput,
+  SaveExamBankResult,
+  SubjectForExam,
   SaveExamPackInput,
   SaveExamPackResult,
   LessonForGeneration,
@@ -18,6 +21,8 @@ import type {
   ImportSlidesResponse,
   LessonForExamResponse,
   LessonsForExamResponse,
+  SaveExamBankResponse,
+  SubjectsForExamResponse,
   SaveExamPackResponse,
   LessonSourcesResponse,
   LessonsToGenerateResponse,
@@ -25,10 +30,12 @@ import type {
   SaveLessonFeedResponse,
 } from '@study-feed/contracts';
 import {
+  MAX_EXAM_BANK_BODY_BYTES,
   MAX_EXAM_BODY_BYTES,
   MAX_FEED_BODY_BYTES,
   MAX_SLIDES_BODY_BYTES,
   importSlidesRequestSchema,
+  saveExamBankRequestSchema,
   saveExamPackRequestSchema,
   saveLessonFeedRequestSchema,
 } from '@study-feed/contracts';
@@ -66,6 +73,8 @@ export interface GenerationHandlerDeps {
   listExamLessons(userId: UserId, limit: number): Promise<LessonsForExamResult>;
   readLessonForExam(userId: UserId, lessonId: LessonId): Promise<LessonExamMaterial>;
   saveExamPack(userId: UserId, input: SaveExamPackInput): Promise<SaveExamPackResult>;
+  listExamSubjects(userId: UserId): Promise<SubjectForExam[]>;
+  saveExamBank(userId: UserId, input: SaveExamBankInput): Promise<SaveExamBankResult>;
   /** Registra un errore inatteso (senza contenuti). */
   logError(error: unknown): void;
 }
@@ -471,5 +480,89 @@ export async function handleSaveExamPack(
     return apiOk(response, result.created ? 201 : 200);
   } catch (error) {
     return domainErrorResponse(error, deps, EXAM_PACK, NO_FEED);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Banche degli esercizi d'esame (M4)
+// ---------------------------------------------------------------------------
+
+const EXAM_BANK = "La banca d'esame";
+const NO_SUBJECT = 'Materia senza feed tra quelle che hai importato: genera prima le lezioni.';
+
+/**
+ * `GET /api/generation/exam/subjects`: materie con almeno un feed, con i
+ * concetti (in inglese) e se lo studente ha già una banca.
+ *
+ * @param request - Richiesta HTTP.
+ * @param deps - Servizi.
+ * @returns La risposta HTTP.
+ */
+export async function handleListExamSubjects(
+  request: Request,
+  deps: GenerationHandlerDeps,
+): Promise<Response> {
+  const auth = await authorize(request, deps);
+  if ('response' in auth) return auth.response;
+  try {
+    const subjects = await deps.listExamSubjects(auth.userId);
+    const body: SubjectsForExamResponse = {
+      subjects: subjects.map((subject) => ({
+        ...subject,
+        concepts: subject.concepts.map((concept) => ({ ...concept })),
+      })),
+    };
+    return apiOk(body);
+  } catch (error) {
+    return domainErrorResponse(error, deps, EXAM_BANK, NO_SUBJECT);
+  }
+}
+
+/**
+ * `POST /api/generation/exam/subjects/:id/bank`: salva la banca degli esercizi
+ * della materia, privata dello studente.
+ *
+ * @param request - Richiesta HTTP (corpo: `saveExamBankRequestSchema`).
+ * @param rawSubjectId - Id della materia dal percorso.
+ * @param deps - Servizi.
+ * @returns La risposta HTTP.
+ */
+export async function handleSaveExamBank(
+  request: Request,
+  rawSubjectId: string,
+  deps: GenerationHandlerDeps,
+): Promise<Response> {
+  const auth = await authorize(request, deps);
+  if ('response' in auth) return auth.response;
+  const subjectId = z.uuid().safeParse(rawSubjectId);
+  if (!subjectId.success) return apiError('INVALID_REQUEST', 'Id della materia non valido.');
+
+  await deps.record(auth.userId, 'save', null);
+  const body = await readJsonBody(
+    request,
+    MAX_EXAM_BANK_BODY_BYTES,
+    `${EXAM_BANK} è troppo grande.`,
+  );
+  if (body instanceof Response) return body;
+  const parsed = saveExamBankRequestSchema.safeParse(body.json);
+  if (!parsed.success) {
+    return apiError(
+      'INVALID_FEED',
+      `${EXAM_BANK} non ha la forma attesa.`,
+      {},
+      zodIssues(parsed.error),
+    );
+  }
+  const id = subjectId.data.toLowerCase();
+  if (parsed.data.subjectId.toLowerCase() !== id) {
+    return apiError('INVALID_REQUEST', 'La materia della banca non corrisponde al percorso.');
+  }
+
+  try {
+    const result = await deps.saveExamBank(auth.userId, { ...parsed.data, subjectId: id });
+    const response: SaveExamBankResponse = { ...result };
+    return apiOk(response, result.created ? 201 : 200);
+  } catch (error) {
+    return domainErrorResponse(error, deps, EXAM_BANK, NO_SUBJECT);
   }
 }

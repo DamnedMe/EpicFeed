@@ -15,7 +15,8 @@ export const EXAM_SERVER_INSTRUCTIONS = `Quando lo studente chiede di preparare 
 1. chiama lezioni_per_esame;
 2. per ogni lezione, una alla volta: leggi_lezione_esame, poi scrivi il pacchetto seguendo le istruzioni che restituisce, poi salva_domande_esame;
 3. se salva_domande_esame elenca problemi, correggili e salva di nuovo;
-4. alla fine riassumi in due righe: lezioni completate, domande create.`;
+4. alla fine riassumi in due righe: lezioni completate, domande create.
+Quando lo studente indica il materiale d'esame del corso (es. "Exam Prep" nello zip delle slide) o chiede la banca degli esercizi d'esame: chiama leggi_materiale_esame con il percorso dello zip, scrivi la banca seguendo le istruzioni che restituisce, poi salva_esercizi_esame.`;
 
 /**
  * Istruzioni complete per il pacchetto d'esame di una lezione. Le restituisce
@@ -52,3 +53,38 @@ Se la lezione ha codice nelle schede, preferisci almeno una domanda "code" o "an
 
 ## Salvataggio
 Chiama salva_domande_esame con lessonId e feedId esattamente come restituiti da leggi_lezione_esame e il pacchetto { questions, openQuestions }. Se arrivano problemi da correggere, correggi solo quelli e salva di nuovo.`;
+
+/** Versione delle istruzioni della banca degli esercizi (`AAAA-MM-GG.n`). */
+export const EXAM_BANK_PROMPT_VERSION = '2026-11-24.1';
+
+/**
+ * Istruzioni per la banca degli esercizi di una materia. Le restituisce
+ * `leggi_materiale_esame` insieme al materiale.
+ */
+export const EXAM_BANK_INSTRUCTIONS = `# Come scrivere la banca degli esercizi d'esame (istruzioni ${EXAM_BANK_PROMPT_VERSION})
+
+Il materiale d'esame del corso contiene esercizi aperti in inglese, senza soluzioni; esempi e codice sono spesso nelle immagini delle pagine. La banca li trasforma in esercizi con cui lo studente si allena nell'app. **Tutto in inglese**, tranne i suggerimenti (it ed en).
+
+## Esercizi ufficiali (origin "official")
+Uno per ogni esercizio del materiale, nell'ordine del PDF.
+- prompt: il testo **fedele** all'originale, in markdown, con gli esempi di input/output trascritti dalle immagini. Non semplificare e non aggiungere richieste.
+- page: la pagina del PDF in cui si trova.
+- title: titolo breve (es. "Balanced brackets with a stack").
+- Se l'esercizio dà codice da analizzare, trascrivilo nel campo code (kind "analyze").
+
+## Varianti (origin "variant"): esattamente 2 per ogni ufficiale
+Stesso argomento e stessa difficoltà, ma dati o richiesta diversi (es. altre parentesi, un'altra struttura, chiedere la versione iterativa). variantOf: l'id dell'ufficiale; page: la stessa dell'ufficiale. Non devono potersi risolvere copiando la soluzione dell'ufficiale.
+
+## Campi di ogni esercizio
+- id: kebab-case univoco nella banca (es. "balanced-brackets", "balanced-brackets-v1").
+- kind: "code" (scrivere una funzione Python), "explain" (spiegare o confrontare), "analyze" (analizzare il codice in code: complessità, output, errori).
+- code: solo per "analyze".
+- signature e tests: solo per "code". signature è la riga def della funzione; tests da 2 a 8 { call, expected }: call è un'espressione Python che chiama la funzione, expected il risultato come lo stampa repr(). Gli esempi del materiale diventano test, più i casi limite. Solo libreria standard, niente input(), file o rete. Se l'esercizio chiede una classe, la firma è quella del costruttore o del metodo principale e i test usano espressioni come "Stack2Q().push(1) or True" solo se servono: preferisci funzioni che restituiscono un valore.
+- hints: da 1 a 3 suggerimenti progressivi { it, en }, senza dare la soluzione.
+- modelAnswer: la soluzione modello completa, con il codice per "code" e la complessità quando conta.
+- rubric: da 3 a 5 criteri { criterion, points } con punti interi da 1 a 5, verificabili.
+- conceptKeys: da 1 a 3 concetti della materia, scelti dall'elenco "Concetti della materia" (esattamente quelle chiavi).
+- followUp: una domanda di approfondimento come la farebbe l'esaminatore al colloquio.
+
+## Salvataggio
+Chiama salva_esercizi_esame con il subjectId restituito da leggi_materiale_esame e la banca { exercises } (prima tutti gli ufficiali con le loro varianti, nell'ordine del PDF). Se arrivano problemi, correggi solo quelli e salva di nuovo.`;

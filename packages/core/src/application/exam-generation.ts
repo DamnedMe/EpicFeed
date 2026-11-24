@@ -1,11 +1,13 @@
 import type {
+  ExamBankDocument,
+  ExamBankDraft,
   ExamPackDocument,
   ExamPackDraft,
   LessonFeedDocument,
   LessonId,
   UserId,
 } from '../domain/index.js';
-import { DomainError, FeedValidationError, checkExamPack } from '../domain/index.js';
+import { DomainError, FeedValidationError, checkExamBank, checkExamPack } from '../domain/index.js';
 import type { Clock } from './ports.js';
 
 /**
@@ -260,5 +262,127 @@ export class SaveExamPack {
       questions: input.pack.questions.length,
       openQuestions: input.pack.openQuestions.length,
     };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Banca degli esercizi della materia
+// ---------------------------------------------------------------------------
+
+/** Materia con i concetti dei suoi feed, per scrivere la banca d'esame. */
+export interface SubjectForExam {
+  readonly subjectId: string;
+  readonly subjectTitle: string;
+  /** Concetti dei feed correnti della materia, senza doppioni (testi in inglese). */
+  readonly concepts: readonly {
+    readonly key: string;
+    readonly name: string;
+    readonly description: string;
+  }[];
+  /** `true` se lo studente ha già salvato una banca per la materia. */
+  readonly hasBank: boolean;
+}
+
+/**
+ * Persistenza delle banche d'esame. Una banca è **privata** di chi la genera:
+ * nasce dal materiale d'esame letto sul suo PC, che EpicFeed non riceve e
+ * quindi non può legare a una prova di possesso condivisibile.
+ */
+export interface ExamBankRepository {
+  /**
+   * Materie con almeno un feed visibile allo studente, con i loro concetti.
+   *
+   * @param userId - Studente.
+   * @returns Le materie, in ordine di titolo.
+   */
+  listSubjectsForExam(userId: UserId): Promise<SubjectForExam[]>;
+
+  /**
+   * Salva la banca dello studente per la materia. Se ne ha già una, non cambia nulla.
+   *
+   * @returns L'id della banca e se è stata creata ora.
+   */
+  saveExamBank(bank: {
+    readonly document: ExamBankDocument;
+    readonly generatedBy: UserId;
+  }): Promise<{ readonly bankId: string; readonly created: boolean }>;
+}
+
+/** Caso d'uso **ListSubjectsForExam**: materie e concetti per la banca d'esame. */
+export class ListSubjectsForExam {
+  /**
+   * @param repository - Persistenza delle banche.
+   */
+  constructor(private readonly repository: Pick<ExamBankRepository, 'listSubjectsForExam'>) {}
+
+  /**
+   * @param userId - Studente.
+   * @returns Le materie con almeno un feed.
+   */
+  execute(userId: UserId): Promise<SubjectForExam[]> {
+    return this.repository.listSubjectsForExam(userId);
+  }
+}
+
+/** Richiesta di salvataggio di una banca (forma già validata dai contratti). */
+export interface SaveExamBankInput {
+  readonly subjectId: string;
+  readonly promptVersion: string;
+  readonly bank: ExamBankDraft;
+}
+
+/** Esito di {@link SaveExamBank}. */
+export interface SaveExamBankResult {
+  readonly bankId: string;
+  readonly created: boolean;
+  readonly officials: number;
+  readonly variants: number;
+}
+
+/**
+ * Caso d'uso **SaveExamBank**: controlla la banca degli esercizi con le regole
+ * del core ({@link checkExamBank}) sui concetti dei feed della materia e la
+ * salva, privata dello studente.
+ */
+export class SaveExamBank {
+  /**
+   * @param deps - Persistenza e orologio.
+   */
+  constructor(
+    private readonly deps: {
+      readonly repository: ExamBankRepository;
+      readonly clock: Clock;
+    },
+  ) {}
+
+  /**
+   * @param userId - Studente che ha generato la banca.
+   * @param input - Materia e banca.
+   * @returns L'esito del salvataggio.
+   * @throws {@link DomainError} `NOT_FOUND`, oppure {@link FeedValidationError}.
+   */
+  async execute(userId: UserId, input: SaveExamBankInput): Promise<SaveExamBankResult> {
+    const subjects = await this.deps.repository.listSubjectsForExam(userId);
+    const subject = subjects.find((item) => item.subjectId === input.subjectId);
+    if (!subject) {
+      throw new DomainError('NOT_FOUND', 'Materia senza feed tra quelle che hai importato');
+    }
+    const issues = checkExamBank(
+      input.bank,
+      new Set(subject.concepts.map((concept) => concept.key)),
+    );
+    if (issues.length > 0) throw new FeedValidationError(issues, "La banca d'esame");
+
+    const saved = await this.deps.repository.saveExamBank({
+      document: {
+        subjectId: subject.subjectId,
+        promptVersion: input.promptVersion,
+        generatedAt: this.deps.clock.now().toISOString(),
+        exercises: input.bank.exercises,
+      },
+      generatedBy: userId,
+    });
+    const officials = input.bank.exercises.filter((item) => item.origin === 'official').length;
+    return { ...saved, officials, variants: input.bank.exercises.length - officials };
   }
 }

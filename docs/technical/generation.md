@@ -90,6 +90,7 @@ Gira sul PC dello studente dentro Claude Desktop, come estensione `.mcpb`. Parla
 | `src/prompt.ts` | Istruzioni di generazione versionate (`PROMPT_VERSION`, formato `AAAA-MM-GG.n`): gerarchia delle fonti, tipi di scheda, quiz, concetti, glossario. Ogni feed salvato porta la versione: se le istruzioni cambiano si sa quali lezioni rigenerare. Cambiare il testo significa aumentare la versione. |
 | `src/api-client.ts` | `EpicFeedApi`: token solo nell'header `Authorization`, solo HTTPS (HTTP solo verso localhost), `redirect: 'error'`, timeout di 30 s, risposte validate con gli schemi di `@study-feed/contracts`. Errori come `ApiRequestError(status, code, message, issues)`. |
 | `src/server.ts` | `createEpicFeedServer(api)`: strumenti e prompt (sotto). Ricorda in memoria solo le parti delle lezioni lette, per il controllo locale. |
+| `src/exam-bank-tools.ts` | Strumenti della banca degli esercizi (`registerExamBankTools`): legge il materiale d'esame dallo zip sul PC e ricorda i concetti della materia per il controllo locale. |
 | `src/exam-prompt.ts`, `src/exam-tools.ts` | Istruzioni versionate (`EXAM_PROMPT_VERSION`) e strumenti dei pacchetti d'esame (`registerExamTools`). Ricorda in memoria concetti e domande del feed letto, per il controllo locale. |
 | `src/tool-results.ts` | Risultati comuni: testo, elenco dei problemi da correggere, errori dell'API spiegati a Claude. |
 | `src/config.ts` | Legge `EPICFEED_TOKEN` e `EPICFEED_API_URL` (dalle impostazioni dell'estensione). Senza token valido il server parte lo stesso e ogni strumento risponde come crearne uno. |
@@ -107,6 +108,8 @@ Strumenti (nomi in italiano, perché Claude li mostra allo studente):
 | `lezioni_per_esame { limite? }` | Lezioni con il feed ma senza pacchetto d'esame, con i totali (sezione *Pacchetti d'esame*). |
 | `leggi_lezione_esame { lessonId }` | Feed corrente della lezione in inglese, `feedId` e istruzioni del pacchetto. |
 | `salva_domande_esame { lessonId, feedId, pack }` | Controlla il pacchetto con `checkExamPack` e lo invia con `EXAM_PROMPT_VERSION`. |
+| `leggi_materiale_esame { percorso, materia? }` | Legge sul PC i PDF *Exam Prep* dello zip: testo e immagini delle pagine, materia con i concetti e istruzioni della banca (sezione *Banca degli esercizi*). |
+| `salva_esercizi_esame { subjectId, bank }` | Controlla la banca con `checkExamBank` e la invia con `EXAM_BANK_PROMPT_VERSION`. |
 
 Il prompt MCP `genera_lezioni` avvia la generazione di tutte le lezioni nuove; `genera_domande_esame` quella dei pacchetti d'esame. Le istruzioni del server (`SERVER_INSTRUCTIONS`) dicono a Claude l'ordine degli strumenti e di non chiedere conferma lezione per lezione. Un `409 CONFLICT` suggerisce di rileggere la lezione; un `401` di creare un nuovo token. Gli errori inattesi non mostrano dettagli.
 
@@ -156,6 +159,27 @@ Claude Desktop ──▶ server MCP ──▶ API EpicFeed ──▶ Postgres
 - **Come per i feed**: vale il primo pacchetto di un feed (un secondo salvataggio risponde `200` senza cambiare nulla); letture e salvataggi contano nel limite di 120 chiamate all'ora; corpo ≤ 256 KB; il pacchetto salvato (`storedExamPackSchema`) porta `lessonId`, `feedId`, `promptVersion` e `generatedAt`.
 
 Uso: in Claude Desktop, "genera le domande d'esame di EpicFeed" (o il prompt `genera_domande_esame`). La sezione *Esame* dell'app che le usa arriva con la PR successiva di M4.
+
+## Banca degli esercizi (M4)
+Decisioni: [ADR 0014](../decisions/0014-preparazione-esame.md) §2 e [ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md) (scelta 8). Dal materiale d'esame del corso (i PDF *Exam Prep* dello zip delle slide, 14 esercizi nel corso DSA) Claude Desktop scrive la **banca degli esercizi** della materia:
+
+- un esercizio **ufficiale** per ogni esercizio del materiale, con il testo fedele all'originale e gli esempi trascritti dalle immagini, e la pagina del PDF;
+- **2 varianti** per ogni ufficiale (`variantOf`), stesso argomento con dati o richiesta diversi;
+- per ognuno gli stessi campi delle domande aperte dei pacchetti (tipo, firma e test per il codice, suggerimenti `{ it, en }`, soluzione modello, griglia, concetti, domanda di approfondimento), più titolo, origine e pagina.
+
+```
+Claude Desktop ──▶ server MCP (legge lo zip sul PC) ──▶ API EpicFeed ──▶ Postgres
+   │  leggi_materiale_esame   GET  /api/generation/exam/subjects        (materie e concetti)
+   │  (Claude scrive la banca dal testo e dalle immagini delle pagine)
+   └─ salva_esercizi_esame    POST /api/generation/exam/subjects/:id/bank   checkExamBank → salva
+```
+
+- **Il materiale resta sul PC**: a Claude arrivano testo e immagini delle pagine (al massimo 24), a EpicFeed solo la banca. `importa_slide` riconosce i PDF con "Exam Prep" nel nome, non li segnala più come non abbinati e indica `leggi_materiale_esame`.
+- **Materia**: quella indicata, altrimenti quella delle lezioni a cui si abbinano le altre slide dello stesso zip, altrimenti l'unica materia con feed.
+- **Banca privata** (`subject_exam_banks`, una per studente e materia): EpicFeed non riceve il materiale, quindi non c'è una prova di possesso da condividere con altri studenti; la RLS mostra a ciascuno solo la propria. Vale la prima banca salvata.
+- **Controlli** (`checkExamBank`): 1–30 ufficiali e al massimo 90 esercizi; esattamente 2 varianti per ufficiale, riferite a un ufficiale esistente; id unici; pagina 1–200; regole delle domande aperte; concetti esistenti nei feed della materia. Corpo ≤ 1 MB.
+
+Uso: in Claude Desktop, "crea la banca degli esercizi d'esame di EpicFeed dallo zip delle slide" indicando lo zip.
 
 ## Prossimi passi
 - Prova su 2–3 lezioni DSA reali, valutata da Damian; taratura di soglia e tetto delle figure.

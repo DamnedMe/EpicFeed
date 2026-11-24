@@ -43,6 +43,17 @@ export function parseSlideFileName(fileName: string): { title: string; number: n
 }
 
 /**
+ * Dice se un PDF è materiale d'esame del corso (es. `Exam Prep-1.pdf`) invece
+ * delle slide di una lezione: va alla banca degli esercizi (ADR 0014 §2).
+ *
+ * @param fileName - Nome del PDF.
+ * @returns `true` per il materiale d'esame.
+ */
+export function isExamMaterial(fileName: string): boolean {
+  return /\bexam\s*prep/i.test(fileName);
+}
+
+/**
  * Forma confrontabile di un titolo: minuscole, senza accenti e senza
  * punteggiatura (i nomi dei file perdono caratteri come `/`, `:` o `?`).
  *
