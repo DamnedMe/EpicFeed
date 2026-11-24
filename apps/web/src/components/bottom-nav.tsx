@@ -5,7 +5,9 @@ import { Icon } from '@/features/feed/icons';
  * Barra in basso del design approvato: Feed · Ripasso · Libri · Io (ADR 0015,
  * punto 7). Ripasso (M4) contiene anche l'Esame (ADR 0017); Libri (M7) è
  * visibile ma spento. Senza `active` (durante il caricamento di una pagina)
- * nessuna voce è evidenziata.
+ * nessuna voce è evidenziata. Solo icone: i nomi delle voci restano per i
+ * lettori di schermo (`sr-only`) ma non si vedono, perché su mobile le
+ * etichette sotto le icone appesantivano la barra.
  */
 export function BottomNav({ active }: { active?: 'feed' | 'review' | 'io' }) {
   return (
@@ -16,7 +18,7 @@ export function BottomNav({ active }: { active?: 'feed' | 'review' | 'io' }) {
         aria-current={active === 'feed' ? 'page' : undefined}
       >
         <Icon name="feed" />
-        Feed
+        <span className="sr-only">Feed</span>
       </Link>
       <Link
         href="/ripasso"
@@ -24,12 +26,11 @@ export function BottomNav({ active }: { active?: 'feed' | 'review' | 'io' }) {
         aria-current={active === 'review' ? 'page' : undefined}
       >
         <Icon name="review" />
-        Ripasso
+        <span className="sr-only">Ripasso</span>
       </Link>
       <span className="off" aria-disabled="true">
         <Icon name="books" />
-        Libri
-        <small>in arrivo</small>
+        <span className="sr-only">Libri, in arrivo</span>
       </span>
       <Link
         href="/io"
@@ -37,7 +38,7 @@ export function BottomNav({ active }: { active?: 'feed' | 'review' | 'io' }) {
         aria-current={active === 'io' ? 'page' : undefined}
       >
         <Icon name="user" />
-        Io
+        <span className="sr-only">Io</span>
       </Link>
     </nav>
   );

@@ -1002,16 +1002,14 @@
      restava senza sfocatura. */
   backdrop-filter: blur(var(--sf-glass-blur));
 }
-.ef-nav a,
-.ef-nav span {
+.ef-nav > a,
+.ef-nav > span {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  gap: 2px;
-  font-size: 11px;
+  min-height: 44px;
   color: var(--sf-text-muted);
   text-decoration: none;
-  padding: 4px 0;
 }
 /* Risposta immediata al tocco: il cambio di pagina può richiedere un attimo,
    la pressione si vede subito. */
@@ -1040,10 +1038,6 @@
 }
 .ef-nav .off {
   opacity: 0.45;
-}
-.ef-nav small {
-  font-size: 9px;
-  font-family: var(--sf-font-mono);
 }
 
 /* Animazioni spente: da Io oppure da "riduci animazioni" del sistema. */
