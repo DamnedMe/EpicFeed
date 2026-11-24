@@ -2,7 +2,8 @@ import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { asUser, createTestDatabase } from '../src/testing.js';
 
-// Tabelle aggiunte con M2: feed delle lezioni, glossario, registro della generazione.
+// Tabelle aggiunte con M2 (feed delle lezioni, glossario, registro della generazione)
+// e con M4 (pacchetti d'esame dei feed).
 const anna = '0a0a0a0a-0000-4000-8000-00000000000a';
 const bruno = '0b0b0b0b-0000-4000-8000-00000000000b';
 const carla = '0c0c0c0c-0000-4000-8000-00000000000c';
@@ -12,6 +13,7 @@ let lesson: string;
 let subject: string;
 let versionA: string;
 let versionB: string;
+let feed: string;
 
 beforeAll(async () => {
   db = await createTestDatabase();
@@ -61,10 +63,15 @@ beforeAll(async () => {
   await grant(anna, partB, versionB);
   await grant(carla, partA, versionA);
 
-  await db.query(
+  feed = await one(
     `insert into lesson_feeds (lesson_id, sources_hash, prompt_version, feed, source_version_ids, generated_by)
-     values ($1, $2, '2026-11-21.1', '{}', $3, $4)`,
+     values ($1, $2, '2026-11-21.1', '{}', $3, $4) returning id`,
     [lesson, 'f'.repeat(64), `{${versionA},${versionB}}`, anna],
+  );
+  await db.query(
+    `insert into lesson_exam_packs (lesson_feed_id, prompt_version, pack, generated_by)
+     values ($1, '2026-11-24.1', '{}', $2)`,
+    [feed, anna],
   );
   await db.query(
     `insert into glossary_terms (subject_id, term, term_key, translation, definition)
@@ -81,7 +88,7 @@ afterAll(async () => {
   await db.close();
 });
 
-const tables = ['lesson_feeds', 'glossary_terms', 'generation_events'];
+const tables = ['lesson_feeds', 'glossary_terms', 'generation_events', 'lesson_exam_packs'];
 
 describe('RLS delle tabelle di M2', () => {
   it.each(tables)('chi possiede le fonti vede le righe di %s', async (table) => {
@@ -97,6 +104,9 @@ describe('RLS delle tabelle di M2', () => {
   it('un feed resta nascosto a chi possiede solo una parte delle sue fonti', async () => {
     const feeds = await asUser(db, carla, (q) => q(`select * from lesson_feeds`));
     expect(feeds).toEqual([]);
+    // Con il feed resta nascosto anche il suo pacchetto d'esame.
+    const packs = await asUser(db, carla, (q) => q(`select * from lesson_exam_packs`));
+    expect(packs).toEqual([]);
     // Carla vede comunque la materia, quindi il glossario.
     const terms = await asUser(db, carla, (q) => q(`select * from glossary_terms`));
     expect(terms).toHaveLength(1);
@@ -115,6 +125,8 @@ describe('RLS delle tabelle di M2', () => {
     `update lesson_feeds set feed = '{"hacked":true}'`,
     `insert into glossary_terms (subject_id, term, term_key, translation, definition) values ((select id from subjects limit 1), 'x', 'x', 'x', '{}')`,
     `delete from generation_events`,
+    `update lesson_exam_packs set pack = '{"hacked":true}'`,
+    `insert into lesson_exam_packs (lesson_feed_id, prompt_version, pack) values ((select id from lesson_feeds limit 1), '2026-11-24.1', '{}')`,
   ])('scrittura negata dal client: %s', async (statement) => {
     await expect(asUser(db, anna, (q) => q(statement))).rejects.toThrow(/permission denied/);
   });
@@ -165,5 +177,20 @@ describe('Integrità delle tabelle di M2', () => {
        values ($1, 'generate', $2, 'Claude Desktop', now() + interval '90 days')`,
       [anna, '9'.repeat(64)],
     );
+  });
+
+  it("accetta un solo pacchetto d'esame per feed e solo versioni del prompt valide", async () => {
+    await expect(
+      db.query(
+        `insert into lesson_exam_packs (lesson_feed_id, prompt_version, pack) values ($1, '2026-11-24.2', '{}')`,
+        [feed],
+      ),
+    ).rejects.toThrow(/lesson_exam_packs_feed_key/);
+    await expect(
+      db.query(
+        `insert into lesson_exam_packs (lesson_feed_id, prompt_version, pack) values ($1, 'v1', '{}')`,
+        [feed],
+      ),
+    ).rejects.toThrow(/lesson_exam_packs_prompt_version_check/);
   });
 });

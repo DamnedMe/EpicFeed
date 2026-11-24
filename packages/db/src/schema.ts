@@ -541,6 +541,43 @@ export const glossaryTerms = pgTable(
 ).enableRLS();
 
 /**
+ * Pacchetto d'esame di un feed (M4, ADR 0014 e ADR 0017): domande a scelta
+ * multipla in più per il quiz di modulo e domande aperte con soluzione
+ * modello e griglia, in inglese. Uno per feed: se il feed della lezione si
+ * rigenera, il pacchetto si rigenera con lui (i concetti potrebbero cambiare).
+ */
+export const lessonExamPacks = pgTable(
+  'lesson_exam_packs',
+  {
+    id: id(),
+    lessonFeedId: uuid('lesson_feed_id')
+      .notNull()
+      .references(() => lessonFeeds.id, { onDelete: 'cascade' }),
+    promptVersion: text('prompt_version').notNull(),
+    pack: jsonb('pack').notNull(),
+    /** Chi ha generato il pacchetto (null se l'account è stato cancellato). */
+    generatedBy: uuid('generated_by').references(() => authUsers.id, { onDelete: 'set null' }),
+    generatedAt: timestamp('generated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('lesson_exam_packs_feed_key').on(t.lessonFeedId),
+    check(
+      'lesson_exam_packs_prompt_version_check',
+      sql`prompt_version ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}[.][0-9]{1,3}$'`,
+    ),
+    // Un pacchetto reale pesa 15–30 KB: 512 KB ferma qualsiasi abuso.
+    check('lesson_exam_packs_size_check', sql`pg_column_size(pack) <= 524288`),
+    index('lesson_exam_packs_generated_by_idx').on(t.generatedBy),
+    // Visibile a chi vede il feed (che a sua volta richiede tutte le fonti).
+    pgPolicy('lesson_exam_packs_select_entitled', {
+      for: 'select',
+      to: authenticatedRole,
+      using: sql`exists (select 1 from lesson_feeds lf where lf.id = ${t.lessonFeedId})`,
+    }),
+  ],
+).enableRLS();
+
+/**
  * Registro delle chiamate del server MCP (lettura delle fonti, salvataggio):
  * serve al limite di frequenza (120 all'ora, ADR 0013). Non contiene contenuti.
  */

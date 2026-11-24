@@ -78,4 +78,41 @@ describe('EpicFeedApi', () => {
       status: 0,
     });
   });
+
+  it('legge e salva i pacchetti d’esame sugli indirizzi giusti', async () => {
+    const list = { lessons: [], totals: { lessons: 0, ready: 0, toGenerate: 0 } };
+    const first = api(json(list));
+    expect(await first.client.listExamLessons(3)).toEqual(list);
+    expect(String(first.fetchMock.mock.calls[0]?.[0])).toBe(
+      'https://app.test/api/generation/exam?limit=3',
+    );
+
+    const material = {
+      lessonId,
+      feedId: lessonId,
+      lessonTitle: 'Stacks',
+      chapterTitle: 'Linear',
+      subjectTitle: 'DSA',
+      hasExamPack: false,
+      concepts: [],
+      cards: [],
+      feedQuestions: [],
+    };
+    const read = api(json(material));
+    expect(await read.client.readLessonForExam(lessonId)).toEqual(material);
+    expect(String(read.fetchMock.mock.calls[0]?.[0])).toBe(
+      `https://app.test/api/generation/lessons/${lessonId}/exam`,
+    );
+
+    const saved = { packId: lessonId, created: true, questions: 10, openQuestions: 1 };
+    const save = api(json(saved, 201));
+    const body = {
+      lessonId,
+      feedId: lessonId,
+      promptVersion: '2026-11-24.1',
+      pack: { questions: [], openQuestions: [] },
+    };
+    expect(await save.client.saveExamPack(body)).toEqual(saved);
+    expect(save.fetchMock.mock.calls[0]?.[1]?.method).toBe('POST');
+  });
 });

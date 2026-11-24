@@ -29,7 +29,7 @@
 > [!TIP]
 > 🏁 Ultimo traguardo: **M3 Feed di studio** unita il 23/11: feed a battute con gesti, domande a gruppi di 3, punti e sessioni da 5 minuti, PWA installabile.
 >
-> 🛠️ Ora: **M4 Ripasso ed esame**: ripasso dei concetti unito il 23/11 (PR 1 di 6); in revisione la sincronizzazione cifrata dei progressi tra telefono e PC.
+> 🛠️ Ora: **M4 Ripasso ed esame**: ripasso dei concetti e sincronizzazione cifrata uniti (PR 1 e 2 di 6); in revisione le domande d'esame per lezione generate da Claude Desktop.
 
 <!-- stato:fine -->
 

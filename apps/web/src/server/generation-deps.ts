@@ -21,6 +21,9 @@ export function generationDeps(): GenerationHandlerDeps {
     listOwnedLessons: (userId) => services.listOwnedLessons.execute(userId),
     importSlides: (userId, lessonId, presentations) =>
       services.importLessonSlides.execute(userId, lessonId, presentations),
+    listExamLessons: (userId, limit) => services.listLessonsForExam.execute(userId, limit),
+    readLessonForExam: (userId, lessonId) => services.readLessonForExam.execute(userId, lessonId),
+    saveExamPack: (userId, input) => services.saveExamPack.execute(userId, input),
     logError: (error) => {
       console.error('Generazione fallita', error instanceof Error ? error.message : typeof error);
     },

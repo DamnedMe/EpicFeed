@@ -6,6 +6,7 @@
  */
 export * from './catalog-repository.js';
 export * from './database.js';
+export * from './exam-repository.js';
 export * from './generation-repository.js';
 export * from './import-tokens.js';
 export * from './my-lessons.js';

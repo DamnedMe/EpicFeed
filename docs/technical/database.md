@@ -14,7 +14,7 @@ auth.users ───────────────────────
      │ ├──< api_tokens
      │ ├──< import_events
      │ └──< generation_events
-lessons ─< lesson_feeds (source_version_ids → content_versions)
+lessons ─< lesson_feeds (source_version_ids → content_versions) ─ lesson_exam_packs (uno per feed)
 subjects ─< glossary_terms
 ```
 
@@ -32,6 +32,7 @@ subjects ─< glossary_terms
 | `subtitle_access` | Accesso utente ↔ traccia | PK (`user_id`, `subtitle_track_id`), concesso per prova di possesso |
 | `api_tokens` | Token di import dell'estensione | solo lo SHA-256 del token (64 esadecimali), `scope` enum (`import`), scadenza, revoca |
 | `lesson_feeds` | Feed di una lezione (schede, quiz, concetti IT+EN) generato da Claude Desktop | (`lesson_id`, `sources_hash`) univoci, `source_version_ids` (1–40 versioni da cui è nato), `prompt_version` datata, ≤ 1 MB |
+| `lesson_exam_packs` | Pacchetto d'esame di un feed (domande a scelta multipla e aperte in inglese, M4) | `lesson_feed_id` univoco con cancellazione a cascata, `prompt_version` datata, ≤ 512 KB |
 | `glossary_terms` | Glossario bilingue della materia | (`subject_id`, `term_key`) univoci; termine inglese, traduzione, definizione `{ it, en }` |
 | `generation_events` | Registro delle chiamate del server MCP | utente, azione (`read`, `save`, `slides`), lezione, data: serve al limite di frequenza (120/ora) |
 | `progress_snapshots` | Copia **cifrata nel browser** dei progressi di studio ([ADR 0018](../decisions/0018-sincronizzazione-cifrata-progressi.md)) | PK `user_id`; `revision` ≥ 1 per la concorrenza ottimistica; `kdf`, `salt` (16 byte) e `iv` (12 byte) in base64; `ciphertext` base64 ≤ 4 milioni di caratteri. Il server non ha la chiave |
@@ -45,10 +46,11 @@ Vincoli `CHECK` replicano nel database le regole del core (titoli 1–300 caratt
   - `entitlements`: solo i propri permessi;
   - `content_versions` e `lesson_parts`: solo se esiste un proprio permesso su quella versione o parte;
   - `subtitle_tracks`: solo se esiste un proprio `subtitle_access`; `subtitle_access`, `api_tokens` e `import_events`: solo le proprie righe;
+  - `lesson_exam_packs`: solo se lo studente vede il feed a cui appartiene (la sottoquery su `lesson_feeds` passa dalla sua RLS);
   - `lesson_feeds`: solo se lo studente possiede **tutte** le versioni elencate in `source_version_ids`. Le versioni stanno nella riga e non in una tabella collegata, perché la policy deve vederle tutte: una tabella con la sua RLS mostrerebbe alla policy solo quelle dello studente, e il controllo passerebbe sempre;
   - `glossary_terms`: se lo studente vede la materia; `generation_events` e `progress_snapshots`: solo le proprie righe;
   - `lessons` → `chapters` → `subjects` → `editions` → `study_programs`: visibili se è visibile almeno un elemento del livello sotto. Ogni policy guarda un solo livello e si appoggia alla RLS di quel livello, così la regola resta semplice da leggere e la visibilità risale da `entitlements` fino al corso.
-- Nessuna policy di scrittura, e in più le migrazioni `0001_harden_grants`, `0004_harden_grants_import`, `0006_harden_grants_generation` e `0009_harden_grants_progress` tolgono a `authenticated` i privilegi di insert/update/delete e ad `anon` ogni privilegio. Le scritture (import, generazione) le fa solo l'API sul server, dopo validazione e prova di possesso.
+- Nessuna policy di scrittura, e in più le migrazioni `0001_harden_grants`, `0004_harden_grants_import`, `0006_harden_grants_generation`, `0009_harden_grants_progress` e `0011_harden_grants_exam` tolgono a `authenticated` i privilegi di insert/update/delete e ad `anon` ogni privilegio. Le scritture (import, generazione) le fa solo l'API sul server, dopo validazione e prova di possesso.
 - Le policy usano `(select auth.uid())`, che Postgres valuta una volta per query invece che per riga (raccomandazione di Supabase per la latenza).
 
 ### Come è testato
@@ -83,7 +85,8 @@ Progetto: **EpicFeed** (`https://nxuysaeevxcncchqjtep.supabase.co`), creato il 1
 
 - M2 (PR 2 della generazione): migrazioni `0005_generation_feeds` (tabelle `lesson_feeds`, `glossary_terms`, `generation_events`, valore `generate` di `api_token_scope`) e `0006_harden_grants_generation` (permessi), solo aggiunte e quindi non distruttive: da applicare con il connettore dopo il merge.
 - M2 (PR 4, slide): migrazione `0007_slides_part_kind`, che aggiunge il valore `slides` a `lesson_part_kind` e a `generation_action`. Non distruttiva.
-- M4 (PR 2, sincronizzazione): migrazioni `0008_progress_snapshots` (tabella `progress_snapshots`) e `0009_harden_grants_progress` (permessi), solo aggiunte e quindi non distruttive: da applicare con il connettore dopo il merge.
+- M4 (PR 2, sincronizzazione): migrazioni `0008_progress_snapshots` (tabella `progress_snapshots`) e `0009_harden_grants_progress` (permessi), solo aggiunte; applicate il 24/11/2026.
+- M4 (PR 3, pacchetti d'esame): migrazioni `0010_exam_packs` (tabella `lesson_exam_packs`) e `0011_harden_grants_exam` (permessi), solo aggiunte e quindi non distruttive: da applicare con il connettore dopo il merge.
 
 ### Applicare le migrazioni con Claude (connettore Supabase)
 Con il connettore Supabase collegato, Claude può applicare le migrazioni nuove con `apply_migration`, aggiungendo nella stessa migrazione la riga in `drizzle.__drizzle_migrations` (hash SHA-256 del file `.sql` e campo `when` del journal). Non serve la password del database.
