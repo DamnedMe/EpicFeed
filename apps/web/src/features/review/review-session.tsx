@@ -1,7 +1,9 @@
 'use client';
 
-import type { PlannedReview, StudyLanguage } from '@epicfeed/core';
-import { answerPoints, gradeFromAnswer, POINTS } from '@epicfeed/core';
+import type { PlannedReview } from '@epicfeed/core';
+import type { StudyLanguage } from '@epicfeed/feed';
+import { answerPoints, POINTS } from '@epicfeed/feed';
+import { gradeFromAnswer } from '@epicfeed/core';
 import { useEffect, useRef, useState } from 'react';
 import { CARD_COPY } from '../feed/copy';
 import { Icon } from '../feed/icons';

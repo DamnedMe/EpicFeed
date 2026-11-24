@@ -14,3 +14,4 @@ export * from './domain/entitlement.js';
 export * from './domain/subtitles.js';
 export * from './application/ports.js';
 export * from './application/possession-proof-verifier.js';
+export * from './contracts/content.js';

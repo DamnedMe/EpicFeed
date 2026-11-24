@@ -11,7 +11,6 @@ import type {
   LessonPartInput,
   NewContentVersion,
 } from '@epicfeed/catalog';
-import type { LessonImport } from '../domain/import.js';
 import type {
   ContentVersionId,
   LessonId,
@@ -20,6 +19,7 @@ import type {
   UserId,
 } from '@epicfeed/shared';
 import { PossessionProofVerifier } from '@epicfeed/catalog';
+import type { LessonImport } from '../domain/import.js';
 import { ImportLesson } from './import-lesson.js';
 
 const anna = '0a0a0a0a-0000-4000-8000-00000000000a' as UserId;

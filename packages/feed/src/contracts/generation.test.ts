@@ -1,4 +1,4 @@
-import { checkLessonFeed } from '@epicfeed/core';
+import { checkLessonFeed } from '../domain/feed.js';
 import { describe, expect, it } from 'vitest';
 import {
   importSlidesRequestSchema,

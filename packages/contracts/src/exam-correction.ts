@@ -1,7 +1,7 @@
 import type { ExamCorrectionDraft, ExamSubmissionDraft } from '@epicfeed/core';
 import { EXAM_CORRECTION_LIMITS } from '@epicfeed/core';
+import { line, paragraph } from '@epicfeed/feed';
 import * as z from 'zod';
-import { line, paragraph } from './schema-helpers.js';
 
 /**
  * Contratti della correzione di Claude (M4, ADR 0014 §4): invio delle

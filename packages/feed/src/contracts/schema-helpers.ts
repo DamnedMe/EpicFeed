@@ -1,5 +1,5 @@
-import type { ConceptKey } from '@epicfeed/core';
-import { MAX_SLUG_LENGTH, SLUG_PATTERN } from '@epicfeed/core';
+import type { ConceptKey } from '../domain/feed.js';
+import { MAX_SLUG_LENGTH, SLUG_PATTERN } from '../domain/feed.js';
 import * as z from 'zod';
 
 /**

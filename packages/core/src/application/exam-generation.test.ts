@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import type { ConceptKey, LessonFeedDocument } from '../domain/feed.js';
+import type { ConceptKey, LessonFeedDocument } from '@epicfeed/feed';
+import type { ContentHash } from '@epicfeed/catalog';
+import type { LessonId, LessonPartId, UserId } from '@epicfeed/shared';
+import { DomainError } from '@epicfeed/shared';
+import { FeedValidationError } from '@epicfeed/feed';
 import type {
   ExamBankDocument,
   ExamExercise,
   ExamPackDocument,
   ExamPackDraft,
 } from '../domain/exam.js';
-import type { ContentHash } from '@epicfeed/catalog';
-import type { LessonId, LessonPartId, UserId } from '@epicfeed/shared';
-import { DomainError } from '@epicfeed/shared';
-import { FeedValidationError } from '../domain/feed.js';
 import type {
   CurrentLessonFeedWithDocument,
   ExamBankRepository,

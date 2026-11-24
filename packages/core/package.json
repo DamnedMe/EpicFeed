@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@epicfeed/catalog": "workspace:*",
+    "@epicfeed/feed": "workspace:*",
     "@epicfeed/shared": "workspace:*",
     "ts-fsrs": "5.4.2"
   }

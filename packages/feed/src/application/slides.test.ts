@@ -11,7 +11,8 @@ import type { ContentVersionId, LessonId, LessonPartId, UserId } from '@epicfeed
 import { DomainError } from '@epicfeed/shared';
 import { PossessionProofVerifier } from '@epicfeed/catalog';
 import type { LessonSources } from './generation.js';
-import { ImportLessonSlides, SLIDES_POSITION_BASE } from './slides.js';
+import { SLIDES_POSITION_BASE } from '../domain/slides.js';
+import { ImportLessonSlides } from './slides.js';
 
 const anna = '0a0a0a0a-0000-4000-8000-00000000000a' as UserId;
 const lessonId = '10000000-0000-4000-8000-000000000001' as LessonId;

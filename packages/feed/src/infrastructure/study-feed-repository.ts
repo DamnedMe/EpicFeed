@@ -1,12 +1,11 @@
 import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm';
+import type { LessonFeedDocument, StoredFeedCard } from '../domain/feed.js';
 import type {
-  LessonFeedDocument,
-  StoredFeedCard,
   StudyFeedLessonRow,
   StudyFeedRepository,
   StudyFeedSubjectRows,
   StudySubject,
-} from '@epicfeed/core';
+} from '../application/study-feed.js';
 import type { UserId } from '@epicfeed/shared';
 import { parseId } from '@epicfeed/shared';
 import { chapters, editions, lessonFeeds, lessonParts, lessons, subjects } from '@epicfeed/db';

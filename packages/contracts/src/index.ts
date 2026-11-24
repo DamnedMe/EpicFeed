@@ -6,6 +6,4 @@
  */
 export * from './exam.js';
 export * from './exam-correction.js';
-export * from './generation.js';
-export * from './feed.js';
 export * from './progress.js';

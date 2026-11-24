@@ -14,7 +14,7 @@ Claude Desktop ──stdio──▶ server MCP (PC) ──HTTPS + token "genera"
 Unità di generazione: la **lezione**. Un feed è legato all'**impronta delle fonti** (`computeLessonSourcesHash`) letta da Claude: se la lezione cambia nel frattempo, l'API rifiuta il salvataggio.
 
 ## Il feed di una lezione
-Ogni testo per lo studente è una coppia `{ it, en }` (ADR 0011). Schemi in `packages/contracts/src/generation.ts`, tipi e regole in `packages/core/src/domain/feed.ts`.
+Ogni testo per lo studente è una coppia `{ it, en }` (ADR 0011). Schemi in `packages/feed/src/contracts/generation.ts`, tipi e regole in `packages/feed/src/domain/feed.ts`.
 
 | Elemento | Campi principali | Obiettivo per lezione | Limiti accettati |
 |---|---|---|---|
@@ -37,7 +37,7 @@ Ogni testo per lo studente è una coppia `{ it, en }` (ADR 0011). Schemi in `pac
 Il server MCP esegue entrambi i controlli prima di inviare e restituisce a Claude l'elenco dei problemi da correggere; l'API li ripete, perché non si fida del client.
 
 ## Allineamento al minuto
-`alignCard(scheda, tracce)` in `packages/core/src/domain/alignment.ts`, eseguito dall'API al salvataggio. Da M3 ([ADR 0015](../decisions/0015-study-feed-m3.md)) lo chiama `alignCardToLesson(scheda, video della lezione)` (regole **versione 2**, `ALIGNMENT_VERSION`):
+`alignCard(scheda, tracce)` in `packages/feed/src/domain/alignment.ts`, eseguito dall'API al salvataggio. Da M3 ([ADR 0015](../decisions/0015-study-feed-m3.md)) lo chiama `alignCardToLesson(scheda, video della lezione)` (regole **versione 2**, `ALIGNMENT_VERSION`):
 - una scheda tratta da un video cerca solo in quel video, come in M2;
 - una scheda tratta da slide o lettura cerca in tutti i video della lezione e tiene il tratto più sicuro (a parità, il video che viene prima);
 - il tratto salvato riporta la parte video in `partId` (nei feed di M2 manca e vale la parte di provenienza);
@@ -51,7 +51,7 @@ Il server MCP esegue entrambi i controlli prima di inviare e restituisce a Claud
 
 I parametri (`DEFAULT_ALIGNMENT_OPTIONS`) si tarano sul set di valutazione di M2.
 
-## Casi d'uso (`packages/core/src/application/generation.ts`)
+## Casi d'uso (`packages/feed/src/application/generation.ts`)
 | Caso d'uso | Cosa fa |
 |---|---|
 | `ListLessonsToGenerate` | Lezioni dello studente senza un feed per le fonti attuali: calcola l'impronta di ogni lezione con la stessa funzione del salvataggio e la confronta con i feed visibili. Restituisce anche i totali (lezioni, pronte, da generare) |
@@ -80,7 +80,7 @@ Chiamata dal server MCP con `Authorization: Bearer sfg_…` (token "genera"). Ne
 Gli errori `INVALID_FEED` portano l'elenco completo dei problemi (`issues: [{ path, message }]`), così il server MCP li passa a Claude in una volta.
 
 ## Token "genera"
-Pagina **Claude Desktop** della web app (`/claude-desktop`): *Crea token* mostra il token una sola volta, con il pulsante Copia; l'elenco dei token attivi evidenzia quelli che scadono entro una settimana e permette di revocarli. Implementazione: `GenerateTokenService` (`packages/adapters/src/import-tokens.ts`), stessa logica del token dell'estensione (`PersonalTokenService`: 256 bit casuali, solo SHA-256 nel database) con ambito `generate`, prefisso `sfg_` e durata di 90 giorni. Un token di import non vale per la generazione e viceversa, anche per elenco e revoca.
+Pagina **Claude Desktop** della web app (`/claude-desktop`): *Crea token* mostra il token una sola volta, con il pulsante Copia; l'elenco dei token attivi evidenzia quelli che scadono entro una settimana e permette di revocarli. Implementazione: `GenerateTokenService` (`packages/access/src/infrastructure/import-tokens.ts`), stessa logica del token dell'estensione (`PersonalTokenService`: 256 bit casuali, solo SHA-256 nel database) con ambito `generate`, prefisso `sfg_` e durata di 90 giorni. Un token di import non vale per la generazione e viceversa, anche per elenco e revoca.
 
 ## Server MCP (`apps/mcp`)
 Gira sul PC dello studente dentro Claude Desktop, come estensione `.mcpb`. Parla con EpicFeed **solo** attraverso l'API sopra (ESLint vieta di importare adapter, database o Supabase) e usa da `@epicfeed/core` solo le regole pure del feed, per controllarlo prima di inviarlo.

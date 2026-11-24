@@ -4,10 +4,10 @@ import type {
   ExamPackDocument,
   ExamPackDraft,
 } from '../domain/exam.js';
-import type { LessonFeedDocument } from '../domain/feed.js';
+import type { LessonFeedDocument } from '@epicfeed/feed';
 import type { LessonId, UserId, Clock } from '@epicfeed/shared';
 import { DomainError } from '@epicfeed/shared';
-import { FeedValidationError } from '../domain/feed.js';
+import { FeedValidationError } from '@epicfeed/feed';
 import { checkExamBank, checkExamPack } from '../domain/exam.js';
 
 /**

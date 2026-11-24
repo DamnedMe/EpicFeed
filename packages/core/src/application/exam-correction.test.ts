@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { ExamCorrectionDraft, ExamSubmissionDraft } from '../domain/exam-correction.js';
 import type { UserId } from '@epicfeed/shared';
 import { DomainError } from '@epicfeed/shared';
-import { FeedValidationError } from '../domain/feed.js';
+import { FeedValidationError } from '@epicfeed/feed';
 import type { ExamSubmissionRepository, StoredSubmission } from './exam-correction.js';
 import {
   DeleteSubmission,

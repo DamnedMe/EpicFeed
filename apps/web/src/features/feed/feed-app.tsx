@@ -1,15 +1,8 @@
 'use client';
 
-import type { StudyLanguage } from '@epicfeed/core';
-import {
-  answerPoints,
-  autoAdvanceMs,
-  beatText,
-  gradeFromAnswer,
-  POINTS,
-  SESSION_MS,
-  storyOf,
-} from '@epicfeed/core';
+import type { StudyLanguage } from '@epicfeed/feed';
+import { answerPoints, autoAdvanceMs, beatText, POINTS, SESSION_MS, storyOf } from '@epicfeed/feed';
+import { gradeFromAnswer } from '@epicfeed/core';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import * as z from 'zod';

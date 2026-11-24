@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ExamChoiceQuestion, ExamExercise, ExamOpenQuestion, ExamPackDraft } from './exam.js';
 import { checkExamBank, checkExamPack } from './exam.js';
-import type { ConceptKey } from './feed.js';
+import type { ConceptKey } from '@epicfeed/feed';
 
 const key = (value: string) => value as ConceptKey;
 

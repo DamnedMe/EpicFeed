@@ -1,6 +1,5 @@
 import type { ExamBankDraft, ExamPackDraft } from '@epicfeed/core';
 import { EXAM_BANK_LIMITS, EXAM_PACK_LIMITS } from '@epicfeed/core';
-import * as z from 'zod';
 import {
   bilingual,
   conceptKeySchema,
@@ -8,7 +7,8 @@ import {
   paragraph,
   promptVersionSchema,
   slug,
-} from './schema-helpers.js';
+} from '@epicfeed/feed';
+import * as z from 'zod';
 
 /**
  * Contratti dei pacchetti d'esame (M4, ADR 0014 e ADR 0017): domande a scelta

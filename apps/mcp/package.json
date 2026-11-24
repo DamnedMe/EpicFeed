@@ -14,6 +14,7 @@
   "dependencies": {
     "@epicfeed/contracts": "workspace:*",
     "@epicfeed/core": "workspace:*",
+    "@epicfeed/feed": "workspace:*",
     "@epicfeed/shared": "workspace:*",
     "@modelcontextprotocol/sdk": "1.32.2",
     "@napi-rs/canvas": "1.1.0",

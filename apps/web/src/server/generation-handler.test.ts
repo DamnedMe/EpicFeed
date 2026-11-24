@@ -4,10 +4,9 @@ import type {
   LessonForGeneration,
   LessonsToGenerateResult,
   SaveLessonFeedResult,
-} from '@epicfeed/core';
+} from '@epicfeed/feed';
 import { DomainError } from '@epicfeed/shared';
-import { FeedValidationError } from '@epicfeed/core';
-import { MAX_FEED_BODY_BYTES, MAX_SLIDES_BODY_BYTES } from '@epicfeed/contracts';
+import { FeedValidationError, MAX_FEED_BODY_BYTES, MAX_SLIDES_BODY_BYTES } from '@epicfeed/feed';
 import {
   handleImportSlides,
   handleListCatalog,

@@ -26,6 +26,7 @@
     "@epicfeed/contracts": "workspace:*",
     "@epicfeed/core": "workspace:*",
     "@epicfeed/db": "workspace:*",
+    "@epicfeed/feed": "workspace:*",
     "@epicfeed/ingest": "workspace:*",
     "@epicfeed/shared": "workspace:*",
     "@epicfeed/ui": "workspace:*",
@@ -42,9 +43,9 @@
     "zod": "4.6.6"
   },
   "devDependencies": {
+    "@epicfeed/config": "workspace:*",
     "@next/eslint-plugin-next": "16.4.6",
     "@playwright/test": "1.63.0",
-    "@epicfeed/config": "workspace:*",
     "@tailwindcss/postcss": "4.3.5",
     "@types/node": "26.6.6",
     "@types/react": "19.3.0",

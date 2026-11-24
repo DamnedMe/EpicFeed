@@ -1,5 +1,13 @@
 import type {
   ImportSlidesRequest,
+  ImportSlidesResponse,
+  LessonSourcesResponse,
+  LessonsToGenerateResponse,
+  SaveLessonFeedRequest,
+  OwnedLessonsResponse,
+  SaveLessonFeedResponse,
+} from '@epicfeed/feed';
+import type {
   LessonForExamResponse,
   LessonsForExamResponse,
   SaveExamBankRequest,
@@ -9,27 +17,23 @@ import type {
   SubjectsForExamResponse,
   SaveExamPackRequest,
   SaveExamPackResponse,
-  ImportSlidesResponse,
-  LessonSourcesResponse,
-  LessonsToGenerateResponse,
-  SaveLessonFeedRequest,
-  OwnedLessonsResponse,
-  SaveLessonFeedResponse,
 } from '@epicfeed/contracts';
 import { apiErrorSchema } from '@epicfeed/shared';
 import {
   importSlidesResponseSchema,
+  ownedLessonsResponseSchema,
+  lessonSourcesResponseSchema,
+  lessonsToGenerateResponseSchema,
+  saveLessonFeedResponseSchema,
+} from '@epicfeed/feed';
+import {
   lessonForExamResponseSchema,
   lessonsForExamResponseSchema,
-  ownedLessonsResponseSchema,
   saveExamBankResponseSchema,
   saveCorrectionResponseSchema,
   submissionsResponseSchema,
   saveExamPackResponseSchema,
   subjectsForExamResponseSchema,
-  lessonSourcesResponseSchema,
-  lessonsToGenerateResponseSchema,
-  saveLessonFeedResponseSchema,
 } from '@epicfeed/contracts';
 import type { z } from 'zod';
 

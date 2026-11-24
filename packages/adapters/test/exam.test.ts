@@ -1,6 +1,7 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { ExamExercise, ExamPackDraft, LessonFeedDraft } from '@epicfeed/core';
+import type { ExamExercise, ExamPackDraft } from '@epicfeed/core';
+import type { LessonFeedDraft } from '@epicfeed/feed';
 import type { LessonId, UserId } from '@epicfeed/shared';
 import type { LessonImport } from '@epicfeed/ingest';
 import { ImportLesson } from '@epicfeed/ingest';
@@ -13,17 +14,16 @@ import {
   SubmitForCorrection,
   DeleteSubmission,
   ReadLessonForExam,
-  ReadLessonForGeneration,
   SaveExamBank,
   SaveExamPack,
-  SaveLessonFeed,
 } from '@epicfeed/core';
+import { ReadLessonForGeneration, SaveLessonFeed } from '@epicfeed/feed';
 import { PossessionProofVerifier } from '@epicfeed/catalog';
 import { DrizzleCatalogRepository } from '@epicfeed/catalog/infrastructure';
+import { DrizzleGenerationRepository } from '@epicfeed/feed/infrastructure';
 import type { Database } from '@epicfeed/db';
 import { DrizzleExamPackRepository } from '../src/exam-repository.js';
 import { DrizzleExamSubmissionRepository } from '../src/exam-submission-repository.js';
-import { DrizzleGenerationRepository } from '../src/generation-repository.js';
 import { anna, bruno, setup } from './setup.js';
 
 let pg: PGlite;

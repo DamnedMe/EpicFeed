@@ -1,6 +1,6 @@
 'use client';
 
-import type { StudyLanguage } from '@epicfeed/core';
+import type { StudyLanguage } from '@epicfeed/feed';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Icon } from './icons';
 import type { ChapterIndex, FeedEntry } from './model';

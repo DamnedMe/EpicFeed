@@ -1,23 +1,24 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { LessonFeedDraft } from '@epicfeed/core';
+import type { LessonFeedDraft } from '../domain/feed.js';
 import type { LessonImport } from '@epicfeed/ingest';
 import type { UserId } from '@epicfeed/shared';
+import { ALIGNMENT_VERSION } from '../domain/alignment.js';
 import {
-  ALIGNMENT_VERSION,
   ListStudySubjects,
-  ReadLessonForGeneration,
   ReadSubjectFeed,
   RealignLessonFeeds,
-  SaveLessonFeed,
-} from '@epicfeed/core';
+} from '../application/study-feed.js';
+import { ReadLessonForGeneration, SaveLessonFeed } from '../application/generation.js';
 import { ImportLesson } from '@epicfeed/ingest';
 import { PossessionProofVerifier } from '@epicfeed/catalog';
 import { DrizzleCatalogRepository } from '@epicfeed/catalog/infrastructure';
+import { DrizzleGenerationRepository } from './generation-repository.js';
+import { DrizzleStudyFeedRepository } from './study-feed-repository.js';
+import { setupTestDatabase as setup, TEST_USERS } from '@epicfeed/db/testing';
 import type { Database } from '@epicfeed/db';
-import { DrizzleGenerationRepository } from '../src/generation-repository.js';
-import { DrizzleStudyFeedRepository } from '../src/study-feed-repository.js';
-import { anna, bruno, setup } from './setup.js';
+
+const { anna, bruno } = TEST_USERS;
 
 let pg: PGlite;
 let db: Database;

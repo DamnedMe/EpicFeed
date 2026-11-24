@@ -8,9 +8,14 @@ import { createConfig } from '@epicfeed/config/eslint';
  */
 const forbiddenOutside = [
   {
-    group: ['@epicfeed/*', '!@epicfeed/config', '!@epicfeed/shared', '!@epicfeed/catalog'],
-    message:
-      'Il core dipende solo da @epicfeed/shared e @epicfeed/catalog (clean architecture, ADR 0019).',
+    group: [
+      '@epicfeed/*',
+      '!@epicfeed/config',
+      '!@epicfeed/shared',
+      '!@epicfeed/catalog',
+      '!@epicfeed/feed',
+    ],
+    message: 'Il core dipende solo da shared, catalog e feed (clean architecture, ADR 0019).',
   },
   {
     group: [

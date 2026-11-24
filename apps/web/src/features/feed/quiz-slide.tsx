@@ -1,7 +1,7 @@
 'use client';
 
-import type { StudyLanguage } from '@epicfeed/core';
-import { POINTS } from '@epicfeed/core';
+import type { StudyLanguage } from '@epicfeed/feed';
+import { POINTS } from '@epicfeed/feed';
 import { useRef, useState } from 'react';
 import { CARD_COPY } from './copy';
 import { swipeAnswer } from './gestures';

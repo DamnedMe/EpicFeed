@@ -23,6 +23,7 @@
   "dependencies": {
     "@epicfeed/catalog": "workspace:*",
     "@epicfeed/core": "workspace:*",
+    "@epicfeed/feed": "workspace:*",
     "@epicfeed/ingest": "workspace:*",
     "@epicfeed/shared": "workspace:*",
     "zod": "4.6.6"

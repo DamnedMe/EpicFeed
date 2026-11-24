@@ -1,5 +1,5 @@
 import type { OpenQuestionKind, RubricCriterion } from './exam.js';
-import type { FeedIssue } from './feed.js';
+import type { FeedIssue } from '@epicfeed/feed';
 
 /**
  * Correzione di Claude delle risposte aperte (M4, ADR 0014 §4 e ADR 0017):

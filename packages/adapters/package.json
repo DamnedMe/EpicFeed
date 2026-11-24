@@ -24,6 +24,7 @@
     "@epicfeed/catalog": "workspace:*",
     "@epicfeed/core": "workspace:*",
     "@epicfeed/db": "workspace:*",
+    "@epicfeed/feed": "workspace:*",
     "@epicfeed/ingest": "workspace:*",
     "@epicfeed/shared": "workspace:*",
     "drizzle-orm": "0.45.4"

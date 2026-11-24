@@ -1,4 +1,5 @@
-import type { ExamContentResponse, SubjectFeedResponse } from '@epicfeed/contracts';
+import type { ExamContentResponse } from '@epicfeed/contracts';
+import type { SubjectFeedResponse } from '@epicfeed/feed';
 
 /**
  * Materia di prova per i test sul telefono: una lezione per tipo di scheda,

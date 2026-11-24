@@ -27,7 +27,8 @@
   "dependencies": {
     "@epicfeed/db": "workspace:*",
     "@epicfeed/shared": "workspace:*",
-    "drizzle-orm": "0.45.4"
+    "drizzle-orm": "0.45.4",
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.16",

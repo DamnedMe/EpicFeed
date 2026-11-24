@@ -3,10 +3,12 @@ import { DrizzleCatalogRepository, MyLessonsQuery } from '@epicfeed/catalog/infr
 import {
   DrizzleExamPackRepository,
   DrizzleExamSubmissionRepository,
-  DrizzleGenerationRepository,
   DrizzleProgressRepository,
-  DrizzleStudyFeedRepository,
 } from '@epicfeed/adapters';
+import {
+  DrizzleGenerationRepository,
+  DrizzleStudyFeedRepository,
+} from '@epicfeed/feed/infrastructure';
 import {
   GenerateTokenService,
   GenerationRateLimiter,
@@ -18,21 +20,23 @@ import {
   ListSubmissions,
   SaveCorrection,
   SubmitForCorrection,
-  ImportLessonSlides,
   ListLessonsForExam,
-  ListLessonsToGenerate,
   ListSubjectsForExam,
-  ListOwnedLessons,
-  ListStudySubjects,
   ReadLessonForExam,
-  ReadLessonForGeneration,
   ReadExamContent,
-  ReadSubjectFeed,
-  RealignLessonFeeds,
   SaveExamBank,
   SaveExamPack,
-  SaveLessonFeed,
 } from '@epicfeed/core';
+import {
+  ImportLessonSlides,
+  ListLessonsToGenerate,
+  ListOwnedLessons,
+  ListStudySubjects,
+  ReadLessonForGeneration,
+  ReadSubjectFeed,
+  RealignLessonFeeds,
+  SaveLessonFeed,
+} from '@epicfeed/feed';
 import { ImportLesson } from '@epicfeed/ingest';
 import { PossessionProofVerifier } from '@epicfeed/catalog';
 import { systemClock } from '@epicfeed/shared';

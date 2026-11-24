@@ -1,5 +1,5 @@
-import type { Bilingual, ConceptKey, FeedIssue } from './feed.js';
-import { MAX_SLUG_LENGTH, SLUG_PATTERN } from './feed.js';
+import type { Bilingual, ConceptKey, FeedIssue } from '@epicfeed/feed';
+import { MAX_SLUG_LENGTH, SLUG_PATTERN } from '@epicfeed/feed';
 
 /**
  * Pacchetto d'esame di una lezione (M4, ADR 0014 e ADR 0017): domande a

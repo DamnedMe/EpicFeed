@@ -1,5 +1,5 @@
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import type { FeedIssue } from '@epicfeed/core';
+import type { FeedIssue } from '@epicfeed/feed';
 import { ApiRequestError } from './api-client.js';
 
 /**

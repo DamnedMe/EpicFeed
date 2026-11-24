@@ -10,7 +10,7 @@ Mappa "funzione → file". La repo sta passando a un pacchetto per funzione ([AD
 | `catalog` | corsi, materie, capitoli, lezioni, versioni dei contenuti, permessi, sottotitoli | `/lessons` | `packages/catalog` |
 | `ingest` | import delle lezioni dall'estensione | `/extension` | `packages/ingest` |
 | `access` | token di estensione e Claude Desktop, limiti di frequenza | `/extension`, `/claude-desktop` | `packages/access` |
-| `feed` | schede a battute, domande, generazione via MCP, slide | `/` | ancora in `core`, `contracts`, `adapters` (vedi sotto) |
+| `feed` | schede a battute, domande, generazione via MCP, slide | `/` | `packages/feed` |
 | `review` | ripasso FSRS e sincronizzazione cifrata | `/review` | ancora in `core`, `contracts`, `adapters` |
 | `exam` | quiz di modulo, esercizi, correzione di Claude, colloquio | `/review#esame` | ancora in `core`, `contracts`, `adapters` |
 
@@ -31,7 +31,7 @@ L'infrastruttura si importa da `@epicfeed/<funzione>/infrastructure`. I test sta
 
 ## Le funzioni non ancora spostate
 
-Per `feed`, `review` ed `exam` si cercano i file con il loro nome in queste cartelle:
+Per `review` ed `exam` si cercano i file con il loro nome in queste cartelle:
 
 | Livello | Cartella | Esempio per `exam` |
 | --- | --- | --- |

@@ -1,7 +1,7 @@
 'use client';
 
-import type { CardStory, LineRange, StoryBeat } from '@epicfeed/core';
-import { highlightTerms } from '@epicfeed/core';
+import type { CardStory, LineRange, StoryBeat } from '@epicfeed/feed';
+import { highlightTerms } from '@epicfeed/feed';
 import { useEffect, useRef } from 'react';
 import type { Gesture } from './gestures';
 import { GestureRecognizer } from './gestures';

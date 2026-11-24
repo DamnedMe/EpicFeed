@@ -1,21 +1,23 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { LessonFeedDraft } from '@epicfeed/core';
+import type { LessonFeedDraft } from '../domain/feed.js';
 import type { LessonId, UserId } from '@epicfeed/shared';
 import type { LessonImport } from '@epicfeed/ingest';
 import { ImportLesson } from '@epicfeed/ingest';
+import { ImportLessonSlides } from '../application/slides.js';
 import {
-  ImportLessonSlides,
   ListLessonsToGenerate,
   ListOwnedLessons,
   ReadLessonForGeneration,
   SaveLessonFeed,
-} from '@epicfeed/core';
+} from '../application/generation.js';
 import { PossessionProofVerifier } from '@epicfeed/catalog';
 import { DrizzleCatalogRepository } from '@epicfeed/catalog/infrastructure';
+import { DrizzleGenerationRepository } from './generation-repository.js';
+import { setupTestDatabase as setup, TEST_USERS } from '@epicfeed/db/testing';
 import type { Database } from '@epicfeed/db';
-import { DrizzleGenerationRepository } from '../src/generation-repository.js';
-import { anna, bruno, setup } from './setup.js';
+
+const { anna, bruno } = TEST_USERS;
 
 let pg: PGlite;
 let db: Database;

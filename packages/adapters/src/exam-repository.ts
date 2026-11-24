@@ -9,8 +9,8 @@ import type {
   CurrentLessonFeedWithDocument,
   ExamPackDocument,
   ExamPackRepository,
-  LessonFeedDocument,
 } from '@epicfeed/core';
+import type { LessonFeedDocument } from '@epicfeed/feed';
 import type { LessonId, UserId } from '@epicfeed/shared';
 import { parseId } from '@epicfeed/shared';
 import {

@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { ChapterId, LessonId, LessonPartId, UserId } from '@epicfeed/shared';
 import type { ContentHash } from '@epicfeed/catalog';
-import type { ReadSubjectFeedResult } from '@epicfeed/core';
+import type { ReadSubjectFeedResult } from '@epicfeed/feed';
 import { DomainError } from '@epicfeed/shared';
-import { studySubjectsResponseSchema, subjectFeedResponseSchema } from '@epicfeed/contracts';
+import { studySubjectsResponseSchema, subjectFeedResponseSchema } from '@epicfeed/feed';
 import { handleListSubjects, handleReadSubjectFeed, type FeedHandlerDeps } from './feed-handler';
 import { loadFeedPreview } from './feed-preview';
 

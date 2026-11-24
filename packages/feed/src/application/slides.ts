@@ -8,15 +8,7 @@ import type {
 import { DomainError } from '@epicfeed/shared';
 import { computeContentHash, normalizeContent, webCryptoSha256 } from '@epicfeed/catalog';
 import type { GenerationRepository } from './generation.js';
-
-/** Massimo di presentazioni per lezione in un import (nel corso DSA: 1–4). */
-export const MAX_PRESENTATIONS_PER_LESSON = 20;
-
-/**
- * Le parti `slides` seguono quelle del portale: posizione = base + numero della
- * presentazione, così restano in fondo alla lezione e in ordine.
- */
-export const SLIDES_POSITION_BASE = 10_000;
+import { MAX_PRESENTATIONS_PER_LESSON, SLIDES_POSITION_BASE } from '../domain/slides.js';
 
 /** Una presentazione da importare: numero nel nome del file (`…-2.pdf` → 2) e testo. */
 export interface SlidesPresentationInput {

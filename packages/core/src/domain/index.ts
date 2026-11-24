@@ -3,11 +3,7 @@
  *
  * @packageDocumentation
  */
-export * from './alignment.js';
 export * from './exam.js';
 export * from './exam-practice.js';
 export * from './exam-correction.js';
-export * from './feed.js';
 export * from './review.js';
-export * from './story.js';
-export * from './study-session.js';

@@ -5,8 +5,8 @@ import type {
 } from '../domain/exam-correction.js';
 import type { UserId, Clock } from '@epicfeed/shared';
 import { DomainError } from '@epicfeed/shared';
+import { FeedValidationError } from '@epicfeed/feed';
 import { checkCorrection, EXAM_CORRECTION_LIMITS } from '../domain/exam-correction.js';
-import { FeedValidationError } from '../domain/feed.js';
 
 /**
  * Casi d'uso della correzione di Claude (M4, ADR 0014 §4): l'app invia le

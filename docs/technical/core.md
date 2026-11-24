@@ -83,7 +83,7 @@ pending ──▶ generating ──▶ ready (finale)
 `feed.ts` definisce schede, quiz, concetti e glossario bilingui (`Bilingual<T>`), `checkLessonFeed` (regole tra elementi, restituisce tutti i problemi) e `computeLessonSourcesHash` (impronta delle fonti di una lezione). `alignment.ts` calcola il tratto di video di una scheda dai sottotitoli (`alignCard`), in modo deterministico. Dettagli in [generation.md](generation.md).
 
 ## Feed di studio
-Regole pure del feed sul telefono ([ADR 0015](../decisions/0015-study-feed-m3.md)), in `domain/story.ts` e `domain/study-session.ts`; lavorano su tipi strutturali (`StoryCardInput`, `SequenceLessonInput`) così valgono sia per i documenti salvati sia per i dati dell'API.
+Regole pure del feed sul telefono ([ADR 0015](../decisions/0015-study-feed-m3.md)), in `packages/feed/src/domain/story.ts` e `study-session.ts`; lavorano su tipi strutturali (`StoryCardInput`, `SequenceLessonInput`) così valgono sia per i documenti salvati sia per i dati dell'API.
 
 - `storyOf(card, lingua)` → `CardStory`: battute (`title`, `key`, poi `line`/`step`/`row`/`note`/`code` secondo il tipo), parola da indovinare, righe del confronto, codice con le spiegazioni. `beatText` dà il testo di una battuta (sintesi vocale, avanzamento automatico), `autoAdvanceMs` il tempo di lettura (55 ms a carattere, almeno 2,2 s).
 - `splitSentences`: frasi chiuse da `. ! ? ; :` seguiti da maiuscola, cifra o apertura; non spezza decimali, `cursor.next`, abbreviazioni (`es.`, `e.g.`) e unisce i pezzi sotto 32 caratteri.

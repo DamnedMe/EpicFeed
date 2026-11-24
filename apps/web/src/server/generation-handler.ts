@@ -1,7 +1,6 @@
 import type {
   ExamCorrectionDraft,
   StoredSubmission,
-  ImportedSlidesResult,
   LessonExamMaterial,
   LessonsForExamResult,
   SaveExamBankInput,
@@ -9,39 +8,44 @@ import type {
   SubjectForExam,
   SaveExamPackInput,
   SaveExamPackResult,
+} from '@epicfeed/core';
+import type {
+  ImportedSlidesResult,
   LessonForGeneration,
   LessonsToGenerateResult,
   OwnedLessonSummary,
   SlidesPresentationInput,
   SaveLessonFeedInput,
   SaveLessonFeedResult,
-} from '@epicfeed/core';
+  ImportSlidesResponse,
+  LessonSourcesResponse,
+  LessonsToGenerateResponse,
+  OwnedLessonsResponse,
+  SaveLessonFeedResponse,
+} from '@epicfeed/feed';
 import type { LessonId, UserId } from '@epicfeed/shared';
 import { DomainError, parseId } from '@epicfeed/shared';
-import { FeedValidationError } from '@epicfeed/core';
+import {
+  FeedValidationError,
+  MAX_FEED_BODY_BYTES,
+  MAX_SLIDES_BODY_BYTES,
+  importSlidesRequestSchema,
+  saveLessonFeedRequestSchema,
+} from '@epicfeed/feed';
 import type {
-  ImportSlidesResponse,
   LessonForExamResponse,
   LessonsForExamResponse,
   SaveExamBankResponse,
   SubjectsForExamResponse,
   SaveExamPackResponse,
-  LessonSourcesResponse,
-  LessonsToGenerateResponse,
-  OwnedLessonsResponse,
-  SaveLessonFeedResponse,
 } from '@epicfeed/contracts';
 import {
   MAX_CORRECTION_BODY_BYTES,
   saveCorrectionRequestSchema,
   MAX_EXAM_BANK_BODY_BYTES,
   MAX_EXAM_BODY_BYTES,
-  MAX_FEED_BODY_BYTES,
-  MAX_SLIDES_BODY_BYTES,
-  importSlidesRequestSchema,
   saveExamBankRequestSchema,
   saveExamPackRequestSchema,
-  saveLessonFeedRequestSchema,
 } from '@epicfeed/contracts';
 import * as z from 'zod';
 import { apiError, apiOk, bearerToken, readLimited } from './http';

@@ -1,4 +1,4 @@
-import { generateTokenSchema } from '@epicfeed/contracts';
+import { generateTokenSchema } from '@epicfeed/feed';
 import { ApiRequestError, EpicFeedApi } from './api-client.js';
 import type { GenerationApi } from './server.js';
 
