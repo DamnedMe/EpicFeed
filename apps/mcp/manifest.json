@@ -4,7 +4,7 @@
   "display_name": "EpicFeed",
   "version": "0.0.0",
   "description": "Genera schede, quiz e concetti in italiano e in inglese delle lezioni Epicode importate in EpicFeed.",
-  "long_description": "Collega Claude Desktop a EpicFeed: chiedi \"genera le lezioni nuove di EpicFeed\" e Claude legge le lezioni che hai importato, crea il feed di schede, quiz e concetti nelle due lingue e lo salva nell'app. Il server gira sul tuo PC e parla solo con EpicFeed, con un token che permette solo la generazione. Con \"genera le domande d'esame di EpicFeed\" aggiunge a ogni lezione domande d'esame in inglese: 10 a scelta multipla e 1-2 aperte con soluzione e griglia. Puoi anche indicare lo zip delle slide scaricato dal portale (Course downloads › Download all PDFs): i PDF restano sul PC, a EpicFeed arriva solo il testo.",
+  "long_description": "Collega Claude Desktop a EpicFeed: chiedi \"genera le lezioni nuove di EpicFeed\" e Claude legge le lezioni che hai importato, crea il feed di schede, quiz e concetti nelle due lingue e lo salva nell'app. Il server gira sul tuo PC e parla solo con EpicFeed, con un token che permette solo la generazione. Con \"genera le domande d'esame di EpicFeed\" aggiunge a ogni lezione domande d'esame in inglese: 10 a scelta multipla e 1-2 aperte con soluzione e griglia. Dal materiale \"Exam Prep\" dello zip delle slide crea anche la banca degli esercizi d'esame, con due varianti per esercizio. Puoi anche indicare lo zip delle slide scaricato dal portale (Course downloads › Download all PDFs): i PDF restano sul PC, a EpicFeed arriva solo il testo.",
   "author": {
     "name": "Damian"
   },
@@ -53,6 +53,14 @@
     {
       "name": "salva_domande_esame",
       "description": "Controlla e salva le domande d'esame di una lezione."
+    },
+    {
+      "name": "leggi_materiale_esame",
+      "description": "Legge sul PC il materiale d'esame (Exam Prep) dello zip delle slide."
+    },
+    {
+      "name": "salva_esercizi_esame",
+      "description": "Controlla e salva la banca degli esercizi d'esame di una materia."
     }
   ],
   "prompts": [

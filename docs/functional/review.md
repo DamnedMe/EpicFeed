@@ -32,6 +32,9 @@ La sezione **Esame** (stesso tab, oppure `/ripasso#esame`) arriva con le prossim
 ### Preparare le domande d'esame
 Le domande della sezione si preparano con Claude Desktop, come il feed: dopo aver generato le lezioni si chiede **"genera le domande d'esame di EpicFeed"**. Per ogni lezione Claude aggiunge, in inglese, **10 domande a scelta multipla** nuove (non ripete quelle del feed) e **1 o 2 domande aperte** come al colloquio: scrivere una funzione Python con i suoi test, spiegare un concetto o analizzare un codice, ognuna con suggerimenti in italiano e in inglese, soluzione modello, griglia di correzione e una domanda di approfondimento. Le schede e le domande del feed restano come sono. Se una lezione viene rigenerata, le sue domande d'esame vanno rifatte.
 
+### Banca degli esercizi
+Gli esercizi d'esame del corso (il materiale *Exam Prep* che sta nello zip delle slide, 14 esercizi nel corso DSA) diventano la **banca degli esercizi**: si chiede a Claude Desktop di crearla indicando lo zip. Claude trascrive ogni esercizio ufficiale con i suoi esempi e ne scrive **2 varianti** sullo stesso argomento, ognuno con suggerimenti, soluzione modello e griglia. Il PDF resta sul PC e la banca è **personale**: la vede solo chi l'ha creata.
+
 ## Dove restano i dati
 I progressi del ripasso (stato di ogni concetto, storico delle risposte, giorni di ripasso) stanno sul dispositivo, in IndexedDB. In navigazione privata alcuni browser non permettono di salvarli: la schermata lo dice e il ripasso non viene ricordato.
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { ExamChoiceQuestion, ExamOpenQuestion, ExamPackDraft } from './exam.js';
-import { checkExamPack } from './exam.js';
+import type { ExamChoiceQuestion, ExamExercise, ExamOpenQuestion, ExamPackDraft } from './exam.js';
+import { checkExamBank, checkExamPack } from './exam.js';
 import type { ConceptKey } from './feed.js';
 
 const key = (value: string) => value as ConceptKey;
@@ -117,5 +117,54 @@ describe('checkExamPack', () => {
       'openQuestions[0].rubric[1].points',
       'openQuestions[0].conceptKeys[0]',
     ]);
+  });
+});
+
+describe('checkExamBank', () => {
+  const exercise = (id: string, overrides: Partial<ExamExercise> = {}): ExamExercise => ({
+    ...open({ id }),
+    title: `Exercise ${id}`,
+    origin: 'official',
+    page: 2,
+    ...overrides,
+  });
+  const bank = (extra: ExamExercise[] = []) => ({
+    exercises: [
+      exercise('balanced'),
+      exercise('balanced-v1', { origin: 'variant', variantOf: 'balanced' }),
+      exercise('balanced-v2', { origin: 'variant', variantOf: 'balanced' }),
+      ...extra,
+    ],
+  });
+  const keys = new Set(['stack']);
+  const bankPaths = (draft: { exercises: ExamExercise[] }) =>
+    checkExamBank(draft, keys).map((issue) => issue.path);
+
+  it('accetta ufficiali con due varianti ciascuno', () => {
+    expect(checkExamBank(bank(), keys)).toEqual([]);
+  });
+
+  it('vuole due varianti per ufficiale, riferite a un ufficiale esistente', () => {
+    expect(bankPaths(bank([exercise('queue')]))).toEqual(['exercises[3]']);
+    expect(bankPaths(bank([exercise('orphan', { origin: 'variant', variantOf: 'nope' })]))).toEqual(
+      ['exercises[3].variantOf'],
+    );
+    expect(bankPaths(bank([exercise('x', { variantOf: 'balanced' })]))).toEqual([
+      'exercises[3].variantOf',
+      'exercises[3]',
+    ]);
+  });
+
+  it('controlla id, pagina e regole delle domande aperte', () => {
+    const issues = checkExamBank(
+      bank([exercise('balanced', { page: 0, conceptKeys: [key('heap')] })]),
+      keys,
+    );
+    expect(issues.map((issue) => issue.path)).toEqual([
+      'exercises[3].id',
+      'exercises[3].page',
+      'exercises[3].conceptKeys[0]',
+    ]);
+    expect(issues[2]?.message).toContain('nei feed della materia');
   });
 });

@@ -1,5 +1,5 @@
-import type { ExamPackDraft } from '@study-feed/core';
-import { EXAM_PACK_LIMITS } from '@study-feed/core';
+import type { ExamBankDraft, ExamPackDraft } from '@study-feed/core';
+import { EXAM_BANK_LIMITS, EXAM_PACK_LIMITS } from '@study-feed/core';
 import { z } from 'zod';
 import {
   bilingual,
@@ -162,3 +162,80 @@ export const lessonForExamResponseSchema = z.strictObject({
 
 /** Risposta di `GET /api/generation/lessons/:id/exam`. */
 export type LessonForExamResponse = z.infer<typeof lessonForExamResponseSchema>;
+
+// ---------------------------------------------------------------------------
+// Banca degli esercizi della materia
+// ---------------------------------------------------------------------------
+
+/** Esercizio della banca: domanda aperta con titolo, origine e pagina del materiale. */
+export const examExerciseSchema = examOpenQuestionSchema.extend({
+  // Gli esercizi ufficiali trascrivono anche gli esempi: testo più lungo.
+  prompt: paragraph(3_000),
+  title: line(120),
+  origin: z.enum(['official', 'variant']),
+  variantOf: slug.optional(),
+  page: z.number().int().min(EXAM_BANK_LIMITS.page.min).max(EXAM_BANK_LIMITS.page.max),
+});
+
+/** Banca degli esercizi come la produce Claude. */
+export const examBankDraftSchema = z.strictObject({
+  exercises: z.array(examExerciseSchema).max(EXAM_BANK_LIMITS.exercises.max),
+});
+
+/** Banca degli esercizi dopo la validazione della forma. */
+export type ExamBankDraftInput = z.infer<typeof examBankDraftSchema>;
+
+/** Verifica a tempo di compilazione: ciò che lo schema accetta è una banca del core. */
+export type ExamBankMatchesDomain = Assert<ExamBankDraftInput extends ExamBankDraft ? true : false>;
+
+/** Banca salvata, come la legge la web app. */
+export const storedExamBankSchema = examBankDraftSchema.extend({
+  subjectId: z.uuid(),
+  promptVersion: promptVersionSchema,
+  generatedAt: z.iso.datetime({ offset: true }),
+});
+
+/** Banca salvata. */
+export type StoredExamBank = z.infer<typeof storedExamBankSchema>;
+
+/** Dimensione massima del corpo di salvataggio di una banca (1 MB). */
+export const MAX_EXAM_BANK_BODY_BYTES = 1024 * 1024;
+
+/** Risposta di `GET /api/generation/exam/subjects`: materie con i concetti dei loro feed. */
+export const subjectsForExamResponseSchema = z.strictObject({
+  subjects: z.array(
+    z.strictObject({
+      subjectId: z.uuid(),
+      subjectTitle: z.string(),
+      concepts: z.array(
+        z.strictObject({ key: z.string(), name: z.string(), description: z.string() }),
+      ),
+      hasBank: z.boolean(),
+    }),
+  ),
+});
+
+/** Risposta di `GET /api/generation/exam/subjects`. */
+export type SubjectsForExamResponse = z.infer<typeof subjectsForExamResponseSchema>;
+
+/** Corpo di `POST /api/generation/exam/subjects/:id/bank`. */
+export const saveExamBankRequestSchema = z.strictObject({
+  subjectId: z.uuid(),
+  promptVersion: promptVersionSchema,
+  bank: examBankDraftSchema,
+});
+
+/** Corpo di `POST /api/generation/exam/subjects/:id/bank`, dopo la validazione. */
+export type SaveExamBankRequest = z.infer<typeof saveExamBankRequestSchema>;
+
+/** Risposta di `POST /api/generation/exam/subjects/:id/bank`. */
+export const saveExamBankResponseSchema = z.strictObject({
+  bankId: z.uuid(),
+  /** `false` se lo studente aveva già una banca per la materia (vale la prima). */
+  created: z.boolean(),
+  officials: z.number().int().min(0),
+  variants: z.number().int().min(0),
+});
+
+/** Risposta di `POST /api/generation/exam/subjects/:id/bank`. */
+export type SaveExamBankResponse = z.infer<typeof saveExamBankResponseSchema>;

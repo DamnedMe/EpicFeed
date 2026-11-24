@@ -1,6 +1,7 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type {
+  ExamExercise,
   ExamPackDraft,
   LessonFeedDraft,
   LessonId,
@@ -10,9 +11,11 @@ import type {
 import {
   ImportLesson,
   ListLessonsForExam,
+  ListSubjectsForExam,
   PossessionProofVerifier,
   ReadLessonForExam,
   ReadLessonForGeneration,
+  SaveExamBank,
   SaveExamPack,
   SaveLessonFeed,
 } from '@study-feed/core';
@@ -207,5 +210,41 @@ describe('DrizzleExamPackRepository', () => {
 
   it('non mostra il feed a chi non ha importato la lezione', async () => {
     expect(await exams.loadCurrentFeed(bruno as UserId, binaryTrees)).toBeNull();
+  });
+
+  it("salva la banca d'esame della materia, privata di chi la genera", async () => {
+    const list = new ListSubjectsForExam(exams);
+    const [subject] = await list.execute(anna as UserId);
+    expect(subject?.concepts).toEqual([{ key: 'avl-tree', name: 'AVL tree', description: 'BST' }]);
+    expect(subject?.hasBank).toBe(false);
+    expect(await list.execute(bruno as UserId)).toEqual([]);
+
+    const base = pack.openQuestions[0];
+    if (!base || !subject) throw new Error('fixture');
+    const exercise = (id: string, extra: Partial<ExamExercise> = {}): ExamExercise => ({
+      ...base,
+      id,
+      title: id,
+      origin: 'official',
+      page: 3,
+      ...extra,
+    });
+    const input = {
+      subjectId: subject.subjectId,
+      promptVersion: '2026-11-24.1',
+      bank: {
+        exercises: [
+          exercise('avl'),
+          exercise('avl-a', { origin: 'variant', variantOf: 'avl' }),
+          exercise('avl-b', { origin: 'variant', variantOf: 'avl' }),
+        ],
+      },
+    };
+    const save = new SaveExamBank({ repository: exams, clock });
+    const first = await save.execute(anna as UserId, input);
+    expect(first).toMatchObject({ created: true, officials: 1, variants: 2 });
+    expect(await save.execute(anna as UserId, input)).toEqual({ ...first, created: false });
+    expect((await list.execute(anna as UserId))[0]?.hasBank).toBe(true);
+    await expect(save.execute(bruno as UserId, input)).rejects.toMatchObject({ code: 'NOT_FOUND' });
   });
 });

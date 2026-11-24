@@ -17,6 +17,7 @@ import {
   ImportLessonSlides,
   ListLessonsForExam,
   ListLessonsToGenerate,
+  ListSubjectsForExam,
   ListOwnedLessons,
   ListStudySubjects,
   PossessionProofVerifier,
@@ -24,6 +25,7 @@ import {
   ReadLessonForGeneration,
   ReadSubjectFeed,
   RealignLessonFeeds,
+  SaveExamBank,
   SaveExamPack,
   SaveLessonFeed,
   systemClock,
@@ -57,6 +59,8 @@ export interface Services {
   readonly listLessonsForExam: ListLessonsForExam;
   readonly readLessonForExam: ReadLessonForExam;
   readonly saveExamPack: SaveExamPack;
+  readonly listSubjectsForExam: ListSubjectsForExam;
+  readonly saveExamBank: SaveExamBank;
 }
 
 let services: Services | undefined;
@@ -111,6 +115,8 @@ export function getServices(): Services {
     listLessonsForExam: new ListLessonsForExam(exams),
     readLessonForExam: new ReadLessonForExam(exams),
     saveExamPack: new SaveExamPack({ repository: exams, clock: systemClock }),
+    listSubjectsForExam: new ListSubjectsForExam(exams),
+    saveExamBank: new SaveExamBank({ repository: exams, clock: systemClock }),
   };
   return services;
 }

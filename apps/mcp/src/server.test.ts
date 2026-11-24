@@ -118,6 +118,8 @@ async function connect(
     listExamLessons: vi.fn(() => Promise.reject(new Error('non usato'))),
     readLessonForExam: vi.fn(() => Promise.reject(new Error('non usato'))),
     saveExamPack: vi.fn(() => Promise.reject(new Error('non usato'))),
+    listExamSubjects: vi.fn(() => Promise.reject(new Error('non usato'))),
+    saveExamBank: vi.fn(() => Promise.reject(new Error('non usato'))),
     ...overrides,
   };
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
@@ -144,9 +146,11 @@ describe('server MCP di EpicFeed', () => {
       'importa_slide',
       'leggi_lezione',
       'leggi_lezione_esame',
+      'leggi_materiale_esame',
       'lezioni_da_generare',
       'lezioni_per_esame',
       'salva_domande_esame',
+      'salva_esercizi_esame',
       'salva_feed_lezione',
       'stato_generazione',
     ]);

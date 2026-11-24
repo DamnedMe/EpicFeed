@@ -52,5 +52,7 @@ function missingTokenApi(): GenerationApi {
     listExamLessons: fail,
     readLessonForExam: fail,
     saveExamPack: fail,
+    listExamSubjects: fail,
+    saveExamBank: fail,
   };
 }

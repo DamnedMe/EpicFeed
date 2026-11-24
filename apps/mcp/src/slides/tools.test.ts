@@ -50,6 +50,16 @@ const pdfs = {
 };
 
 describe('importSlides', () => {
+  it("separa il materiale d'esame dalle slide delle lezioni", async () => {
+    const { kit } = memorySlidesToolkit({ ...pdfs, 'Exam Prep-1.pdf': 'Exercise 1' });
+    const outcome = await importSlides(api().value, kit, newImportSession(), {
+      path: 'C:\\slides.zip',
+    });
+    expect(outcome.text).toContain("Materiale d'esame trovato (Exam Prep-1.pdf)");
+    expect(outcome.text).toContain('leggi_materiale_esame');
+    expect(outcome.text).not.toContain('Exam Prep-1.pdf: nessuna lezione');
+  });
+
   it('importa le lezioni nuove, salta quelle che hanno già le slide e elenca gli esclusi', async () => {
     const { kit, stored } = memorySlidesToolkit(pdfs);
     const { value, importMock } = api();
