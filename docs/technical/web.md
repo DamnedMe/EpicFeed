@@ -142,6 +142,17 @@ Decisioni in [ADR 0014](../decisions/0014-preparazione-esame.md) e [ADR 0017](..
 
 Lato server: `src/server/exam-handler.ts` (handler puri), `exam-deps.ts`, `src/app/api/exam/subjects/[id]/route.ts`, `src/app/api/exam/submissions/`; per Claude Desktop `src/app/api/generation/exam/submissions/` con il token "genera"; caso d'uso `ReadExamContent` nel core e `loadExamContent` di `DrizzleExamPackRepository` (una lettura con la RLS dello studente: materia visibile, pacchetto del feed corrente di ogni lezione, banca propria). L'ETag è l'impronta degli id di pacchetti e banca, che non cambiano mai: un feed nuovo ha un pacchetto nuovo.
 
+### Budget Lighthouse
+`apps/web/perf/lighthouse.mjs` (`pnpm --filter @study-feed/web perf`, dopo `pnpm build`; nella CI dopo i test Playwright). Lighthouse 13 con la configurazione mobile (telefono emulato, 4G lenta, CPU rallentata 4 volte) applicata davvero al browser (`throttlingMethod: 'devtools'`): la stima simulata conta nel LCP anche gli script che non lo bloccano e su queste pagine lo gonfia di circa un secondo. Ogni pagina si misura 3 volte e vale la mediana; il riepilogo va in `perf/.results/summary.json`.
+
+| Pagina | Come si serve | LCP | Misura del 24/11/2026 |
+|---|---|---|---|
+| *Accedi* | `next start` (configurazione finta, nessuna rete) | ≤ 2,5 s | 1,6 s |
+| Feed e Ripasso, visita di ritorno | banco di prova, cache e dati del dispositivo già presenti | ≤ 2,5 s | 1,7–1,8 s |
+| Feed e Ripasso, prima apertura | banco di prova, cache vuota | ≤ 3,5 s | 3,4 s |
+
+Per tutte: TBT ≤ 300 ms e CLS ≤ 0,1. Le pagine protette si misurano sul banco di prova di Playwright (stesso codice e CSS della build, dati di prova; script in moduli ES con preload di font e script come fa Next, serviti compressi e con cache come su Vercel). Alla prima apertura il feed compare dopo circa 200 KB di script compressi (React, Next, zod e codice del feed), quindi oltre 2,5 s su 4G lenta: disegnare la prima scheda sul server è previsto in M8.
+
 ### Sincronizzazione dei progressi (M4)
 Decisioni in [ADR 0018](../decisions/0018-sincronizzazione-cifrata-progressi.md); unione e ricalcolo puri nel core ([core.md](core.md#sincronizzazione-dei-progressi)).
 

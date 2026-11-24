@@ -14,6 +14,7 @@ coverage/
 
 # Test Playwright del feed
 apps/web/e2e/.harness/
+apps/web/perf/.results/
 test-results/
 playwright-report/
 

@@ -37,7 +37,8 @@ const serverActions = {
   },
 };
 
-await build({
+const result = await build({
+  metafile: true,
   entryPoints: {
     app: join(here, 'entry.tsx'),
     io: join(here, 'io-entry.tsx'),
@@ -53,6 +54,12 @@ await build({
     'next/navigation': join(here, 'next-navigation.ts'),
   },
   define: { 'process.env.NODE_ENV': '"production"' },
+  // Come la build di produzione: il budget di Lighthouse misura anche questo banco.
+  minify: true,
+  // Moduli ES con i caricamenti pigri in file separati (CodeMirror), come in Next.
+  format: 'esm',
+  splitting: true,
+  chunkNames: 'chunks/[name]-[hash]',
   logLevel: 'warning',
 });
 
@@ -65,8 +72,27 @@ const fontClasses = [...styles.matchAll(/\.([\w-]+)\{--ef-font-/g)].map((m) => m
 const links = css
   .map((name) => `<link rel="stylesheet" href="/_next/static/chunks/${name}">`)
   .join('');
+// Come fa Next.js nella <head>: preload dei font marcati `.p.` e degli
+// script importati subito dall'ingresso (niente cascata di richieste).
+const fonts = readdirSync(join(app, '.next', 'static', 'media'))
+  .filter((name) => name.includes('.p.') && name.endsWith('.woff2'))
+  .map(
+    (name) =>
+      `<link rel="preload" href="/_next/static/media/${name}" as="font" type="font/woff2" crossorigin="">`,
+  )
+  .join('');
+const outputs = result.metafile.outputs;
+const preloads = (script) => {
+  const entry = Object.entries(outputs).find(([, meta]) =>
+    meta.entryPoint?.endsWith(`${script === 'app' ? 'entry' : `${script}-entry`}.tsx`),
+  );
+  return (entry?.[1].imports ?? [])
+    .filter((item) => item.kind === 'import-statement')
+    .map((item) => `<link rel="modulepreload" href="/${item.path.split('.harness/')[1]}">`)
+    .join('');
+};
 const page = (script) =>
-  `<!doctype html><html lang="it" data-theme="dark" data-accent="racing-red" class="ef-fonts ${fontClasses.join(' ')}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">${links}</head><body class="min-h-dvh bg-background text-text"><div id="root"></div><script src="/${script}.js"></script></body></html>`;
+  `<!doctype html><html lang="it" data-theme="dark" data-accent="racing-red" class="ef-fonts ${fontClasses.join(' ')}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">${fonts}${links}${preloads(script)}</head><body class="min-h-dvh bg-background text-text"><div id="root"></div><script type="module" src="/${script}.js"></script></body></html>`;
 // Worker dei test Python e Pyodide (copiato da `pnpm build` in public/pyodide).
 cpSync(join(app, 'public', 'python-worker.js'), join(out, 'python-worker.js'));
 cpSync(join(app, 'public', 'pyodide'), join(out, 'pyodide'), { recursive: true });
