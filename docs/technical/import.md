@@ -1,6 +1,6 @@
 # Import delle lezioni (M1)
 
-Come una lezione passa dal portale Epicode al catalogo di EpicFeed: estensione, collegamento con la web app, API di import e caso d'uso del core. Si importa una lezione, un capitolo o un corso intero. Le scelte sono motivate in [ADR 0009](../decisions/0009-whole-lesson-import-and-subtitles.md) e [ADR 0010](../decisions/0010-chapter-and-course-import.md).
+Come una lezione passa dal portale Epicode al catalogo di EpicFeed: estensione, collegamento con la web app, API di import e caso d'uso `ImportLesson`. Si importa una lezione, un capitolo o un corso intero. Le scelte sono motivate in [ADR 0009](../decisions/0009-whole-lesson-import-and-subtitles.md) e [ADR 0010](../decisions/0010-chapter-and-course-import.md).
 
 ```
  Portale Epicode (pagina della lezione, loggato)
@@ -107,7 +107,7 @@ Comportamento:
 Il token apre solo `POST /api/import`: non dà accesso alla sessione, al catalogo o ad altre API.
 
 ## API `POST /api/import`
-Autenticazione `Authorization: Bearer sfi_…`. Corpo: `importLessonRequestSchema` di `packages/contracts` (percorso nel catalogo + parti con contenuto e tracce). Ordine dei controlli, dal più economico:
+Autenticazione `Authorization: Bearer sfi_…`. Corpo: `importLessonRequestSchema` di `packages/ingest/src/contracts/import.ts` (percorso nel catalogo + parti con contenuto e tracce). Ordine dei controlli, dal più economico:
 
 | Controllo | Errore | HTTP |
 |---|---|---|
@@ -135,8 +135,8 @@ Un secondo import identico non crea né versioni né permessi né tracce (`newVe
 - Se un sottotitolo non si scarica (URL firmato scaduto, errore di rete) l'import continua senza quella traccia e l'esito lo segnala.
 
 ## Come è testato
-- `packages/core`: normalizzazione, impronte, prova di possesso, `ImportLesson` con un catalogo in memoria (stesso contenuto, contenuto cambiato, contenuto altrui senza possesso, tracce duplicate).
-- `packages/adapters`: repository, token, limite di frequenza e "Le mie lezioni" su PGlite con RLS attiva.
+- `packages/catalog` e `packages/ingest`: normalizzazione, impronte, prova di possesso, `ImportLesson` con un catalogo in memoria (stesso contenuto, contenuto cambiato, contenuto altrui senza possesso, tracce duplicate).
+- `packages/catalog/src/infrastructure`, `packages/access/src/infrastructure` e `packages/ingest/src/import-lesson.db.test.ts`: repository, token, limite di frequenza e "Le mie lezioni" su PGlite con RLS attiva.
 - `packages/db`: `test/rls-import.test.ts`, un utente non vede tracce, token né cronologia di un altro.
 - `apps/web`: `handleImport` con servizi finti (ogni riga della tabella degli errori).
 - `apps/extension`: parsing di URL, VTT, `playerConfig`, costruzione della richiesta, collegamento (mittente falso rifiutato), job di import (anche limite orario), ponte (richieste ammesse, riconoscimento e riduzione dell'albero del corso), indice del corso (ordine, visibilità, programmati), lettura con l'indice (solo GET delle parti, pause), job a lotti (pause, vuote, errori gravi e non, interruzione, limite orario), stima dei tempi, memoria delle lezioni importate.

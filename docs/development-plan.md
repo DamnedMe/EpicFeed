@@ -95,6 +95,8 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
 
 ## 3. Struttura della repo
 
+Struttura di partenza (M0). Dal 24/11/2026 `core`, `contracts` e `adapters` sono divisi in un pacchetto per funzione: vedi [ADR 0019](decisions/0019-feature-packages.md) e [come orientarsi](navigation.md).
+
 ```
 study-feed/
 ├─ apps/

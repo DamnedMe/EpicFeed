@@ -7,7 +7,7 @@ import { entryKey } from '../feed/model';
 
 /**
  * Catalogo del ripasso (M4, ADR 0017): concetti e domande della materia
- * scaricata, nella forma che serve ai casi d'uso del core e alle schermate.
+ * scaricata, nella forma che serve ai casi d'uso del dominio e alle schermate.
  * Funzioni pure, provate senza DOM.
  */
 
@@ -28,7 +28,7 @@ export interface ReviewCatalog {
   readonly subjectId: string;
   readonly concepts: readonly CatalogConcept[];
   readonly conceptsById: ReadonlyMap<string, CatalogConcept>;
-  /** Domande per il core: l'id è la chiave dell'elemento del feed (unica nella materia). */
+  /** Domande per i casi d'uso: l'id è la chiave dell'elemento del feed (unica nella materia). */
   readonly questions: readonly ReviewQuestion[];
   readonly questionsById: ReadonlyMap<string, QuizEntry>;
   readonly chapterTitles: readonly string[];

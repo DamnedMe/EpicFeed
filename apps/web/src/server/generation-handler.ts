@@ -8,7 +8,12 @@ import type {
   SubjectForExam,
   SaveExamPackInput,
   SaveExamPackResult,
-} from '@epicfeed/core';
+  LessonForExamResponse,
+  LessonsForExamResponse,
+  SaveExamBankResponse,
+  SubjectsForExamResponse,
+  SaveExamPackResponse,
+} from '@epicfeed/exam';
 import type {
   ImportedSlidesResult,
   LessonForGeneration,
@@ -32,13 +37,6 @@ import {
   importSlidesRequestSchema,
   saveLessonFeedRequestSchema,
 } from '@epicfeed/feed';
-import type {
-  LessonForExamResponse,
-  LessonsForExamResponse,
-  SaveExamBankResponse,
-  SubjectsForExamResponse,
-  SaveExamPackResponse,
-} from '@epicfeed/contracts';
 import {
   MAX_CORRECTION_BODY_BYTES,
   saveCorrectionRequestSchema,
@@ -46,7 +44,7 @@ import {
   MAX_EXAM_BODY_BYTES,
   saveExamBankRequestSchema,
   saveExamPackRequestSchema,
-} from '@epicfeed/contracts';
+} from '@epicfeed/exam';
 import * as z from 'zod';
 import { apiError, apiOk, bearerToken, readLimited } from './http';
 

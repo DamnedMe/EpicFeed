@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { StoredSubmissionResponse } from '@epicfeed/contracts';
+import type { StoredSubmissionResponse } from '@epicfeed/exam';
 import type { LocalValue } from '../feed/local-state';
 import type { ExamExerciseItem } from './catalog';
 import type { CorrectionEntry } from './corrections';

@@ -1,6 +1,6 @@
 # Come orientarsi nel codice
 
-Mappa "funzione → file". La repo sta passando a un pacchetto per funzione ([ADR 0019](decisions/0019-feature-packages.md)): ogni PR della riorganizzazione aggiorna questa pagina.
+Mappa "funzione → file". La repo è organizzata in un pacchetto per funzione ([ADR 0019](decisions/0019-feature-packages.md)): ogni PR della riorganizzazione aggiorna questa pagina.
 
 ## Le funzioni
 
@@ -12,7 +12,7 @@ Mappa "funzione → file". La repo sta passando a un pacchetto per funzione ([AD
 | `access` | token di estensione e Claude Desktop, limiti di frequenza | `/extension`, `/claude-desktop` | `packages/access` |
 | `feed` | schede a battute, domande, generazione via MCP, slide | `/` | `packages/feed` |
 | `review` | ripasso FSRS e sincronizzazione cifrata | `/review` | `packages/review` (gli archivi del browser in `apps/web/src/features/review` e `sync`) |
-| `exam` | quiz di modulo, esercizi, correzione di Claude, colloquio | `/review#esame` | ancora in `core`, `contracts`, `adapters` |
+| `exam` | quiz di modulo, esercizi, correzione di Claude, colloquio | `/review#esame` | `packages/exam` |
 
 Pagine fuori dalle funzioni: `/login` (accesso), `/profile` e `/profile/saved` (preferenze e schede salvate).
 
@@ -28,17 +28,6 @@ packages/<funzione>/src/
 ```
 
 L'infrastruttura si importa da `@epicfeed/<funzione>/infrastructure`. I test stanno accanto al file che provano; quelli che usano il database finiscono in `.db.test.ts` o nella cartella `infrastructure/`. Le regole dei confini sono in `packages/config/boundaries.js`.
-
-## Le funzioni non ancora spostate
-
-Per `exam` si cercano i file con il loro nome in queste cartelle:
-
-| Livello | Cartella | Esempio per `exam` |
-| --- | --- | --- |
-| Dominio (regole pure) | `packages/core/src/domain/` | `exam.ts`, `exam-practice.ts`, `exam-correction.ts` |
-| Casi d'uso e porte | `packages/core/src/application/` | `exam-study.ts`, `exam-generation.ts`, `exam-correction.ts` |
-| Contratti (zod) | `packages/contracts/src/` | `exam.ts`, `exam-correction.ts` |
-| Adattatori (Drizzle) | `packages/adapters/src/` | `exam-repository.ts`, `exam-submission-repository.ts` |
 
 ## Database
 

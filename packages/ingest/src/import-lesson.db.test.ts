@@ -118,7 +118,7 @@ describe('DrizzleCatalogRepository con ImportLesson', () => {
     const before = await count('lesson_parts');
     const broken = binaryTrees('Riassunto v3');
     // L'id del video su una parte di testo viola un vincolo del database:
-    // simula un guasto a metà transazione aggirando la validazione del core.
+    // simula un guasto a metà transazione aggirando la validazione del dominio.
     const repo = new DrizzleCatalogRepository(db);
     await expect(
       repo.transaction(async (tx) => {

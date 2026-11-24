@@ -39,7 +39,7 @@ import {
 import { authUid, authUsers, authenticatedRole } from 'drizzle-orm/supabase';
 
 // ---------------------------------------------------------------------------
-// Tipi enumerati (allineati ai tipi del dominio in @epicfeed/core)
+// Tipi enumerati (allineati ai tipi del dominio dei pacchetti di funzione)
 // ---------------------------------------------------------------------------
 
 /** Tipo di parte di lezione: video (riassunti + sottotitoli) o testo da leggere. */
@@ -241,7 +241,7 @@ export const lessonParts = pgTable(
 
 /**
  * Versione del contenuto di una parte, identificata dall'impronta SHA-256 del
- * contenuto canonico (calcolata dal server con `computeContentHash` del core).
+ * contenuto canonico (calcolata dal server con `computeContentHash` di `@epicfeed/catalog`).
  * `content` è il contenuto canonico in JSON (riassunti, sottotitoli o markdown).
  */
 export const contentVersions = pgTable(
@@ -265,7 +265,7 @@ export const contentVersions = pgTable(
     // Serve alla chiave esterna composta di `entitlements`.
     unique('content_versions_id_part_key').on(t.id, t.lessonPartId),
     check('content_versions_hash_check', sql`content_hash ~ '^[0-9a-f]{64}$'`),
-    // Limite di sicurezza sulla dimensione (≈ 2 MB), coerente con i limiti del core.
+    // Limite di sicurezza sulla dimensione (≈ 2 MB), coerente con i limiti del dominio.
     check('content_versions_size_check', sql`pg_column_size(content) <= 2097152`),
     // Il server MCP cerca le versioni da generare: indice parziale, piccolo e mirato.
     index('content_versions_pending_idx')
@@ -455,7 +455,7 @@ export const importEvents = pgTable(
 /**
  * Feed di una lezione (schede, quiz, concetti in italiano e inglese), generato
  * da Claude Desktop tramite il server MCP. Una riga per lezione e per impronta
- * delle fonti (`computeLessonSourcesHash` del core): il primo feed per un
+ * delle fonti (`computeLessonSourcesHash` di `@epicfeed/feed`): il primo feed per un
  * insieme di versioni vale per tutti quelli che le possiedono (ADR 0007).
  * `feed` è il documento validato con `storedLessonFeedSchema`.
  */
@@ -519,7 +519,7 @@ export const glossaryTerms = pgTable(
       .notNull()
       .references(() => subjects.id, { onDelete: 'cascade' }),
     term: text('term').notNull(),
-    /** Termine normalizzato (`glossaryKey` del core): minuscolo, spazi compattati. */
+    /** Termine normalizzato (`glossaryKey` di `@epicfeed/feed`): minuscolo, spazi compattati. */
     termKey: text('term_key').notNull(),
     translation: text('translation').notNull(),
     /** Definizione `{ it, en }`. */

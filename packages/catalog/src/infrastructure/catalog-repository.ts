@@ -29,7 +29,7 @@ import type { ContentVersionRow, SubtitleTrackRow } from '@epicfeed/db';
 import type { Database, DatabaseTransaction } from '@epicfeed/db';
 
 /**
- * Catalogo condiviso su Postgres (porta `CatalogRepository` del core).
+ * Catalogo condiviso su Postgres (porta `CatalogRepository` di `application/ports.ts`).
  *
  * Usa la connessione privilegiata del server (le scritture dei client sono
  * negate da RLS e permessi). Ogni scrittura è un `insert … on conflict`, così

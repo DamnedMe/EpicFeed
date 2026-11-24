@@ -1,7 +1,7 @@
-import type { ExamContent, ExamSubmissionDraft, StoredSubmission } from '@epicfeed/core';
+import type { ExamContent, ExamSubmissionDraft, StoredSubmission } from '@epicfeed/exam';
 import type { UserId } from '@epicfeed/shared';
 import { DomainError, parseId } from '@epicfeed/shared';
-import { examSubmissionRequestSchema, MAX_SUBMISSION_BODY_BYTES } from '@epicfeed/contracts';
+import { examSubmissionRequestSchema, MAX_SUBMISSION_BODY_BYTES } from '@epicfeed/exam';
 import * as z from 'zod';
 import { apiError, apiOk, isSameOrigin, matchesEtag, readLimited } from './http';
 
@@ -70,7 +70,7 @@ export async function handleReadExamContent(
     return new Response(null, { status: 304, headers });
   }
   // Forma di `examContentResponseSchema`: i tipi del dominio coincidono con
-  // quelli dei contratti (verifica in fase di compilazione in `contracts`).
+  // quelli dei contratti (verifica in fase di compilazione in `contracts/exam.ts` di `@epicfeed/exam`).
   const body = {
     subjectId: content.subjectId,
     version: content.version,

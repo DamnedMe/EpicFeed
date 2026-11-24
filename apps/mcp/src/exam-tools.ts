@@ -1,8 +1,6 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { LessonForExamResponse } from '@epicfeed/contracts';
-import { examPackDraftSchema } from '@epicfeed/contracts';
-import type { ExamPackCheckContext } from '@epicfeed/core';
-import { checkExamPack } from '@epicfeed/core';
+import type { LessonForExamResponse, ExamPackCheckContext } from '@epicfeed/exam';
+import { examPackDraftSchema, checkExamPack } from '@epicfeed/exam';
 import * as z from 'zod';
 import type { EpicFeedApi } from './api-client.js';
 import { EXAM_INSTRUCTIONS, EXAM_PROMPT_VERSION } from './exam-prompt.js';
@@ -20,7 +18,7 @@ const SAVE_TOOL = 'salva_domande_esame';
  * `genera_domande_esame`.
  *
  * Come per il feed, il server ricorda in memoria il feed di ogni lezione letta
- * e controlla il pacchetto con le regole del core prima di inviarlo.
+ * e controlla il pacchetto con le regole del dominio prima di inviarlo.
  *
  * @param server - Server MCP di EpicFeed.
  * @param api - Client dell'API.

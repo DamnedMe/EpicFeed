@@ -32,8 +32,8 @@ import type { Database, DatabaseTransaction } from '@epicfeed/db';
 import { withUserRls } from '@epicfeed/db';
 
 /**
- * Persistenza della generazione su Postgres (porta `GenerationRepository` del
- * core, ADR 0013).
+ * Persistenza della generazione su Postgres (porta `GenerationRepository` di
+ * `application/ports.ts`, ADR 0013).
  *
  * Le **letture** passano dalla RLS dello studente ({@link withUserRls}): la
  * query non filtra per utente, lo fa il database, quindi un errore qui non può

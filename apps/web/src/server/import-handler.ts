@@ -20,7 +20,7 @@ export interface ImportHandlerDeps {
 
 /**
  * Gestisce `POST /api/import`: autenticazione con token di import, limite di
- * frequenza, limite di dimensione, validazione zod, caso d'uso del core.
+ * frequenza, limite di dimensione, validazione zod, caso d'uso del dominio.
  *
  * È una funzione pura rispetto a Next.js (riceve una `Request` standard),
  * così si testa senza avviare il server.

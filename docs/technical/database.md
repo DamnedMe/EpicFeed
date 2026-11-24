@@ -40,7 +40,7 @@ subjects ─< glossary_terms
 | `progress_snapshots` | Copia **cifrata nel browser** dei progressi di studio ([ADR 0018](../decisions/0018-encrypted-progress-sync.md)) | PK `user_id`; `revision` ≥ 1 per la concorrenza ottimistica; `kdf`, `salt` (16 byte) e `iv` (12 byte) in base64; `ciphertext` base64 ≤ 4 milioni di caratteri. Il server non ha la chiave |
 | `import_events` | Registro degli import | utente, lezione, numero di parti, data: serve al limite di frequenza (60/ora) |
 
-Vincoli `CHECK` replicano nel database le regole del core (titoli 1–300 caratteri, posizioni ≥ 0, id Epicode con soli caratteri sicuri), così un dato non valido non entra nemmeno per errore. Un indice parziale su `content_versions` (`pending`, `failed`) rende veloce la ricerca delle versioni da generare; gli indici su `entitlements` servono alle policy RLS e coprono la chiave esterna composta (versione, parte).
+Vincoli `CHECK` replicano nel database le regole del dominio (titoli 1–300 caratteri, posizioni ≥ 0, id Epicode con soli caratteri sicuri), così un dato non valido non entra nemmeno per errore. Un indice parziale su `content_versions` (`pending`, `failed`) rende veloce la ricerca delle versioni da generare; gli indici su `entitlements` servono alle policy RLS e coprono la chiave esterna composta (versione, parte).
 
 ## Sicurezza: RLS e permessi
 - **RLS attiva su ogni tabella.**
@@ -67,7 +67,7 @@ Vincoli `CHECK` replicano nel database le regole del core (titoli 1–300 caratt
 
 `test/rls-import.test.ts` fa lo stesso per le tabelle di M1: tracce visibili solo con il proprio accesso, token e registro degli import solo i propri, nessuna scrittura dal client, vincoli su lingua, hash e `video_id`.
 
-L'ambiente di test (PGlite + shim) è esportato come `@epicfeed/db/testing` e lo usano anche i test di `packages/adapters`.
+L'ambiente di test (PGlite + shim) è esportato come `@epicfeed/db/testing` e lo usano anche i test delle cartelle `infrastructure` dei pacchetti di funzione.
 
 `test/rls-generation.test.ts` copre le tabelle di M2: il feed è visibile a chi possiede tutte le fonti e nascosto a chi ne possiede solo una parte, glossario visibile a chi vede la materia, nessuna scrittura dal client, unicità di feed e termini, nuovo ambito di token `generate`.
 

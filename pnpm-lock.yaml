@@ -58,12 +58,9 @@ importers:
 
   apps/mcp:
     dependencies:
-      '@epicfeed/contracts':
+      '@epicfeed/exam':
         specifier: workspace:*
-        version: link:../../packages/contracts
-      '@epicfeed/core':
-        specifier: workspace:*
-        version: link:../../packages/core
+        version: link:../../packages/exam
       '@epicfeed/feed':
         specifier: workspace:*
         version: link:../../packages/feed
@@ -131,21 +128,15 @@ importers:
       '@epicfeed/access':
         specifier: workspace:*
         version: link:../../packages/access
-      '@epicfeed/adapters':
-        specifier: workspace:*
-        version: link:../../packages/adapters
       '@epicfeed/catalog':
         specifier: workspace:*
         version: link:../../packages/catalog
-      '@epicfeed/contracts':
-        specifier: workspace:*
-        version: link:../../packages/contracts
-      '@epicfeed/core':
-        specifier: workspace:*
-        version: link:../../packages/core
       '@epicfeed/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@epicfeed/exam':
+        specifier: workspace:*
+        version: link:../../packages/exam
       '@epicfeed/feed':
         specifier: workspace:*
         version: link:../../packages/feed
@@ -275,49 +266,6 @@ importers:
         specifier: 5.1.0
         version: 5.1.0(@opentelemetry/api@1.9.1)(@types/node@26.6.6)(@vitest/coverage-v8@5.1.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
-  packages/adapters:
-    dependencies:
-      '@epicfeed/catalog':
-        specifier: workspace:*
-        version: link:../catalog
-      '@epicfeed/core':
-        specifier: workspace:*
-        version: link:../core
-      '@epicfeed/db':
-        specifier: workspace:*
-        version: link:../db
-      '@epicfeed/feed':
-        specifier: workspace:*
-        version: link:../feed
-      '@epicfeed/ingest':
-        specifier: workspace:*
-        version: link:../ingest
-      '@epicfeed/shared':
-        specifier: workspace:*
-        version: link:../shared
-      drizzle-orm:
-        specifier: 0.45.4
-        version: 0.45.4(@electric-sql/pglite@0.5.16)(@opentelemetry/api@1.9.1)(postgres@3.4.9)
-    devDependencies:
-      '@electric-sql/pglite':
-        specifier: 0.5.16
-        version: 0.5.16
-      '@epicfeed/config':
-        specifier: workspace:*
-        version: link:../config
-      '@types/node':
-        specifier: 26.6.6
-        version: 26.6.6
-      eslint:
-        specifier: 10.15.0
-        version: 10.15.0(jiti@2.7.0)
-      typescript:
-        specifier: 6.0.3
-        version: 6.0.3
-      vitest:
-        specifier: 5.1.0
-        version: 5.1.0(@opentelemetry/api@1.9.1)(@types/node@26.6.6)(@vitest/coverage-v8@5.1.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
-
   packages/catalog:
     dependencies:
       '@epicfeed/db':
@@ -379,65 +327,6 @@ importers:
         specifier: 8.72.2
         version: 8.72.2(eslint@10.15.0(jiti@2.7.0))(typescript@6.0.3)
 
-  packages/contracts:
-    dependencies:
-      '@epicfeed/core':
-        specifier: workspace:*
-        version: link:../core
-      '@epicfeed/feed':
-        specifier: workspace:*
-        version: link:../feed
-      zod:
-        specifier: 4.6.6
-        version: 4.6.6
-    devDependencies:
-      '@epicfeed/config':
-        specifier: workspace:*
-        version: link:../config
-      '@vitest/coverage-v8':
-        specifier: 5.1.0
-        version: 5.1.0(vitest@5.1.0)
-      eslint:
-        specifier: 10.15.0
-        version: 10.15.0(jiti@2.7.0)
-      typescript:
-        specifier: 6.0.3
-        version: 6.0.3
-      vitest:
-        specifier: 5.1.0
-        version: 5.1.0(@opentelemetry/api@1.9.1)(@types/node@26.6.6)(@vitest/coverage-v8@5.1.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
-
-  packages/core:
-    dependencies:
-      '@epicfeed/catalog':
-        specifier: workspace:*
-        version: link:../catalog
-      '@epicfeed/feed':
-        specifier: workspace:*
-        version: link:../feed
-      '@epicfeed/shared':
-        specifier: workspace:*
-        version: link:../shared
-      ts-fsrs:
-        specifier: 5.4.2
-        version: 5.4.2
-    devDependencies:
-      '@epicfeed/config':
-        specifier: workspace:*
-        version: link:../config
-      '@vitest/coverage-v8':
-        specifier: 5.1.0
-        version: 5.1.0(vitest@5.1.0)
-      eslint:
-        specifier: 10.15.0
-        version: 10.15.0(jiti@2.7.0)
-      typescript:
-        specifier: 6.0.3
-        version: 6.0.3
-      vitest:
-        specifier: 5.1.0
-        version: 5.1.0(@opentelemetry/api@1.9.1)(@types/node@26.6.6)(@vitest/coverage-v8@5.1.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
-
   packages/db:
     dependencies:
       drizzle-orm:
@@ -462,6 +351,52 @@ importers:
       drizzle-kit:
         specifier: 0.31.11
         version: 0.31.11
+      eslint:
+        specifier: 10.15.0
+        version: 10.15.0(jiti@2.7.0)
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: 5.1.0
+        version: 5.1.0(@opentelemetry/api@1.9.1)(@types/node@26.6.6)(@vitest/coverage-v8@5.1.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+
+  packages/exam:
+    dependencies:
+      '@epicfeed/catalog':
+        specifier: workspace:*
+        version: link:../catalog
+      '@epicfeed/db':
+        specifier: workspace:*
+        version: link:../db
+      '@epicfeed/feed':
+        specifier: workspace:*
+        version: link:../feed
+      '@epicfeed/shared':
+        specifier: workspace:*
+        version: link:../shared
+      drizzle-orm:
+        specifier: 0.45.4
+        version: 0.45.4(@electric-sql/pglite@0.5.16)(@opentelemetry/api@1.9.1)(postgres@3.4.9)
+      zod:
+        specifier: 4.6.6
+        version: 4.6.6
+    devDependencies:
+      '@electric-sql/pglite':
+        specifier: 0.5.16
+        version: 0.5.16
+      '@epicfeed/config':
+        specifier: workspace:*
+        version: link:../config
+      '@epicfeed/ingest':
+        specifier: workspace:*
+        version: link:../ingest
+      '@types/node':
+        specifier: 26.6.6
+        version: 26.6.6
+      '@vitest/coverage-v8':
+        specifier: 5.1.0
+        version: 5.1.0(vitest@5.1.0)
       eslint:
         specifier: 10.15.0
         version: 10.15.0(jiti@2.7.0)

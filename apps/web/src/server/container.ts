@@ -1,6 +1,9 @@
 import 'server-only';
 import { DrizzleCatalogRepository, MyLessonsQuery } from '@epicfeed/catalog/infrastructure';
-import { DrizzleExamPackRepository, DrizzleExamSubmissionRepository } from '@epicfeed/adapters';
+import {
+  DrizzleExamPackRepository,
+  DrizzleExamSubmissionRepository,
+} from '@epicfeed/exam/infrastructure';
 import { DrizzleProgressRepository } from '@epicfeed/review/infrastructure';
 import {
   DrizzleGenerationRepository,
@@ -23,7 +26,7 @@ import {
   ReadExamContent,
   SaveExamBank,
   SaveExamPack,
-} from '@epicfeed/core';
+} from '@epicfeed/exam';
 import {
   ImportLessonSlides,
   ListLessonsToGenerate,
@@ -45,7 +48,7 @@ import { serverEnv } from './env';
 
 /**
  * Composizione delle dipendenze (composition root): l'unico punto della web
- * app che conosce le implementazioni concrete delle porte del core.
+ * app che conosce le implementazioni concrete delle porte dei casi d'uso.
  */
 export interface Services {
   readonly importLesson: ImportLesson;

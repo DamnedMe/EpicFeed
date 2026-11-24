@@ -1,7 +1,6 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { StoredSubmissionResponse } from '@epicfeed/contracts';
-import { examCorrectionSchema } from '@epicfeed/contracts';
-import { checkCorrection } from '@epicfeed/core';
+import type { StoredSubmissionResponse } from '@epicfeed/exam';
+import { examCorrectionSchema, checkCorrection } from '@epicfeed/exam';
 import * as z from 'zod';
 import type { EpicFeedApi } from './api-client.js';
 import { CORRECTION_INSTRUCTIONS } from './correction-prompt.js';
@@ -21,7 +20,7 @@ export const MAX_SUBMISSIONS_PER_CALL = 5;
  * `risposte_da_correggere`, `salva_correzione` e il prompt `correggi_risposte`.
  *
  * Il server ricorda in memoria gli invii letti e controlla la correzione con
- * le regole del core (punti entro la griglia, righe esistenti) prima di
+ * le regole del dominio (punti entro la griglia, righe esistenti) prima di
  * inviarla.
  *
  * @param server - Server MCP di EpicFeed.

@@ -14,7 +14,7 @@ import type { VideoAlignment } from './alignment.js';
  *
  * Qui stanno le regole che la forma da sola non esprime (riferimenti tra
  * elementi, lunghezze uguali nelle due lingue, quantità): la forma dei campi è
- * validata dagli schemi zod di `@epicfeed/contracts`.
+ * validata dagli schemi zod in `contracts/generation.ts`.
  */
 
 /** Lingue di studio (ADR 0011). */

@@ -60,7 +60,7 @@ I parametri (`DEFAULT_ALIGNMENT_OPTIONS`) si tarano sul set di valutazione di M2
 | `ImportLessonSlides` (`slides.ts`) | Aggiunge a una lezione posseduta le sue presentazioni: una parte `slides` per presentazione (id stabile `slides-{n}`, posizione 10.000 + n, dopo le parti del portale), versione per impronta del testo, permesso per prova di possesso come per l'estensione. Stesso testo, nessun doppione; testo cambiato, nuova versione e lezione di nuovo da generare. `NOT_FOUND` se lo studente non ha importato la lezione |
 | `SaveLessonFeed` | Ricarica le fonti con i permessi dello studente, rifiuta se l'impronta è cambiata (`SOURCES_CHANGED`), applica `checkLessonFeed` (`FeedValidationError` con tutti i problemi), allinea le schede tratte da parti video, salva feed, glossario e stato `ready` in una transazione. Il primo feed per le stesse fonti vince: un secondo salvataggio non sovrascrive |
 
-La porta `GenerationRepository` è implementata da `DrizzleGenerationRepository` (`packages/adapters`): le letture passano dalla RLS dello studente (`withUserRls`), le scritture usano la connessione del server dopo i controlli del caso d'uso.
+La porta `GenerationRepository` è implementata da `DrizzleGenerationRepository` (`packages/feed/src/infrastructure`): le letture passano dalla RLS dello studente (`withUserRls`), le scritture usano la connessione del server dopo i controlli del caso d'uso.
 
 Stato delle versioni: `pending`/`failed` → `generating` alla lettura, `generating` → `ready` al salvataggio, sempre secondo le transizioni ammesse dal dominio (`canTransition`). "Le mie lezioni" mostra quindi "in generazione" e poi "pronte".
 
@@ -83,12 +83,12 @@ Gli errori `INVALID_FEED` portano l'elenco completo dei problemi (`issues: [{ pa
 Pagina **Claude Desktop** della web app (`/claude-desktop`): *Crea token* mostra il token una sola volta, con il pulsante Copia; l'elenco dei token attivi evidenzia quelli che scadono entro una settimana e permette di revocarli. Implementazione: `GenerateTokenService` (`packages/access/src/infrastructure/import-tokens.ts`), stessa logica del token dell'estensione (`PersonalTokenService`: 256 bit casuali, solo SHA-256 nel database) con ambito `generate`, prefisso `sfg_` e durata di 90 giorni. Un token di import non vale per la generazione e viceversa, anche per elenco e revoca.
 
 ## Server MCP (`apps/mcp`)
-Gira sul PC dello studente dentro Claude Desktop, come estensione `.mcpb`. Parla con EpicFeed **solo** attraverso l'API sopra (ESLint vieta di importare adapter, database o Supabase) e usa da `@epicfeed/core` solo le regole pure del feed, per controllarlo prima di inviarlo.
+Gira sul PC dello studente dentro Claude Desktop, come estensione `.mcpb`. Parla con EpicFeed **solo** attraverso l'API sopra (ESLint vieta di importare `@epicfeed/*/infrastructure`, database o Supabase) e usa da `@epicfeed/feed` ed `@epicfeed/exam` solo le regole pure, per controllarlo prima di inviarlo.
 
 | File | Ruolo |
 |---|---|
 | `src/prompt.ts` | Istruzioni di generazione versionate (`PROMPT_VERSION`, formato `AAAA-MM-GG.n`): gerarchia delle fonti, tipi di scheda, quiz, concetti, glossario. Ogni feed salvato porta la versione: se le istruzioni cambiano si sa quali lezioni rigenerare. Cambiare il testo significa aumentare la versione. |
-| `src/api-client.ts` | `EpicFeedApi`: token solo nell'header `Authorization`, solo HTTPS (HTTP solo verso localhost), `redirect: 'error'`, timeout di 30 s, risposte validate con gli schemi di `@epicfeed/contracts`. Errori come `ApiRequestError(status, code, message, issues)`. |
+| `src/api-client.ts` | `EpicFeedApi`: token solo nell'header `Authorization`, solo HTTPS (HTTP solo verso localhost), `redirect: 'error'`, timeout di 30 s, risposte validate con gli schemi dei pacchetti di funzione (`@epicfeed/feed`, `@epicfeed/exam`, `@epicfeed/shared`). Errori come `ApiRequestError(status, code, message, issues)`. |
 | `src/server.ts` | `createEpicFeedServer(api)`: strumenti e prompt (sotto). Ricorda in memoria solo le parti delle lezioni lette, per il controllo locale. |
 | `src/exam-bank-tools.ts` | Strumenti della banca degli esercizi (`registerExamBankTools`): legge il materiale d'esame dallo zip sul PC e ricorda i concetti della materia per il controllo locale. |
 | `src/exam-prompt.ts`, `src/exam-tools.ts` | Istruzioni versionate (`EXAM_PROMPT_VERSION`) e strumenti dei pacchetti d'esame (`registerExamTools`). Ricorda in memoria concetti e domande del feed letto, per il controllo locale. |
@@ -145,7 +145,7 @@ Decisioni: [ADR 0014](../decisions/0014-exam-preparation.md) (§6 e §8) e [ADR 
 - **10 domande a scelta multipla** in più (limiti accettati 8–12), 4 opzioni, spiegazione, concetto e difficoltà: con le 6–8 del feed fanno circa 90 domande per modulo, da cui il quiz di modulo ne pesca 50;
 - **1–2 domande aperte** "stile esame": `code` (firma della funzione e 2–8 test `{ call, expected }` da eseguire nel browser), `explain` o `analyze` (con il codice da analizzare); suggerimenti progressivi `{ it, en }` (1–3), soluzione modello, griglia di 3–5 criteri con punti interi 1–5, 1–3 concetti, domanda di approfondimento per il colloquio.
 
-Tutto in inglese tranne i suggerimenti. Tipi e regole in `packages/core/src/domain/exam.ts`, schemi in `packages/contracts/src/exam.ts`.
+Tutto in inglese tranne i suggerimenti. Tipi e regole in `packages/exam/src/domain/exam.ts`, schemi in `packages/exam/src/contracts/exam.ts`.
 
 ```
 Claude Desktop ──▶ server MCP ──▶ API EpicFeed ──▶ Postgres

@@ -13,7 +13,7 @@ import { grantByPossessionProof } from '../domain/entitlement.js';
  * qui, sul server, a partire dal contenuto ricevuto: quella eventualmente
  * dichiarata dal client non viene mai usata.
  *
- * È TypeScript puro (il digest è iniettato), quindi vive nel core e si usa
+ * È TypeScript puro (il digest è iniettato), quindi vive in `application` e si usa
  * uguale nell'API e nei test.
  */
 export class PossessionProofVerifier implements EntitlementVerifier {

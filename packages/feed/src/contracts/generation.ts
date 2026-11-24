@@ -20,7 +20,7 @@ import {
  *
  * Gli schemi controllano la **forma**: tipi, campi ammessi, lunghezze. Le
  * regole tra elementi (concetti esistenti, stesso numero di opzioni nelle due
- * lingue, parti della lezione) le controlla `checkLessonFeed` del core, sia nel
+ * lingue, parti della lezione) le controlla `checkLessonFeed` del dominio, sia nel
  * server MCP sia nell'API. Gli oggetti sono `strict`: un campo inatteso è un
  * errore, così un feed malformato non entra nemmeno in parte.
  *
@@ -121,7 +121,7 @@ type Assert<T extends true> = T;
 
 /**
  * Verifica a tempo di compilazione: ciò che lo schema accetta è un feed del
- * core. Se schema e dominio divergono, la build fallisce qui.
+ * dominio. Se schema e dominio divergono, la build fallisce qui.
  */
 export type DraftMatchesDomain = Assert<
   LessonFeedDraftInput extends LessonFeedDraft ? true : false
@@ -145,7 +145,7 @@ export const saveLessonFeedRequestSchema = z.strictObject({
 /** Corpo della richiesta di salvataggio di un feed, dopo la validazione. */
 export type SaveLessonFeedRequest = z.infer<typeof saveLessonFeedRequestSchema>;
 
-/** Tratto di video di una scheda, calcolato dall'API con l'allineamento del core. */
+/** Tratto di video di una scheda, calcolato dall'API con l'allineamento del dominio. */
 export const videoAlignmentSchema = z.strictObject({
   startMs: z.number().int().min(0),
   endMs: z.number().int().min(0),

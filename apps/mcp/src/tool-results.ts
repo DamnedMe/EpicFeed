@@ -20,7 +20,7 @@ export function text(value: string): CallToolResult {
 /**
  * Problemi da correggere prima di salvare di nuovo.
  *
- * @param issues - Problemi trovati dal core o dall'API.
+ * @param issues - Problemi trovati dalle regole del dominio o dall'API.
  * @param tool - Strumento da richiamare dopo la correzione.
  * @returns Il risultato, marcato come errore.
  */

@@ -1,7 +1,7 @@
 'use client';
 
-import type { CodeSuggestion } from '@epicfeed/core';
-import { rubricScore, suggestionDiff } from '@epicfeed/core';
+import type { CodeSuggestion } from '@epicfeed/exam';
+import { rubricScore, suggestionDiff } from '@epicfeed/exam';
 import type { CorrectionEntry } from './corrections';
 
 /**

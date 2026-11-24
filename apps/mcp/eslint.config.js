@@ -18,7 +18,7 @@ export default createConfig({
           {
             patterns: [
               {
-                group: ['@epicfeed/adapters', '@epicfeed/db', 'drizzle-orm', '@supabase/*'],
+                group: ['@epicfeed/*/infrastructure', '@epicfeed/db', 'drizzle-orm', '@supabase/*'],
                 message: "Il server MCP usa solo l'API di EpicFeed, mai il database.",
               },
             ],

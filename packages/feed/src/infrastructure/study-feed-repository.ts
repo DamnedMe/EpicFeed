@@ -13,8 +13,8 @@ import type { Database } from '@epicfeed/db';
 import { withUserRls } from '@epicfeed/db';
 
 /**
- * Persistenza del feed di studio su Postgres (porta `StudyFeedRepository` del
- * core, ADR 0015).
+ * Persistenza del feed di studio su Postgres (porta `StudyFeedRepository` di
+ * `application/ports.ts`, ADR 0015).
  *
  * Le **letture** passano dalla RLS dello studente ({@link withUserRls}): le
  * query non filtrano per utente, lo fa il database (materie, lezioni e parti

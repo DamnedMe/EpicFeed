@@ -1,4 +1,4 @@
-import type { ExamContentResponse } from '@epicfeed/contracts';
+import type { ExamContentResponse } from '@epicfeed/exam';
 import type { SubjectFeedResponse } from '@epicfeed/feed';
 
 /**

@@ -13,10 +13,10 @@ import * as z from 'zod';
 /**
  * Contratto dell'import di una lezione: è il corpo di `POST /api/import` che
  * l'estensione invia e che l'API valida prima di passarlo al caso d'uso
- * `ImportLesson` del core.
+ * `ImportLesson` del dominio.
  *
  * Qui si controlla solo la **forma** (tipi, lunghezze massime, campi ammessi);
- * le regole di dominio (normalizzazione, impronta, permessi) restano nel core.
+ * le regole di dominio (normalizzazione, impronta, permessi) restano nel dominio.
  * Gli oggetti sono `strict`: un campo in più è un errore, così l'estensione non
  * può inviare per sbaglio dati che non ci servono (es. campi del portale che l'app non usa).
  */

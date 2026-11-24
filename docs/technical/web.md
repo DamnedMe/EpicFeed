@@ -52,7 +52,7 @@ apps/web/src/
    ├─ appearance.ts     tema e accento dai cookie, per il primo render
    └─ feed-deps.ts      collega gli handler del feed ai servizi e al riallineamento con `after`
 ```
-Le route chiamano `getServices()` di `container.ts`, che crea una sola volta la connessione (`postgres`, `prepare: false` per il pooler di Supabase, TLS obbligatorio tranne che su `localhost`) e collega gli adapter di `packages/adapters` ai casi d'uso del core.
+Le route chiamano `getServices()` di `container.ts`, che crea una sola volta la connessione (`postgres`, `prepare: false` per il pooler di Supabase, TLS obbligatorio tranne che su `localhost`) e collega le implementazioni di `@epicfeed/<funzione>/infrastructure` ai casi d'uso dei pacchetti di funzione.
 
 ## Accesso
 Supabase Auth con email ([ADR 0007](../decisions/0007-generation-via-mcp-and-login.md)):
@@ -82,7 +82,7 @@ Decisioni in [ADR 0015](../decisions/0015-study-feed-m3.md).
 - **Riallineamento**: se la materia contiene feed allineati con regole vecchie, la risposta parte subito e `after()` di Next.js esegue `RealignLessonFeeds` (una lezione alla volta, fonti lette con i permessi dello studente, impronta delle fonti ricontrollata). La scrittura usa la connessione del server ed è condizionata alla versione letta, così due richieste contemporanee non scrivono due volte. Alla visita successiva l'ETag è cambiato e l'app scarica i minuti nuovi.
 
 ### Schermata del feed (`src/features/feed`)
-Le regole pure stanno nel core ([core.md](core.md#feed-di-studio)): `storyOf` (battute, parola da indovinare, abbinamento frasi–codice), `buildStudySequence` (ordine e domande), `answerPoints`. La web app aggiunge:
+Le regole pure stanno in `@epicfeed/feed` ([core.md](core.md#feed-di-studio)): `storyOf` (battute, parola da indovinare, abbinamento frasi–codice), `buildStudySequence` (ordine e domande), `answerPoints`. La web app aggiunge:
 
 | File | Ruolo |
 |---|---|
@@ -106,12 +106,12 @@ Le regole pure stanno nel core ([core.md](core.md#feed-di-studio)): `storyOf` (b
 - La barra in basso è in vetro su un fondo quasi pieno (90% del colore di fondo) con sfocatura. In CSS si scrive solo `backdrop-filter`: con anche la forma `-webkit-` Lightning CSS teneva solo quella, e Chrome restava senza sfocatura.
 
 ## Ripasso (M4)
-Decisioni in [ADR 0017](../decisions/0017-review-and-exam-m4.md); regole pure nel core ([core.md](core.md#ripasso)). Il tab `/review` contiene anche la sezione [Esame](#esame-m4) (`#esame`).
+Decisioni in [ADR 0017](../decisions/0017-review-and-exam-m4.md); regole pure in `@epicfeed/review` ([core.md](core.md#ripasso)). Il tab `/review` contiene anche la sezione [Esame](#esame-m4) (`#esame`).
 
 | File (`src/features/review`) | Ruolo |
 |---|---|
 | `progress-store.ts` | `IndexedDbProgressStore`, adapter delle porte `ProgressStore` e `SyncableProgressStore`: database `epicfeed-progress` con `reviews` (stato FSRS per concetto, chiave `conceptId`), `answers` (storico, chiave automatica) e `meta` (serie di giorni e giorni di ripasso). `loadSnapshot` esporta lo storico per la sincronizzazione; `mergeSnapshot` unisce una copia remota e ricalcola gli stati in una sola transazione, così le risposte date nel frattempo restano. Stato e risposta nella stessa transazione; ogni record letto passa da uno schema zod e quelli non validi si ignorano. `progressStore()` apre il database una volta sola e restituisce `null` se IndexedDB non c'è; `onProgress`/`notifyProgress` avvisano le schermate aperte |
-| `record.ts` | `recordStudyAnswer`: porta una risposta nel ripasso con `recordAnswer` del core; non lancia mai (lo studio non si ferma se IndexedDB fallisce). La usano il feed (`onAnswer` in `feed-app.tsx`, fonte `feed`) e la sessione di ripasso (fonte `review`) |
+| `record.ts` | `recordStudyAnswer`: porta una risposta nel ripasso con `recordAnswer` di `@epicfeed/review`; non lancia mai (lo studio non si ferma se IndexedDB fallisce). La usano il feed (`onAnswer` in `feed-app.tsx`, fonte `feed`) e la sessione di ripasso (fonte `review`) |
 | `catalog.ts` | `buildReviewCatalog`: dalla materia scaricata ai concetti (uno per chiave, testi dalla prima lezione, termini da tutte le schede sul concetto) e alle domande, con l'id dell'elemento del feed (`lezione:quiz:id`, unico nella materia); `recallBlank` sceglie la parola da coprire con `pickBlank` del core o, in mancanza, il nome del concetto |
 | `use-review-data.ts` | Materia (prima la copia sul dispositivo, poi `loadFeed` come il feed) e progressi, ricaricati a ogni risposta |
 | `review-app.tsx` | Tab Ripasso: sezioni *Ripasso*/*Esame*, home (scaduti, serie, concetti deboli, barre per modulo), riepilogo di fine sessione; passa materia, catalogo e nonce della CSP alla sezione Esame |
@@ -119,7 +119,7 @@ Decisioni in [ADR 0017](../decisions/0017-review-and-exam-m4.md); regole pure ne
 | `review.css` | Stili del ripasso con i token `--sf-*`; le larghezze delle barre sono variabili CSS impostate dal client (CSP) |
 
 ### Esame (M4)
-Decisioni in [ADR 0014](../decisions/0014-exam-preparation.md) e [ADR 0017](../decisions/0017-review-and-exam-m4.md); regole pure nel core (`domain/exam-practice.ts`: estrazione delle 50 domande, punteggio della griglia, esito dei test). Contenuti generati da Claude Desktop ([generation.md](generation.md#pacchetti-desame-m4)).
+Decisioni in [ADR 0014](../decisions/0014-exam-preparation.md) e [ADR 0017](../decisions/0017-review-and-exam-m4.md); regole pure in `@epicfeed/exam` (`domain/practice.ts`: estrazione delle 50 domande, punteggio della griglia, esito dei test). Contenuti generati da Claude Desktop ([generation.md](generation.md#pacchetti-desame-m4)).
 
 | File (`src/features/exam`) | Ruolo |
 |---|---|
@@ -164,7 +164,7 @@ Su 4G lenta gli script (circa 150 KB compressi) arrivano dopo 2,5 s: alla prima 
 - **zod** si importa come `import * as z from 'zod'`: con `import { z }` esbuild includeva tutta la libreria (443 KB invece di 97 KB minificati).
 
 ### Sincronizzazione dei progressi (M4)
-Decisioni in [ADR 0018](../decisions/0018-encrypted-progress-sync.md); unione e ricalcolo puri nel core ([core.md](core.md#sincronizzazione-dei-progressi)).
+Decisioni in [ADR 0018](../decisions/0018-encrypted-progress-sync.md); unione e ricalcolo puri in `@epicfeed/review` ([core.md](core.md#sincronizzazione-dei-progressi)).
 
 | File (`src/features/sync`) | Ruolo |
 |---|---|
@@ -176,7 +176,7 @@ Decisioni in [ADR 0018](../decisions/0018-encrypted-progress-sync.md); unione e 
 | `sync-panel.tsx` | Stato in fondo alla home del Ripasso e richiesta della password (*Sincronizza telefono e PC*, *La password è cambiata*); senza chiave (`keyExpected={false}`) la richiesta sta in cima e si mostra subito |
 
 - La chiave si prepara nel form di accesso (`login-form.tsx`) e in quello della password (`password-form.tsx`) **prima** di mandare il form: è l'unico momento in cui il browser ha la password. Se l'accesso o il salvataggio non riescono, la chiave si cancella.
-- Lato server: `src/server/progress-handler.ts` (handler puri, testati senza Next.js), `progress-deps.ts`, `src/app/api/progress/route.ts`; `DrizzleProgressRepository` in `packages/adapters` (lettura con la RLS dello studente, scrittura con `revision = base` e incremento atomico).
+- Lato server: `src/server/progress-handler.ts` (handler puri, testati senza Next.js), `progress-deps.ts`, `src/app/api/progress/route.ts`; `DrizzleProgressRepository` in `packages/review/src/infrastructure` (lettura con la RLS dello studente, scrittura con `revision = base` e incremento atomico).
 - Nel banco di prova Playwright `confirmPassword` è una funzione vuota e non c'è chiave: la home del Ripasso mostra la richiesta della password, il resto non cambia.
 
 ### PWA e uso senza rete
@@ -222,6 +222,6 @@ pnpm --filter @epicfeed/web dev              # http://localhost:3000
 ```
 
 ## Test
-`src/server/*.test.ts` (Vitest): `handleImport` con servizi finti (ogni caso di errore), controllo dell'origine e lettura del bearer. I flussi con il database sono coperti dai test di `packages/adapters` e dalla prova end-to-end descritta in [import.md](import.md#come-è-testato). `src/features/feed/*.test.ts`: modello del feed, salvataggi sul dispositivo, gesti e caricamento della materia. `src/features/exam/*.test.ts`: catalogo d'esame, caricamento con ETag e copia, esecutore Python con worker e timer finti.
+`src/server/*.test.ts` (Vitest): `handleImport` con servizi finti (ogni caso di errore), controllo dell'origine e lettura del bearer. I flussi con il database sono coperti dai test delle cartelle `infrastructure` dei pacchetti e dalla prova end-to-end descritta in [import.md](import.md#come-è-testato). `src/features/feed/*.test.ts`: modello del feed, salvataggi sul dispositivo, gesti e caricamento della materia. `src/features/exam/*.test.ts`: catalogo d'esame, caricamento con ETag e copia, esecutore Python con worker e timer finti.
 
 **Feed sul telefono (Playwright, `apps/web/e2e`)**: `pnpm --filter @epicfeed/web test:e2e`, dopo la build. Un banco di prova (`e2e/harness/build.mjs`) impacchetta con esbuild il vero `FeedApp` con una materia di prova (`fixture.ts`, validata dallo stesso schema dell'API) e un `fetch` finto, al posto di `next/link` e `next/navigation` mette due sostituti minimi, e prende i CSS e i font dalla build di Next (`.next/static`). I test servono i file con `page.route` (nessun server, nessun database) e con una CSP come quella di produzione per gli stili, quindi un attributo `style` nell'HTML o un errore in console fanno fallire il test. Chromium con le viste di **iPhone 13** e **Pixel 7** (tocco attivo): spiegazione dei gesti al primo avvio, battute avanti e indietro, parola da indovinare, doppio tocco, tieni premuto con il minuto sul portale, scorrimento con domanda in inglese e codice, vero/falso con lo swipe, foglio dei capitoli, tastiera, ripresa dall'ultima scheda; apertura dalla copia con la rete lenta (`?rete=lenta`) o assente (`?rete=assente`); andata e ritorno da *Io* con posizione e punti conservati; sessione da 5 minuti contata alla fine (orologio simulato). Sezione Esame (`review-entry.tsx` con i contenuti d'esame di `fixture.ts`): quiz di modulo con domande del feed e del pacchetto, esercizio di codice con suggerimento, editor CodeMirror, test eseguiti davvero con Pyodide nel worker (stessa CSP del worker di produzione) e griglia, ciclo infinito interrotto dopo 5 secondi per test, correzione di Claude con le schede dei suggerimenti (invii simulati in `sessionStorage`), colloquio in chat con approfondimento. Il banco usa un nonce fisso per gli stili dell'editor, come la CSP di produzione. Il banco ha anche la pagina *Io* (`io-entry.tsx`, server action sostituita da una funzione vuota): righe allineate sui telefoni stretti, nessuno scorrimento orizzontale, barra in basso sfocata e coprente.

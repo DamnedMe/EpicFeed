@@ -44,9 +44,8 @@ Vincoli che l'architettura rispetta sempre (vedi [portal-usage.md](portal-usage.
 | `apps/web` | Next.js (App Router), TypeScript, Tailwind, Motion, PWA | Feed, quiz, ripasso, impostazioni tema/accento; API di import e lettura catalogo ([dettagli](technical/web.md)) |
 | `apps/extension` | Estensione Chrome (Manifest V3, WXT), TypeScript | Importa la lezione aperta dallo studente: riassunti, riassunto di capitolo, sottotitoli di tutti i video, metadati di corso ([dettagli](technical/import.md)) |
 | `apps/mcp` | Server MCP in TypeScript (SDK ufficiale) | Strumenti per Claude: cerca lezione, concetti deboli, quiz al volo, grafici dei progressi, segnala errore; importazione e trasformazione dei libri (§7 bis) |
-| `packages/core` | TypeScript puro | Dominio e casi d'uso (vedi §3). Nessuna dipendenza da framework |
-| `packages/contracts` | zod | Schemi delle richieste e risposte condivisi tra API, estensione e (da M2) server MCP |
-| `packages/adapters` | TypeScript, Drizzle | Implementazioni delle porte: catalogo su Postgres, token, limite di frequenza; poi IndexedDB |
+| `packages/shared` | TypeScript puro | Nucleo condiviso: errori di dominio, id, testo, orologio |
+| `packages/catalog`, `ingest`, `access`, `feed`, `review`, `exam` | TypeScript, zod, Drizzle | Un pacchetto per funzione ([ADR 0019](decisions/0019-feature-packages.md)), ognuno con `domain`, `application`, `contracts` e `infrastructure` (vedi §3) |
 | `packages/ui` | React + Tailwind | Componenti condivisi e token del [design system](design-system.md) ([implementazione](technical/design-tokens.md)) |
 | `packages/db` | Drizzle + SQL | Schema Postgres, migrazioni e policy RLS ([dettagli](technical/database.md)) |
 | `packages/config` | TypeScript, ESLint | Configurazione condivisa |
@@ -58,12 +57,14 @@ Monorepo con pnpm workspaces e Turborepo ([setup](technical/setup.md)).
 Dipendenze solo verso l'interno ([ADR 0004](decisions/0004-clean-architecture-and-quality.md)):
 
 ```
- apps (Next.js, estensione, MCP)  →  adapters  →  core/application  →  core/domain
+ apps (Next.js, estensione, MCP)  →  infrastructure  →  application  →  domain
 ```
+
+Dal 24/11/2026 i livelli stanno dentro ogni pacchetto di funzione (`packages/<funzione>/src/domain`, `application`, `contracts`, `infrastructure`) e le regole dei confini sono in `packages/config/boundaries.js` ([ADR 0019](decisions/0019-feature-packages.md), [come orientarsi](navigation.md)).
 
 - **domain**: entità e regole pure. Lezione Epicode e libro sono due tipi di `Source` con la stessa struttura `Source > Unit > FeedItem (Clip | Passage)`, così feed, quiz e ripasso sono unici. Entità: (`Source`, `Book`, `Course`, `Subject`, `Lesson`, `ContentVersion`, `Clip`, `QuizItem`, `Concept`, `ReviewCard`, `Entitlement`, `Glossary`, `Correction`). Ogni `Clip`/`Passage` conserva la provenienza del testo (`origin`: riassunto, capitolo o sottotitoli). Nessun I/O.
 - **application**: casi d'uso (`ImportLesson`, `GenerateClipsForVersion`, `BuildGlossary`, `AlignClipsToSubtitles`, `ReportError`, `GetFeed`, `AnswerQuiz`, `ScheduleReview`, `GrantLessonAccess`). Dipendono solo da **porte** (interfacce) come `ContentRepository`, `EntitlementVerifier`, `ContentGenerator`, `GlossaryRepository`, `CorrectionRepository`, `ProgressStore`, `Clock`.
-- **adapters**: implementano le porte (`SupabaseContentRepository`, `ClaudeContentGenerator`, `IndexedDbProgressStore`, `PossessionProofVerifier`).
+- **infrastructure**: implementano le porte (`SupabaseContentRepository`, `ClaudeContentGenerator`, `IndexedDbProgressStore`, `PossessionProofVerifier`).
 - **apps**: solo composizione e presentazione. Nessuna regola di business nei componenti React o nelle route.
 
 Conseguenza pratica: passare dalla verifica "prova di possesso" alla verifica ufficiale Epicode significa scrivere un nuovo `EntitlementVerifier`, senza toccare dominio e casi d'uso.

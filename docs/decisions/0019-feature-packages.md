@@ -31,7 +31,7 @@ L'infrastruttura si importa da un percorso separato (`@epicfeed/<funzione>/infra
 | `ingest` | import delle lezioni dall'estensione | catalog |
 | `feed` | feed, allineamento ai minuti, storie a battute, sessioni, generazione delle schede, slide | catalog |
 | `review` | ripasso FSRS, sincronizzazione cifrata dei progressi | shared |
-| `exam` | pacchetti e banca d'esame, esercizi, correzioni, colloquio | feed |
+| `exam` | pacchetti e banca d'esame, esercizi, correzioni, colloquio | feed, catalog |
 | `db` | schema (un file per funzione) e migrazioni in un'unica sequenza | nessuno |
 
 Il lint controlla tre regole: un pacchetto importa solo quelli elencati in "Dipende da"; da un altro pacchetto si importa solo la porta pubblica; dentro un pacchetto `domain` non importa `application` né `infrastructure`.

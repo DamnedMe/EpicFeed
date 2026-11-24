@@ -1,5 +1,5 @@
-import type { ExamContentResponse } from '@epicfeed/contracts';
-import { examContentResponseSchema } from '@epicfeed/contracts';
+import type { ExamContentResponse } from '@epicfeed/exam';
+import { examContentResponseSchema } from '@epicfeed/exam';
 import type { KeyValueStore } from '../feed/storage';
 import { defaultStore, readValue, STORAGE_KEYS, writeValue } from '../feed/storage';
 

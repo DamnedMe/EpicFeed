@@ -105,7 +105,7 @@ export async function handleReadSubjectFeed(
  * Materia nella forma della risposta dell'API (usata anche dalla prima
  * schermata del feed disegnata sul server).
  *
- * @param feed - Materia letta dal core.
+ * @param feed - Materia letta dal caso d'uso del feed.
  * @returns Il corpo della risposta.
  */
 export function subjectFeedBody(feed: ReadSubjectFeedResult['feed']): SubjectFeedResponse {

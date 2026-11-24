@@ -20,8 +20,8 @@ export class SyncHttpError extends Error {
 }
 
 /**
- * Copia cifrata sul server via `/api/progress` (porta `ProgressVault` del
- * core). Cifra e decifra nel browser: al server arrivano solo byte cifrati.
+ * Copia cifrata sul server via `/api/progress` (porta `ProgressVault` di
+ * `@epicfeed/review`). Cifra e decifra nel browser: al server arrivano solo byte cifrati.
  */
 export class HttpProgressVault implements ProgressVault {
   /**

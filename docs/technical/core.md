@@ -1,6 +1,6 @@
 # Dominio: catalogo e import
 
-Il core contiene le regole dell'app in TypeScript puro ([ADR 0004](../decisions/0004-clean-architecture-and-quality.md)): nessun framework, nessun accesso a rete o database. Gira uguale nel browser, in Node, nelle funzioni edge e nel server MCP, e si testa senza simulare nulla. 
+Il dominio contiene le regole dell'app in TypeScript puro ([ADR 0004](../decisions/0004-clean-architecture-and-quality.md)): nessun framework, nessun accesso a rete o database. Gira uguale nel browser, in Node, nelle funzioni edge e nel server MCP, e si testa senza simulare nulla. 
 
 Questa pagina descrive le regole del catalogo e dell'import. Con la riorganizzazione per funzione ([ADR 0019](../decisions/0019-feature-packages.md)) stanno in tre pacchetti:
 
@@ -24,7 +24,7 @@ packages/ingest/src/
 └─ contracts/                      import.ts (POST /api/import), extension.ts (collegamento)
 ```
 
-Il resto del dominio (feed, ripasso, esame) è ancora in `packages/core` e passa ai suoi pacchetti nelle PR successive.
+Feed, ripasso ed esame hanno i loro pacchetti (`packages/feed`, `packages/review`, `packages/exam`) con la stessa struttura; le regole sono descritte più sotto.
 
 ## Entità
 | Entità | Cosa rappresenta |
@@ -65,7 +65,7 @@ Le tracce sono separate dalle versioni per due motivi ([ADR 0006](../decisions/0
 2. dentro `CatalogRepository.transaction`: `upsertLessonPath`, `upsertLessonPart`, `findOrCreateVersion`, `EntitlementVerifier.verify` (oggi `PossessionProofVerifier`, che ricalcola l'impronta e chiama `grantByPossessionProof`), `saveEntitlement`; per ogni traccia `findOrCreateSubtitleTrack` e `saveSubtitleAccess`;
 3. restituisce per ogni parte gli id e se versione, permesso e tracce sono nuovi.
 
-Le porte di persistenza (`CatalogRepository`, `CatalogTransaction`) sono implementate in `packages/adapters` con Drizzle; il caso d'uso si testa con un catalogo in memoria. Passare alla verifica ufficiale Epicode vorrà dire scrivere un altro `EntitlementVerifier`.
+Le porte di persistenza (`CatalogRepository`, `CatalogTransaction`) sono implementate in `packages/catalog/src/infrastructure` con Drizzle; il caso d'uso si testa con un catalogo in memoria. Passare alla verifica ufficiale Epicode vorrà dire scrivere un altro `EntitlementVerifier`.
 
 ## Stati di generazione
 Le schede le genera Claude Desktop tramite il server MCP ([ADR 0007](../decisions/0007-generation-via-mcp-and-login.md)). Ogni versione ha uno stato:
@@ -94,23 +94,23 @@ Regole pure del feed sul telefono ([ADR 0015](../decisions/0015-study-feed-m3.md
 - `POINTS`, `answerPoints(serie)` (10 + 2 per risposta giusta di fila oltre la prima, al massimo +8) e `SESSION_MS` (5 minuti).
 
 ## Ripasso
-`domain/review.ts` e `application/review.ts` (M4, [ADR 0017](../decisions/0017-review-and-exam-m4.md)):
+In `packages/review/src`: `domain/review.ts` e `application/review.ts` (M4, [ADR 0017](../decisions/0017-review-and-exam-m4.md)):
 - `ConceptReviewState`: stato FSRS di un concetto (`conceptId` = `materia:chiave`), con date ISO 8601 per IndexedDB e sincronizzazione; `applyReview` lo aggiorna con `ts-fsrs` (parametri predefiniti, `enable_fuzz: false`, date precedenti all'ultima risposta portate all'ultima); `isDue`, `isStable` (fase di ripasso e stabilità ≥ 7 giorni), `recallProbability`.
 - `gradeFromAnswer` (sbagliata → *again*, aiutata → *hard*, giusta → *good*) e `gradeFromScore` (soglie 50% e 80% dell'ADR 0014).
 - Serie di giorni: `extendDayStreak`, `currentDayStreak`, `localDay` (giorno nell'ora del dispositivo).
 - Porta `ProgressStore` e casi d'uso `recordAnswer` (stato + storico con fonte e lingua), `completeReviewSession` (serie), `planReviewSession` (fino a 10 concetti: scaduti dal più in ritardo, altrimenti in anticipo i meno ricordati; mai concetti non ancora visti o senza domande; domanda successiva all'ultima fatta, a giro), `summarizeReview` (scaduti, deboli, avanzamento per modulo).
 
 ## Esame
-`domain/exam.ts` (regole dei pacchetti e della banca, [generation.md](generation.md#pacchetti-desame-m4)), `domain/exam-practice.ts` e `application/exam-study.ts` (M4, [ADR 0014](../decisions/0014-exam-preparation.md)):
+In `packages/exam/src`: `domain/exam.ts` (regole dei pacchetti e della banca, [generation.md](generation.md#pacchetti-desame-m4)), `domain/practice.ts` e `application/study.ts` (M4, [ADR 0014](../decisions/0014-exam-preparation.md)):
 - `drawRandom(elementi, n, casuale)`: estrazione senza ripetizioni (Fisher–Yates parziale) per il quiz di modulo da `MODULE_QUIZ_SIZE` (50) domande; con meno domande le prende tutte.
 - `rubricScore(griglia, punti)`: punteggio dell'autovalutazione tra 0 e 1 (ogni voce limitata ai punti del criterio), da passare a `gradeFromScore`.
 - `testPassed(esito)`: un test del codice passa se non dà errore e il `repr()` coincide con quello atteso.
 - `EXERCISE_TIMER_MINUTES`: durate proposte per il timer facoltativo.
-- `domain/exam-correction.ts` (PR 5): invio (`ExamSubmissionDraft`) e correzione (`ExamCorrectionDraft`: punti per criterio, commento, `CodeSuggestion` su righe della risposta, riepilogo); `checkCorrection` lega la correzione all'invio, `suggestionDiff` produce le righe del diff (contesto, tolte, aggiunte con i numeri giusti); limiti in `EXAM_CORRECTION_LIMITS`. Casi d'uso in `application/exam-correction.ts`: `SubmitForCorrection` (materia visibile, al massimo 20 in attesa), `ListSubmissions` (toglie prima gli scaduti), `SaveCorrection` (una volta sola), `DeleteSubmission`.
+- `domain/correction.ts` (PR 5): invio (`ExamSubmissionDraft`) e correzione (`ExamCorrectionDraft`: punti per criterio, commento, `CodeSuggestion` su righe della risposta, riepilogo); `checkCorrection` lega la correzione all'invio, `suggestionDiff` produce le righe del diff (contesto, tolte, aggiunte con i numeri giusti); limiti in `EXAM_CORRECTION_LIMITS`. Casi d'uso in `application/exam-correction.ts`: `SubmitForCorrection` (materia visibile, al massimo 20 in attesa), `ListSubmissions` (toglie prima gli scaduti), `SaveCorrection` (una volta sola), `DeleteSubmission`.
 - Porta `ExamContentRepository` e caso d'uso `ReadExamContent`: pacchetti dei feed correnti di una materia e banca dello studente, con un'impronta (`version`) degli id, usata come ETag.
 
 ## Sincronizzazione dei progressi
-`application/progress-sync.ts` (M4, [ADR 0018](../decisions/0018-encrypted-progress-sync.md)). Niente cifratura qui: la fanno gli adapter.
+`packages/review/src/application/progress-sync.ts` (M4, [ADR 0018](../decisions/0018-encrypted-progress-sync.md)). Niente cifratura qui: la fa il browser (`apps/web/src/features/sync`).
 - `ProgressSnapshot`: risposte, giorni di ripasso (ultimi 400) e serie migliore. `mergeSnapshots` unisce due copie senza doppioni (`answerKey`: momento, concetto, fonte, domanda) in un ordine che non dipende da chi unisce; `addsToSnapshot` dice se un'unione porta qualcosa di nuovo; `replayAnswers` ricalcola gli stati FSRS ripassando le risposte in ordine di tempo (stesso risultato delle risposte date una alla volta); `streakFromDays` ricostruisce la serie.
 - Porte `SyncableProgressStore` (dispositivo: `loadSnapshot`, `mergeSnapshot`), `ProgressVault` (copia cifrata sul server: `pull`, `push` con concorrenza ottimistica) e `EncryptedProgressRepository` (lato server: righe cifrate per utente).
 - `syncProgress`: legge, unisce, riscrive solo se il dispositivo ha qualcosa in più; riprova fino a 3 volte se un altro dispositivo scrive nello stesso momento; con una copia che non si decifra si ferma (`locked`), oppure la rifà da questo dispositivo se la chiave è appena verificata (`replaceUnreadable`).

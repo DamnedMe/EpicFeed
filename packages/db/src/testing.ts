@@ -1,7 +1,7 @@
 /**
  * Strumenti di test condivisi (`@epicfeed/db/testing`): un Postgres in
  * memoria (PGlite) con lo strato Supabase simulato e tutte le migrazioni.
- * Li usano i test di `db` (RLS) e di `adapters` (repository Drizzle).
+ * Li usano i test di `db` (RLS) e dei repository Drizzle nelle cartelle `infrastructure` dei pacchetti di funzione.
  * Richiedono `@electric-sql/pglite` tra le dipendenze di sviluppo.
  *
  * @packageDocumentation

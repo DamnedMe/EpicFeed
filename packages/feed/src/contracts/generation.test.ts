@@ -66,7 +66,7 @@ const feed = {
 };
 
 describe('lessonFeedDraftSchema', () => {
-  it('accetta un feed valido, che supera anche il controllo del core', () => {
+  it('accetta un feed valido, che supera anche il controllo del dominio', () => {
     const parsed = lessonFeedDraftSchema.parse(feed);
     expect(checkLessonFeed(parsed, { partIds: new Set([PART]) })).toEqual([]);
   });

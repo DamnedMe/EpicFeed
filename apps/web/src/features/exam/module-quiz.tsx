@@ -1,6 +1,6 @@
 'use client';
 
-import { drawRandom, MODULE_QUIZ_SIZE } from '@epicfeed/core';
+import { drawRandom, MODULE_QUIZ_SIZE } from '@epicfeed/exam';
 import { gradeFromAnswer } from '@epicfeed/review';
 import { useState } from 'react';
 import { recordStudyAnswer } from '../review/record';

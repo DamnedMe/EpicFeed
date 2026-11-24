@@ -7,7 +7,7 @@ import { withUserRls } from '@epicfeed/db';
 
 /**
  * Copie cifrate dei progressi su Postgres (porta `EncryptedProgressRepository`
- * del core, ADR 0018). Il server non conosce la chiave: qui passano solo
+ * di `application/ports.ts`, ADR 0018). Il server non conosce la chiave: qui passano solo
  * stringhe base64 già cifrate nel browser.
  *
  * La lettura passa dalla RLS dello studente; la scrittura usa la connessione
