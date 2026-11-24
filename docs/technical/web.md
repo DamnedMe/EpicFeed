@@ -5,17 +5,17 @@ Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailw
 ## Pagine e API
 | Percorso | Cosa fa | Accesso |
 |---|---|---|
-| `/accedi` | Codice via email al primo accesso, poi email e password | pubblico |
-| `/accedi/callback` | Ritorno dal link dell'email di accesso (scambia il codice PKCE con la sessione) | pubblico |
-| `/accedi/password` | Imposta la password (almeno 12 caratteri) dopo il primo accesso | sessione |
+| `/login` | Codice via email al primo accesso, poi email e password | pubblico |
+| `/login/callback` | Ritorno dal link dell'email di accesso (scambia il codice PKCE con la sessione) | pubblico |
+| `/login/password` | Imposta la password (almeno 12 caratteri) dopo il primo accesso | sessione |
 | `/` | **Feed di studio** a battute ([feed.md](../functional/feed.md)); la materia arriva da `GET /api/feed/subjects/{id}` | sessione |
-| `/io` | **Io**: aspetto, preferenze di studio, totali, collegamenti | sessione |
-| `/io/salvati` | Schede salvate sul dispositivo | sessione |
-| `/ripasso` | **Ripasso** dei concetti a battute e sezione **Esame** (`#esame`) ([review.md](../functional/review.md)) | sessione |
+| `/profile` | **Io**: aspetto, preferenze di studio, totali, collegamenti | sessione |
+| `/profile/saved` | Schede salvate sul dispositivo | sessione |
+| `/review` | **Ripasso** dei concetti a battute e sezione **Esame** (`#esame`) ([review.md](../functional/review.md)) | sessione |
 | `GET /api/progress` | Copia cifrata dei progressi (`404` se non c'è) ([sincronizzazione](#sincronizzazione-dei-progressi-m4)) | sessione |
 | `PUT /api/progress` | Scrive la copia cifrata se `baseRevision` è ancora quella (`409` altrimenti) | sessione, stessa origine |
-| `/lezioni` | **Le mie lezioni**: lezioni importate raggruppate per materia e capitolo, con numero di parti, sottotitoli e stato di generazione | sessione |
-| `/estensione` | Collega l'estensione, elenca e revoca i collegamenti | sessione |
+| `/lessons` | **Le mie lezioni**: lezioni importate raggruppate per materia e capitolo, con numero di parti, sottotitoli e stato di generazione | sessione |
+| `/extension` | Collega l'estensione, elenca e revoca i collegamenti | sessione |
 | `/claude-desktop` | Crea il token "genera" per Claude Desktop (mostrato una volta), elenca e revoca i token | sessione |
 | `GET /api/generation/lessons` | Lezioni da generare e totali ([generation.md](generation.md#api)) | token "genera" |
 | `GET /api/generation/lessons/{id}` | Fonti di una lezione per Claude | token "genera" |
@@ -30,12 +30,14 @@ Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailw
 | `POST /api/extension/token` | Crea un token di import | sessione, stessa origine |
 | `DELETE /api/extension/token/{id}` | Revoca un token | sessione, stessa origine |
 
+I vecchi indirizzi italiani (`/accedi`, `/io`, `/io/salvati`, `/ripasso`, `/lezioni`, `/estensione`) reindirizzano in modo permanente a quelli nuovi (`next.config.ts`, [ADR 0019](../decisions/0019-feature-packages.md)).
+
 Tutte le pagine sono dinamiche (`force-dynamic`): dipendono dalla sessione e non vanno mai in cache.
 
 ## Struttura
 ```
 apps/web/src/
-├─ proxy.ts             CSP con nonce, rinnovo della sessione, redirect ad /accedi
+├─ proxy.ts             CSP con nonce, rinnovo della sessione, redirect a /login
 ├─ app/                 pagine e route (solo composizione e presentazione)
 ├─ components/          guscio delle pagine di servizio, barra in basso
 ├─ features/feed/       feed di studio (client): modello, gesti, dati sul dispositivo, schermate
@@ -53,13 +55,13 @@ apps/web/src/
 Le route chiamano `getServices()` di `container.ts`, che crea una sola volta la connessione (`postgres`, `prepare: false` per il pooler di Supabase, TLS obbligatorio tranne che su `localhost`) e collega gli adapter di `packages/adapters` ai casi d'uso del core.
 
 ## Accesso
-Supabase Auth con email ([ADR 0007](../decisions/0007-generazione-via-mcp-e-login.md)):
+Supabase Auth con email ([ADR 0007](../decisions/0007-generation-via-mcp-and-login.md)):
 1. lo studente inserisce l'email; se è in `ALLOWED_EMAILS` riceve un'email di accesso (`signInWithOtp`); altrimenti il messaggio è lo stesso, per non rivelare quali email sono ammesse;
-2. l'email contiene un **link** che torna a `/accedi/callback` (flusso PKCE: funziona nel browser da cui è stato chiesto). Il **codice a 6 cifre** compare solo con un modello email personalizzato, che Supabase permette di modificare solo con un server SMTP proprio; l'app accetta entrambi;
+2. l'email contiene un **link** che torna a `/login/callback` (flusso PKCE: funziona nel browser da cui è stato chiesto). Il **codice a 6 cifre** compare solo con un modello email personalizzato, che Supabase permette di modificare solo con un server SMTP proprio; l'app accetta entrambi;
 3. entrato, al primo accesso imposta una password (salvata da Supabase; `user_metadata.password_set` ricorda che l'ha fatto);
 4. dalle volte successive entra con email e password.
 
-Ogni pagina protetta richiama `requireUser()`, che ricontrolla l'allowlist. La sessione non è solo letta dal cookie: `getClaims` verifica in locale firma (ES256, chiave pubblica del progetto tenuta in memoria) e scadenza del token, senza una chiamata al server di autenticazione per pagina. Le pagine e azioni di accesso, il ritorno dal link e la creazione o revoca dei token chiedono invece conferma al server (`getCurrentUser({ verifyWithServer: true })`, cioè `getUser`), come pure il caso in cui il token dica che la password non è ancora impostata. Motivi e compromesso nell'[ADR 0016](../decisions/0016-reattivita-app.md).
+Ogni pagina protetta richiama `requireUser()`, che ricontrolla l'allowlist. La sessione non è solo letta dal cookie: `getClaims` verifica in locale firma (ES256, chiave pubblica del progetto tenuta in memoria) e scadenza del token, senza una chiamata al server di autenticazione per pagina. Le pagine e azioni di accesso, il ritorno dal link e la creazione o revoca dei token chiedono invece conferma al server (`getCurrentUser({ verifyWithServer: true })`, cioè `getUser`), come pure il caso in cui il token dica che la password non è ancora impostata. Motivi e compromesso nell'[ADR 0016](../decisions/0016-app-responsiveness.md).
 
 Le letture del catalogo passano da `withUserRls`: la query gira con il ruolo `authenticated` e l'id dell'utente nei claim, quindi la RLS del database decide cosa si vede anche se il server usa una connessione privilegiata.
 
@@ -71,7 +73,7 @@ Le letture del catalogo passano da `withUserRls`: la query gira con il ruolo `au
 - Errori verso il client con codici stabili (`packages/contracts/src/errors.ts`) e messaggi in italiano, senza dettagli interni.
 
 ## Feed di studio (M3)
-Decisioni in [ADR 0015](../decisions/0015-feed-di-studio-m3.md).
+Decisioni in [ADR 0015](../decisions/0015-study-feed-m3.md).
 
 - `GET /api/feed/subjects` → `{ subjects: [{ subjectId, title, editionLabel, lessons, lessonsWithFeed }] }` (`ListStudySubjects`).
 - `GET /api/feed/subjects/{id}` → la materia intera (`subjectFeedResponseSchema` in `packages/contracts/src/feed.ts`): capitoli in ordine, lezioni con link alla pagina del portale, parti con il loro link (per *Guarda sul portale*; le slide importate dallo zip non hanno una pagina sul portale e rimandano alla lezione) e feed salvato (`null` se la lezione non è ancora generata). Gli id del portale restano sul server: l'app riceve solo i link, costruiti e validati da `portalContentUrl` del core.
@@ -94,7 +96,7 @@ Le regole pure stanno nel core ([core.md](core.md#feed-di-studio)): `storyOf` (b
 
 **CSP e stili**: la CSP non permette attributi `style` nell'HTML del server. I pochi valori dinamici (durata della battuta in avanzamento automatico, anello dei 5 minuti, trascinamento del vero/falso) sono variabili CSS impostate dal client con `style.setProperty` dopo il montaggio; il feed stesso si disegna solo nel browser, dopo il caricamento della materia.
 
-**Aspetto**: `/io` salva tema e accento con la server action `saveAppearance` in due cookie `httpOnly` (`ef-theme`, `ef-accent`, un anno, valori validati con `isThemePreference`/`isAccentName`); il layout li legge con `readAppearance` e li mette su `<html>`, così la pagina nasce nei colori scelti. Nel frattempo il client cambia subito gli attributi di `<html>`.
+**Aspetto**: `/profile` salva tema e accento con la server action `saveAppearance` in due cookie `httpOnly` (`ef-theme`, `ef-accent`, un anno, valori validati con `isThemePreference`/`isAccentName`); il layout li legge con `readAppearance` e li mette su `<html>`, così la pagina nasce nei colori scelti. Nel frattempo il client cambia subito gli attributi di `<html>`.
 
 **Font**: Space Grotesk, Inter e JetBrains Mono con `next/font/google`, scaricati alla build e serviti dall'app (`font-src 'self'`); la classe `ef-fonts` su `<html>` li collega ai token `--sf-font-*`.
 
@@ -104,7 +106,7 @@ Le regole pure stanno nel core ([core.md](core.md#feed-di-studio)): `storyOf` (b
 - La barra in basso è in vetro su un fondo quasi pieno (90% del colore di fondo) con sfocatura. In CSS si scrive solo `backdrop-filter`: con anche la forma `-webkit-` Lightning CSS teneva solo quella, e Chrome restava senza sfocatura.
 
 ## Ripasso (M4)
-Decisioni in [ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md); regole pure nel core ([core.md](core.md#ripasso)). Il tab `/ripasso` contiene anche la sezione [Esame](#esame-m4) (`#esame`).
+Decisioni in [ADR 0017](../decisions/0017-review-and-exam-m4.md); regole pure nel core ([core.md](core.md#ripasso)). Il tab `/review` contiene anche la sezione [Esame](#esame-m4) (`#esame`).
 
 | File (`src/features/review`) | Ruolo |
 |---|---|
@@ -117,7 +119,7 @@ Decisioni in [ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md); regole pure n
 | `review.css` | Stili del ripasso con i token `--sf-*`; le larghezze delle barre sono variabili CSS impostate dal client (CSP) |
 
 ### Esame (M4)
-Decisioni in [ADR 0014](../decisions/0014-preparazione-esame.md) e [ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md); regole pure nel core (`domain/exam-practice.ts`: estrazione delle 50 domande, punteggio della griglia, esito dei test). Contenuti generati da Claude Desktop ([generation.md](generation.md#pacchetti-desame-m4)).
+Decisioni in [ADR 0014](../decisions/0014-exam-preparation.md) e [ADR 0017](../decisions/0017-review-and-exam-m4.md); regole pure nel core (`domain/exam-practice.ts`: estrazione delle 50 domande, punteggio della griglia, esito dei test). Contenuti generati da Claude Desktop ([generation.md](generation.md#pacchetti-desame-m4)).
 
 | File (`src/features/exam`) | Ruolo |
 |---|---|
@@ -162,7 +164,7 @@ Su 4G lenta gli script (circa 150 KB compressi) arrivano dopo 2,5 s: alla prima 
 - **zod** si importa come `import * as z from 'zod'`: con `import { z }` esbuild includeva tutta la libreria (443 KB invece di 97 KB minificati).
 
 ### Sincronizzazione dei progressi (M4)
-Decisioni in [ADR 0018](../decisions/0018-sincronizzazione-cifrata-progressi.md); unione e ricalcolo puri nel core ([core.md](core.md#sincronizzazione-dei-progressi)).
+Decisioni in [ADR 0018](../decisions/0018-encrypted-progress-sync.md); unione e ricalcolo puri nel core ([core.md](core.md#sincronizzazione-dei-progressi)).
 
 | File (`src/features/sync`) | Ruolo |
 |---|---|
@@ -182,7 +184,7 @@ Decisioni in [ADR 0018](../decisions/0018-sincronizzazione-cifrata-progressi.md)
 - **Immagini del README** (`public/readme/`): plancia dello stato e schermate, pubbliche ed escluse dal controllo di accesso in `src/proxy.ts`, così si vedono anche nell'app GitHub per smartphone (vedi [docs/README.md](../README.md#stato-dello-sviluppo)).
 - **Service worker** (`public/sw.js`, scritto a mano, nessuna dipendenza), registrato da `ServiceWorkerRegistration` solo nella build di produzione:
   - `/_next/static/` (JS, CSS e font con l'impronta nel nome): prima la cache, poi la rete; al massimo 120 file, i più vecchi si scartano;
-  - navigazione su `/` e `/ripasso`: prima la rete; la copia in cache serve solo se la rete manca. Si conserva solo una risposta 200 della pagina stessa: un rimando ad `/accedi`, un 401 o un 403 cancellano la copia, così dopo l'uscita il feed non si riapre offline;
+  - navigazione su `/` e `/review`: prima la rete; la copia in cache serve solo se la rete manca. Si conserva solo una risposta 200 della pagina stessa: un rimando ad `/login`, un 401 o un 403 cancellano la copia, così dopo l'uscita il feed non si riapre offline;
   - `/pyodide/` (M4): prima la cache, nella cache `epicfeed-pyodide` con la sola versione in uso; `/python-worker.js`: prima la rete, con la copia come riserva;
   - API, altre pagine e altri siti: non li tocca. La materia non passa dal service worker: la tiene `feed-client.ts` in `localStorage` e la rivaluta con l'ETag.
   - Le cache hanno la versione nel nome (`epicfeed-shell-v1`, `epicfeed-static-v1`): cambiare `VERSION` le svuota all'attivazione; `skipWaiting` e `clients.claim` fanno valere subito la versione nuova.
@@ -203,7 +205,7 @@ Esempio commentato in `apps/web/.env.example`. In locale vanno in `apps/web/.env
 La build in CI non ha bisogno di nessuna variabile: vengono lette e validate solo quando arriva una richiesta.
 
 ## Messa online (Vercel)
-Le funzioni girano a **Dublino** (`apps/web/vercel.json`, `regions: ["dub1"]`), accanto a database e autenticazione di Supabase (`eu-west-1`, Irlanda): con la regione predefinita di Vercel (Virginia) ogni query attraversava l'Atlantico ([ADR 0016](../decisions/0016-reattivita-app.md)).
+Le funzioni girano a **Dublino** (`apps/web/vercel.json`, `regions: ["dub1"]`), accanto a database e autenticazione di Supabase (`eu-west-1`, Irlanda): con la regione predefinita di Vercel (Virginia) ogni query attraversava l'Atlantico ([ADR 0016](../decisions/0016-app-responsiveness.md)).
 
 Una volta sola:
 1. Vercel → *Add New → Project* → importa `DamnedMe/study-feed`; *Root Directory* `apps/web` (Vercel riconosce pnpm e Turborepo).

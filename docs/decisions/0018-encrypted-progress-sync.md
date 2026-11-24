@@ -2,8 +2,8 @@
 
 - Stato: accettata
 - Data: 23/11/2026
-- Completa: [ADR 0017](0017-ripasso-ed-esame-m4.md) (punto 6)
-- Modifica: [ADR 0003](0003-risultati-sul-dispositivo.md) (i progressi di studio escono dal dispositivo, ma solo cifrati)
+- Completa: [ADR 0017](0017-review-and-exam-m4.md) (punto 6)
+- Modifica: [ADR 0003](0003-results-on-device.md) (i progressi di studio escono dal dispositivo, ma solo cifrati)
 
 ## Contesto
 Da M4 ogni risposta del feed e del ripasso aggiorna il ripasso del concetto, salvato in IndexedDB. Chi studia sul telefono e sul PC senza sincronizzazione ha due ripassi che divergono. L'ADR 0003 voleva i risultati solo sul dispositivo, per privacy: la sincronizzazione si fa solo se il server non li può leggere (scartata la cifratura del solo database, perché chi lo amministra potrebbe leggerli).

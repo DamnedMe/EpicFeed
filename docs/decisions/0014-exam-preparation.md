@@ -5,16 +5,16 @@
 - Decisa da: Damian ("A (+ timer) + C + D + E, tutto in inglese, suggerimenti attivabili con lingua a scelta, in M4", 22/11/2026, sul documento *EpicFeed: preparazione all'esame*); Claude per i dettagli tecnici
 
 ## Contesto
-Lo zip ufficiale delle slide del corso DSA contiene `Exam Prep-1.pdf`, che Epicode presenta come aiuto per l'esame finale. Sono **14 esercizi aperti in inglese, senza soluzioni**: 9 chiedono di scrivere codice Python (es. parentesi bilanciate con uno stack, Dijkstra con una coda di priorità, stack simulato con due code), 5 di spiegare, confrontare o analizzare la complessità (es. stabilità degli algoritmi di ordinamento, Big-O di un codice dato). Gli esempi di input/output e il codice da analizzare sono immagini. Oggi la lezione resta fuori: è fatta solo di slide, l'estensione non la importa e `importa_slide` non trova una lezione a cui abbinarla ([ADR 0012](0012-slide-dallo-zip-ufficiale.md)).
+Lo zip ufficiale delle slide del corso DSA contiene `Exam Prep-1.pdf`, che Epicode presenta come aiuto per l'esame finale. Sono **14 esercizi aperti in inglese, senza soluzioni**: 9 chiedono di scrivere codice Python (es. parentesi bilanciate con uno stack, Dijkstra con una coda di priorità, stack simulato con due code), 5 di spiegare, confrontare o analizzare la complessità (es. stabilità degli algoritmi di ordinamento, Big-O di un codice dato). Gli esempi di input/output e il codice da analizzare sono immagini. Oggi la lezione resta fuori: è fatta solo di slide, l'estensione non la importa e `importa_slide` non trova una lezione a cui abbinarla ([ADR 0012](0012-slides-from-official-zip.md)).
 
-I quiz generati in M2 sono solo a scelta multipla e vero/falso ([ADR 0013](0013-generazione-m2-dettagli.md)): allenano a riconoscere la risposta, mentre l'esame chiede di produrla, in inglese. Serve un formato nuovo.
+I quiz generati in M2 sono solo a scelta multipla e vero/falso ([ADR 0013](0013-generation-m2-details.md)): allenano a riconoscere la risposta, mentre l'esame chiede di produrla, in inglese. Serve un formato nuovo.
 
 Delle cinque alternative proposte (A banca esercizi, B simulazione completa, C correzione di Claude, D esecuzione del codice, E domande aperte nei feed) Damian ha scelto **A con un timer, C, D ed E**, tutto in M4.
 
 ## Decisione
 
 ### 1. Lingua: tutto in inglese, suggerimenti esclusi
-Testo degli esercizi, risposte, soluzioni modello, griglie e commenti della correzione sono **solo in inglese**, come all'esame. È un'eccezione voluta allo studio bilingue dell'[ADR 0011](0011-studio-bilingue-it-en.md), che resta valido per schede e quiz. Unica parte bilingue: i **suggerimenti**, che si **attivano o disattivano** (interruttore in *Io* e su ogni esercizio) e hanno una **lingua propria** (IT o EN), indipendente da quella di studio e da quella dei quiz. L'interfaccia dell'app resta in italiano.
+Testo degli esercizi, risposte, soluzioni modello, griglie e commenti della correzione sono **solo in inglese**, come all'esame. È un'eccezione voluta allo studio bilingue dell'[ADR 0011](0011-bilingual-study-it-en.md), che resta valido per schede e quiz. Unica parte bilingue: i **suggerimenti**, che si **attivano o disattivano** (interruttore in *Io* e su ogni esercizio) e hanno una **lingua propria** (IT o EN), indipendente da quella di studio e da quella dei quiz. L'interfaccia dell'app resta in italiano.
 
 ### 2. Materiale d'esame del corso (A)
 - `importa_slide` riconosce i PDF d'esame dello zip (titolo che contiene "Exam Prep", proposta da verificare sugli altri corsi) e li aggancia al **corso** come *materiale d'esame*, invece di segnalarli come non abbinati. Come per le slide, a EpicFeed arriva solo il testo; i PDF restano sul PC.
@@ -29,7 +29,7 @@ Dalla sezione **Esame** del corso si sceglie uno o più esercizi (per argomento,
 
 ### 4. Correzione (autovalutazione e Claude, C)
 - **Autovalutazione**: si segna ogni criterio della griglia; il punteggio è sempre disponibile.
-- **Correzione di Claude**: il pulsante *Fai correggere a Claude* mette la risposta in coda; in Claude Desktop "correggi le mie risposte" usa due strumenti MCP (`risposte_da_correggere`, `salva_correzione`) che restituiscono punteggio per criterio e commento, in inglese. Niente Claude API, come per la generazione ([ADR 0007](0007-generazione-via-mcp-e-login.md)).
+- **Correzione di Claude**: il pulsante *Fai correggere a Claude* mette la risposta in coda; in Claude Desktop "correggi le mie risposte" usa due strumenti MCP (`risposte_da_correggere`, `salva_correzione`) che restituiscono punteggio per criterio e commento, in inglese. Niente Claude API, come per la generazione ([ADR 0007](0007-generation-via-mcp-and-login.md)).
 - Il punteggio (di Claude se c'è, altrimenti l'autovalutazione) aggiorna il **ripasso FSRS** dei concetti collegati: sotto il 50% equivale a "di nuovo", 50–80% a "difficile", sopra a "bene".
 
 ### 5. Codice eseguibile nel browser (D)
@@ -66,5 +66,5 @@ Come l'autovalutazione ufficiale di fine modulo: **50 domande a scelta multipla*
 - Nuove tabelle additive (banca esercizi per corso, coda delle risposte da correggere) con RLS: ognuno vede solo le proprie.
 
 ## Punti confermati dopo la decisione (22/11/2026)
-1. **Risposte da correggere sul server**: Damian approva. Va nell'area privata **solo** la risposta inviata con *Fai correggere a Claude*; l'app scarica la correzione e la copia sul server si cancella subito dopo (al massimo dopo 30 giorni se non viene mai scaricata). È un'eccezione limitata all'[ADR 0003](0003-risultati-sul-dispositivo.md): punteggi e storico restano sul dispositivo.
+1. **Risposte da correggere sul server**: Damian approva. Va nell'area privata **solo** la risposta inviata con *Fai correggere a Claude*; l'app scarica la correzione e la copia sul server si cancella subito dopo (al massimo dopo 30 giorni se non viene mai scaricata). È un'eccezione limitata all'[ADR 0003](0003-results-on-device.md): punteggi e storico restano sul dispositivo.
 2. **Formato dell'esame del corso DSA**, dalle slide della lezione *Introduction* (zip ufficiale, `Introduction-1.pdf`): un'**autovalutazione di 50 domande a scelta multipla per ognuno dei 6 moduli** (300 in tutto, circa 10 per lezione) e un **esame finale come colloquio online di 20 minuti** su tutto il corso, da PC. La durata varia da corso a corso: va letta dal materiale di ciascuno (slide introduttive o linee guida d'esame).

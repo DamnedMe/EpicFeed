@@ -34,10 +34,10 @@ subjects ─< glossary_terms
 | `lesson_feeds` | Feed di una lezione (schede, quiz, concetti IT+EN) generato da Claude Desktop | (`lesson_id`, `sources_hash`) univoci, `source_version_ids` (1–40 versioni da cui è nato), `prompt_version` datata, ≤ 1 MB |
 | `subject_exam_banks` | Banca degli esercizi d'esame di una materia, privata di chi l'ha generata (M4) | (`subject_id`, `generated_by`) univoci, `prompt_version` datata, ≤ 1 MB |
 | `lesson_exam_packs` | Pacchetto d'esame di un feed (domande a scelta multipla e aperte in inglese, M4) | `lesson_feed_id` univoco con cancellazione a cascata, `prompt_version` datata, ≤ 512 KB |
-| `exam_submissions` | Risposte inviate con *Fai correggere a Claude* (esercizio o colloquio) e correzione di Claude ([ADR 0014](../decisions/0014-preparazione-esame.md) §4, M4) | `kind` (`exercise`, `interview`), `submission` e `correction` JSON ≤ 128 KB ciascuno, `expires_at` = creazione + 30 giorni; l'app la cancella appena scarica la correzione |
+| `exam_submissions` | Risposte inviate con *Fai correggere a Claude* (esercizio o colloquio) e correzione di Claude ([ADR 0014](../decisions/0014-exam-preparation.md) §4, M4) | `kind` (`exercise`, `interview`), `submission` e `correction` JSON ≤ 128 KB ciascuno, `expires_at` = creazione + 30 giorni; l'app la cancella appena scarica la correzione |
 | `glossary_terms` | Glossario bilingue della materia | (`subject_id`, `term_key`) univoci; termine inglese, traduzione, definizione `{ it, en }` |
 | `generation_events` | Registro delle chiamate del server MCP | utente, azione (`read`, `save`, `slides`), lezione, data: serve al limite di frequenza (120/ora) |
-| `progress_snapshots` | Copia **cifrata nel browser** dei progressi di studio ([ADR 0018](../decisions/0018-sincronizzazione-cifrata-progressi.md)) | PK `user_id`; `revision` ≥ 1 per la concorrenza ottimistica; `kdf`, `salt` (16 byte) e `iv` (12 byte) in base64; `ciphertext` base64 ≤ 4 milioni di caratteri. Il server non ha la chiave |
+| `progress_snapshots` | Copia **cifrata nel browser** dei progressi di studio ([ADR 0018](../decisions/0018-encrypted-progress-sync.md)) | PK `user_id`; `revision` ≥ 1 per la concorrenza ottimistica; `kdf`, `salt` (16 byte) e `iv` (12 byte) in base64; `ciphertext` base64 ≤ 4 milioni di caratteri. Il server non ha la chiave |
 | `import_events` | Registro degli import | utente, lezione, numero di parti, data: serve al limite di frequenza (60/ora) |
 
 Vincoli `CHECK` replicano nel database le regole del core (titoli 1–300 caratteri, posizioni ≥ 0, id Epicode con soli caratteri sicuri), così un dato non valido non entra nemmeno per errore. Un indice parziale su `content_versions` (`pending`, `failed`) rende veloce la ricerca delle versioni da generare; gli indici su `entitlements` servono alle policy RLS e coprono la chiave esterna composta (versione, parte).
@@ -114,7 +114,7 @@ Il workflow gira solo su `main`, mai due volte in parallelo, e la stringa di con
 Crea `packages/db/.env` (ignorato da git) con `DATABASE_URL=<stringa>` e lancia `pnpm --filter @study-feed/db db:migrate`.
 
 ### Altre impostazioni
-- *Authentication → Providers*: lascia attivo solo Email (codice monouso e password, [ADR 0007](../decisions/0007-generazione-via-mcp-e-login.md)).
+- *Authentication → Providers*: lascia attivo solo Email (codice monouso e password, [ADR 0007](../decisions/0007-generation-via-mcp-and-login.md)).
 - URL del progetto e chiave pubblicabile sono variabili d'ambiente della web app su Vercel ([web.md](web.md#variabili-dambiente)); la web app non usa la chiave `service_role`: scrive con `DATABASE_URL` dal server. Nessun segreto va scritto in chat o nella repo.
 
 ### Verifica del flusso

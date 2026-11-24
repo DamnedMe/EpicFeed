@@ -41,7 +41,7 @@ Damian ha segnalato che i sottotitoli sono spesso sbagliati. Costruire le schede
   - se riguarda un termine tecnico, entra nel suo glossario per quella materia e viene usata nelle generazioni successive (nuove versioni della stessa lezione, lezioni nuove della stessa materia);
   - se Epicode aggiorna la lezione e nasce una nuova versione, la correzione viene riapplicata quando lo stesso passaggio è ancora presente.
 - Una segnalazione senza testo corretto chiede a Claude di rigenerare la scheda dai soli riassunti.
-- Le correzioni sono salvate in un'**area privata del server** (RLS: solo l'autore), come il feed dei libri ([ADR 0005](0005-sezione-libri.md)). Non stanno solo sul dispositivo come i risultati ([ADR 0003](0003-risultati-sul-dispositivo.md)), perché devono valere anche sul telefono e servire alla generazione, che gira sul server.
+- Le correzioni sono salvate in un'**area privata del server** (RLS: solo l'autore), come il feed dei libri ([ADR 0005](0005-books-section.md)). Non stanno solo sul dispositivo come i risultati ([ADR 0003](0003-results-on-device.md)), perché devono valere anche sul telefono e servire alla generazione, che gira sul server.
 - In questa fase le correzioni **non modificano il catalogo condiviso**: valgono solo per chi le scrive.
 
 ## Alternative scartate

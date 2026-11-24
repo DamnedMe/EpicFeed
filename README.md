@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: light)" srcset="https://study-feed-steel.vercel.app/readme/app-chiaro.png?v=2026-11-24">
-    <img src="https://study-feed-steel.vercel.app/readme/app-scuro.png?v=2026-11-24" alt="Le schermate di EpicFeed: feed a battute, domande, Ripasso e Io" width="100%">
+    <source media="(prefers-color-scheme: light)" srcset="https://study-feed-steel.vercel.app/readme/app-light.png?v=2026-11-24">
+    <img src="https://study-feed-steel.vercel.app/readme/app-dark.png?v=2026-11-24" alt="Le schermate di EpicFeed: feed a battute, domande, Ripasso e Io" width="100%">
   </picture>
 </p>
 
@@ -22,8 +22,8 @@
 <!-- stato:inizio -->
 <!-- Blocco generato da scripts/docs-status.mjs a partire da docs/status.json: non modificarlo a mano. -->
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://study-feed-steel.vercel.app/readme/stato-chiaro.svg?v=2026-11-24">
-  <img src="https://study-feed-steel.vercel.app/readme/stato-scuro.svg?v=2026-11-24" alt="Stato dello sviluppo di EpicFeed: milestone da M0 a M9" width="100%">
+  <source media="(prefers-color-scheme: light)" srcset="https://study-feed-steel.vercel.app/readme/status-light.svg?v=2026-11-24">
+  <img src="https://study-feed-steel.vercel.app/readme/status-dark.svg?v=2026-11-24" alt="Stato dello sviluppo di EpicFeed: milestone da M0 a M9" width="100%">
 </picture>
 
 > [!TIP]

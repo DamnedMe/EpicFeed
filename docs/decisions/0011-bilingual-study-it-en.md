@@ -12,14 +12,14 @@ Damian studia in italiano, ma l'esame del corso è in inglese: deve saper legger
 | Riassunto di ogni parte video (`summary`) | sì, per tutti i 91 video | sì, per tutti i 91 video |
 | Sottotitoli | `it`, caricati dal portale (non auto-generati) | `en-x-autogen`, auto-generati; stessi tempi della traccia italiana |
 | Riassunto di capitolo (markdown "- Summary") | no | sì, circa 10.000 caratteri |
-| Slide ([ADR 0012](0012-slide-dallo-zip-ufficiale.md)) | no | sì |
+| Slide ([ADR 0012](0012-slides-from-official-zip.md)) | no | sì |
 
-L'import ([ADR 0009](0009-import-lezione-intera-e-sottotitoli.md)) salva già entrambe le lingue di riassunti e sottotitoli: lato estensione non serve nulla.
+L'import ([ADR 0009](0009-whole-lesson-import-and-subtitles.md)) salva già entrambe le lingue di riassunti e sottotitoli: lato estensione non serve nulla.
 
 ## Principi (validi per tutte le opzioni)
 - **Import invariato**: si continuano a salvare riassunti IT ed EN e tutte le tracce di sottotitoli.
 - **Termini tecnici in forma originale**: nomi di API, funzioni e codice restano come nel corso (`useState`, `HashMap`, "AVL tree"), in entrambe le lingue.
-- **Glossario bilingue per materia** ([ADR 0006](0006-sottotitoli-come-fonte-secondaria.md) §2): ogni termine ha la forma inglese del corso e la traduzione italiana, così una scheda in italiano può sempre mostrare il termine che uscirà all'esame.
+- **Glossario bilingue per materia** ([ADR 0006](0006-subtitles-as-secondary-source.md) §2): ogni termine ha la forma inglese del corso e la traduzione italiana, così una scheda in italiano può sempre mostrare il termine che uscirà all'esame.
 - **Ripasso unico**: un concetto è lo stesso nelle due lingue; il ripasso FSRS non si duplica se si studia in entrambe.
 - **Fonti nella stessa lingua**: la versione inglese nasce dalle fonti inglesi e quella italiana dalle fonti italiane, non da una traduzione dell'altra; si traduce solo ciò che esiste in una lingua sola (riassunto di capitolo e slide).
 

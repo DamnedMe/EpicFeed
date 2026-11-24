@@ -32,7 +32,7 @@ Le battute si ricavano dalle schede già generate: nessuna rigenerazione in Clau
 - **Sessioni da 5 minuti** con anello del tempo e riepilogo finale.
 - **Ascolta**: lettura ad alta voce con la sintesi vocale del dispositivo, nella lingua della scheda.
 - **Avanzamento automatico** facoltativo, alla velocità di lettura.
-- Punti, vibrazione e animazioni si possono spegnere in *Io*; con *riduci animazioni* del sistema le animazioni si spengono da sole. Punti, serie, schede salvate, posizione e preferenze stanno solo sul dispositivo ([ADR 0003](0003-risultati-sul-dispositivo.md)).
+- Punti, vibrazione e animazioni si possono spegnere in *Io*; con *riduci animazioni* del sistema le animazioni si spengono da sole. Punti, serie, schede salvate, posizione e preferenze stanno solo sul dispositivo ([ADR 0003](0003-results-on-device.md)).
 
 ### 3. Azioni con i gesti (disposizione D)
 Delle cinque disposizioni provate (A colonna a destra, B barra sotto, C pulsante unico, D solo gesti, E icone in alto) vale la **D**: nessun pulsante sulla scheda, il testo usa tutta la larghezza.
@@ -66,10 +66,10 @@ Barra in basso **Feed · Ripasso · Libri · Io** del design approvato; Ripasso 
 Dettagli scelti da Claude realizzando le decisioni sopra, descritti in [feed.md](../functional/feed.md):
 - **Parola da indovinare**: se nessun termine del glossario compare nella frase chiave si copre una complessità, un pezzo di codice o un numero. Sulle prime due lezioni DSA trova una parola in 3 schede su 4 in italiano e in più di 4 su 5 in inglese: i termini del glossario sono in inglese. In M4 la generazione potrà indicare la parola.
 - **Domande**: una ogni 3 schede (il valore più basso dell'intervallo 3–4), più una a fine lezione. **Modifica del 23/11/2026** (Damian: "porterei le domande da 1 ogni tanto a 3 ogni tanto, sempre sugli argomenti appena visti"): dopo ogni 3 schede arriva un gruppo di **fino a 3 domande** (`QUIZ_BATCH`), prima sui concetti delle ultime schede e poi sugli altri già letti nella lezione, mai su un concetto non ancora visto; a fine lezione un ultimo gruppo se dopo l'ultimo c'è almeno una scheda. Ogni domanda mostra la sua posizione nel gruppo (*1/3*). Sul corso DSA il feed passa da circa 4 a 246 domande su 247 (8 per lezione), 238 delle quali sui concetti delle schede appena lette; gruppi: 55 da 3, 34 da 2, 13 da 1; 10 punti, +2 per ogni risposta giusta di fila oltre la prima, fino a +8; parola indovinata 2 punti.
-- **Lingua delle domande**: separata da quella delle schede e inglese di base, come previsto dall'[ADR 0011](0011-studio-bilingue-it-en.md).
+- **Lingua delle domande**: separata da quella delle schede e inglese di base, come previsto dall'[ADR 0011](0011-bilingual-study-it-en.md).
 - **Doppio tocco**: salva soltanto (come un "mi piace"); per togliere si usano le azioni o *Salvati*. Il tocco singolo aspetta 230 ms per riconoscere il doppio tocco.
 - **Fine sessione**: il riepilogo compare alla prima scheda dopo i 5 minuti, non a metà lettura.
-- **Fonte delle slide**: le slide importate dallo zip ([ADR 0012](0012-slide-dallo-zip-ufficiale.md)) non hanno una pagina sul portale, quindi il link porta alla lezione.
+- **Fonte delle slide**: le slide importate dallo zip ([ADR 0012](0012-slides-from-official-zip.md)) non hanno una pagina sul portale, quindi il link porta alla lezione.
 - **Tema e accento** in cookie (letti dal server al primo render); tutto il resto in `localStorage`.
 
 ## Alternative scartate

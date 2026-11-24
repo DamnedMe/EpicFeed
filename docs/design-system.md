@@ -23,7 +23,7 @@ L'accento colora azioni, progresso, voce attiva e risposta giusta.
 | Turchese | #30D5C8 | #30D5C8 | #0A7870 ¹ | #0B0B0E |
 | Verde lime | #A3E635 | #A3E635 | #3F6B0A | #0B0B0E |
 
-¹ Approvato come #0B7F76, scurito appena in M0 per raggiungere il contrasto WCAG AA (4,5:1) sul fondo chiaro: da 4,26 a 4,67 ([ADR 0008](decisions/0008-strumenti-delle-fondamenta.md)).
+¹ Approvato come #0B7F76, scurito appena in M0 per raggiungere il contrasto WCAG AA (4,5:1) sul fondo chiaro: da 4,26 a 4,67 ([ADR 0008](decisions/0008-foundation-tooling.md)).
 
 Ogni combinazione di tema e accento è verificata nei test (contrasto ≥ 4,5:1). Implementazione: [technical/design-tokens.md](technical/design-tokens.md).
 
@@ -38,4 +38,4 @@ Temi: scuro, chiaro, automatico (segue il sistema).
 
 ## Mockup
 - [design/mockups/](design/mockups/) (scuro: `A-`…`E-`, chiaro: `*-chiaro-*`)
-- [design/mockups/libri-scuro-racing-red.png](design/mockups/libri-scuro-racing-red.png): sezione Libri (libreria, caricamento, feed di lettura). Le copertine usano titoli in Fraunces solo come segnaposto per le copertine generate.
+- [design/mockups/books-dark-racing-red.png](design/mockups/books-dark-racing-red.png): sezione Libri (libreria, caricamento, feed di lettura). Le copertine usano titoli in Fraunces solo come segnaposto per le copertine generate.

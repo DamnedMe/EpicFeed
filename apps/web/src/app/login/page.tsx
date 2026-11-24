@@ -12,7 +12,7 @@ export default async function LoginPage({
 }) {
   const { errore } = await searchParams;
   const user = await getCurrentUser({ verifyWithServer: true });
-  if (user) redirect(user.hasPassword ? '/lezioni' : '/accedi/password');
+  if (user) redirect(user.hasPassword ? '/lessons' : '/login/password');
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-8 px-4">

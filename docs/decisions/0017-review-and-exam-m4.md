@@ -3,7 +3,7 @@
 - Stato: accettata
 - Data: 23/11/2026
 - Decisa da: Damian, una scelta alla volta il 23/11/2026 sera, sul documento *EpicFeed M4: ripasso e preparazione esame* e sul prototipo da telefono; Claude per i dettagli tecnici
-- Completa: [ADR 0014](0014-preparazione-esame.md) (cosa contiene la preparazione all'esame). Modifica: [ADR 0003](0003-risultati-sul-dispositivo.md) (punto 6)
+- Completa: [ADR 0014](0014-exam-preparation.md) (cosa contiene la preparazione all'esame). Modifica: [ADR 0003](0003-results-on-device.md) (punto 6)
 
 ## Contesto
 M4 chiude l'MVP: ripasso giornaliero dei concetti deboli e sezione Esame in inglese. Il *cosa* dell'esame era già deciso nell'ADR 0014; restavano da scegliere il *come* e il ripasso. Dati misurati il 23/11/2026 sul corso DSA: 40 domande per modulo (8 per lezione × 5 lezioni), 139 concetti nei 6 moduli più 4 dell'onboarding, 14 esercizi in *Exam Prep-1.pdf* (9 di codice, 5 di spiegazione o analisi). Le domande del feed fino a M3 non lasciavano traccia.
@@ -23,7 +23,7 @@ M4 chiude l'MVP: ripasso giornaliero dei concetti deboli e sezione Esame in ingl
 | 8 | Varianti degli esercizi | **2 per esercizio ufficiale** (42 esercizi in tutto) |
 
 ### Ripasso: dettagli tecnici (PR 1)
-- **Un ripasso per concetto, non per domanda.** L'unità è il concetto della materia (`materia:chiave`): la stessa chiave in più lezioni (per esempio `queue-operations` compare in 3) è lo stesso concetto, con un solo ripasso. Ogni risposta (feed, ripasso, e più avanti quiz di modulo, esercizi e colloquio) aggiorna il concetto, in qualunque lingua; lo storico ricorda la lingua usata ([ADR 0011](0011-studio-bilingue-it-en.md)).
+- **Un ripasso per concetto, non per domanda.** L'unità è il concetto della materia (`materia:chiave`): la stessa chiave in più lezioni (per esempio `queue-operations` compare in 3) è lo stesso concetto, con un solo ripasso. Ogni risposta (feed, ripasso, e più avanti quiz di modulo, esercizi e colloquio) aggiorna il concetto, in qualunque lingua; lo storico ricorda la lingua usata ([ADR 0011](0011-bilingual-study-it-en.md)).
 - **FSRS con `ts-fsrs` 5.4.2** (MIT, nessuna dipendenza) nel core, con i parametri predefiniti e **senza variazione casuale delle scadenze**: lo stesso storico dà le stesse date su ogni dispositivo, cosa che serve alla sincronizzazione. La versione 6 è scartata per ora: appena uscita e con una dipendenza nuova.
 - **Valutazioni**: sbagliata = *di nuovo*, giusta = *bene*, giusta con un suggerimento = *difficile*; per gli esercizi con la griglia le soglie dell'ADR 0014 (sotto 50% *di nuovo*, fino all'80% *difficile*, sopra *bene*). La parola scoperta nella battuta di richiamo **non** conta come aiuto: nel ripasso si scopre sempre, è il richiamo stesso.
 - **Sessione**: fino a 10 concetti (circa 5 minuti), prima gli scaduti dal più in ritardo; se non scade niente si propone *Ripassa in anticipo* con i concetti già visti che si ricordano meno (probabilità di ricordo FSRS). Un concetto mai incontrato nel feed non entra: il ripasso non anticipa lo studio. Per ogni concetto la domanda è la successiva all'ultima fatta, a giro, tra tutte quelle della materia su quel concetto.
@@ -32,7 +32,7 @@ M4 chiude l'MVP: ripasso giornaliero dei concetti deboli e sezione Esame in ingl
 - Una risposta appena sbagliata torna dopo i passi di apprendimento FSRS (1 e 10 minuti), non subito.
 
 ### Sincronizzazione (PR 2)
-I progressi escono dal dispositivo solo cifrati: la chiave si ricava dalla password al momento dell'accesso e resta sul dispositivo; il server conserva dati che non può leggere, con permessi per utente. Se la password cambia, la copia sul server si rifà dal primo dispositivo che si apre (i dati locali restano). Dettagli e protocollo nell'[ADR 0018](0018-sincronizzazione-cifrata-progressi.md).
+I progressi escono dal dispositivo solo cifrati: la chiave si ricava dalla password al momento dell'accesso e resta sul dispositivo; il server conserva dati che non può leggere, con permessi per utente. Se la password cambia, la copia sul server si rifà dal primo dispositivo che si apre (i dati locali restano). Dettagli e protocollo nell'[ADR 0018](0018-encrypted-progress-sync.md).
 
 ### Pacchetti d'esame: dettagli tecnici (PR 3)
 - Il pacchetto **non cambia il contratto del feed** (diversamente dal §6 dell'ADR 0014, che prevedeva un campo `examQuestions` nel feed): sta nella tabella `lesson_exam_packs`, uno per feed, con domande a scelta multipla e domande aperte insieme. Così i 31 feed già generati restano come sono e il pacchetto si aggiunge con un passaggio separato.

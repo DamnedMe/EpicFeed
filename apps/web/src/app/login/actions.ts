@@ -46,7 +46,7 @@ export async function sendCode(_prev: AuthFormState, form: FormData): Promise<Au
   if (isEmailAllowed(email.data)) {
     const supabase = await createSupabaseServerClient();
     // Le email predefinite di Supabase contengono un link (il codice compare
-    // solo con un modello personalizzato): il link torna a /accedi/callback.
+    // solo con un modello personalizzato): il link torna a /login/callback.
     const redirectTo = await callbackUrl();
     const { error } = await supabase.auth.signInWithOtp({
       email: email.data,
@@ -73,7 +73,7 @@ export async function sendCode(_prev: AuthFormState, form: FormData): Promise<Au
  */
 async function callbackUrl(): Promise<string | undefined> {
   const origin = (await headers()).get('origin');
-  return origin ? `${origin}/accedi/callback` : undefined;
+  return origin ? `${origin}/login/callback` : undefined;
 }
 
 /** Verifica il codice ricevuto via email e apre la sessione. */
@@ -99,7 +99,7 @@ export async function verifyCode(_prev: AuthFormState, form: FormData): Promise<
     return { step: 'code', email: email.data, message: 'Codice errato o scaduto.', error: true };
   }
   const user = await getCurrentUser({ verifyWithServer: true });
-  redirect(user?.hasPassword ? '/lezioni' : '/accedi/password');
+  redirect(user?.hasPassword ? '/lessons' : '/login/password');
 }
 
 /** Accesso quotidiano con email e password. */
@@ -120,7 +120,7 @@ export async function signInWithPassword(
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({ email: email.data, password });
   if (error) return failed;
-  redirect('/lezioni');
+  redirect('/lessons');
 }
 
 /** Stato del form "imposta la password". */
@@ -134,7 +134,7 @@ export async function setPassword(
   form: FormData,
 ): Promise<PasswordFormState> {
   const user = await getCurrentUser({ verifyWithServer: true });
-  if (!user) redirect('/accedi');
+  if (!user) redirect('/login');
 
   const password = field(form, 'password');
   const confirm = field(form, 'confirm');
@@ -153,12 +153,12 @@ export async function setPassword(
           : 'Non è stato possibile salvare la password. Riprova.',
     };
   }
-  redirect('/lezioni');
+  redirect('/lessons');
 }
 
 /** Chiude la sessione. */
 export async function signOut(): Promise<void> {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
-  redirect('/accedi');
+  redirect('/login');
 }

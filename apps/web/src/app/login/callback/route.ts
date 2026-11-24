@@ -14,17 +14,17 @@ import { createSupabaseServerClient } from '@/server/supabase';
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const code = request.nextUrl.searchParams.get('code');
   const to = (path: string) => NextResponse.redirect(new URL(path, request.nextUrl.origin));
-  if (!code) return to('/accedi?errore=link');
+  if (!code) return to('/login?errore=link');
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
-  if (error) return to('/accedi?errore=link');
+  if (error) return to('/login?errore=link');
 
   // getCurrentUser ricontrolla anche l'elenco delle email ammesse.
   const user = await getCurrentUser({ verifyWithServer: true });
   if (!user) {
     await supabase.auth.signOut();
-    return to('/accedi?errore=link');
+    return to('/login?errore=link');
   }
-  return to(user.hasPassword ? '/lezioni' : '/accedi/password');
+  return to(user.hasPassword ? '/lessons' : '/login/password');
 }

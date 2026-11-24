@@ -1,6 +1,6 @@
 # Ripasso ed Esame (M4)
 
-Il tab **Ripasso** della barra in basso riporta i concetti che stai dimenticando, prima che li dimentichi. In alto ha due sezioni: **Ripasso** ed **Esame**. Decisioni e motivi nell'[ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md); come funziona dentro in [web.md](../technical/web.md#ripasso-m4).
+Il tab **Ripasso** della barra in basso riporta i concetti che stai dimenticando, prima che li dimentichi. In alto ha due sezioni: **Ripasso** ed **Esame**. Decisioni e motivi nell'[ADR 0017](../decisions/0017-review-and-exam-m4.md); come funziona dentro in [web.md](../technical/web.md#ripasso-m4).
 
 ## Come si riempie
 Ogni risposta alle domande del **feed** entra nel ripasso del suo **concetto** (per esempio *Stack*, *Queue operations*). Lo stesso concetto può comparire in più lezioni: il ripasso è uno solo. Conta anche la lingua in cui rispondi solo per lo storico: il ripasso è lo stesso in italiano e in inglese.
@@ -27,7 +27,7 @@ In alto: la **×** per uscire (le risposte già date restano), quanti concetti m
 Alla fine compare il riepilogo: concetti ripassati, risposte giuste, punti e la serie di giorni aggiornata.
 
 ## Esame
-La sezione **Esame** (stesso tab, oppure `/ripasso#esame`) è tutta in inglese, come all'esame ([ADR 0014](../decisions/0014-preparazione-esame.md)); l'interfaccia resta in italiano. Ogni risposta entra nel ripasso dei suoi concetti, come quelle del feed. In alto un avviso dice per quante lezioni ci sono già le domande d'esame e come prepararle per le altre.
+La sezione **Esame** (stesso tab, oppure `/review#esame`) è tutta in inglese, come all'esame ([ADR 0014](../decisions/0014-exam-preparation.md)); l'interfaccia resta in italiano. Ogni risposta entra nel ripasso dei suoi concetti, come quelle del feed. In alto un avviso dice per quante lezioni ci sono già le domande d'esame e come prepararle per le altre.
 
 ### Quiz di modulo
 Come l'autovalutazione ufficiale di fine modulo: **50 domande a scelta multipla**, estratte a caso ogni volta tra quelle del feed delle lezioni del modulo e le domande d'esame in più (circa 90 per modulo). Se un modulo ne ha meno di 50 il quiz le usa tutte e lo dice. Dopo ogni risposta si vede la spiegazione; alla fine il punteggio, le risposte giuste e i concetti da rivedere, che nel ripasso tornano prima.
@@ -41,7 +41,7 @@ L'elenco mostra prima la **banca degli esercizi** (ogni esercizio ufficiale con 
 - **Mostra soluzione e griglia**: la soluzione modello e i criteri di correzione; per ogni criterio si segnano i punti presi e si salva il punteggio. Sotto il 50% il concetto torna presto nel ripasso, tra il 50% e l'80% è "difficile", sopra è "bene". Dopo il salvataggio compare la domanda di approfondimento, come al colloquio.
 
 ### Correzione di Claude
-Con **Fai correggere a Claude** la risposta (con l'esito dei test, se li hai eseguiti) va a Claude Desktop: lì si chiede **"correggi le mie risposte di EpicFeed"**. Alla prossima apertura della sezione Esame la correzione arriva nell'esercizio e nell'elenco *Correzioni di Claude*; finché non arriva, l'esercizio è segnato *In correzione*. Si legge come una revisione del codice ([ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md#correzione-del-codice-come-si-mostra-pr-5)):
+Con **Fai correggere a Claude** la risposta (con l'esito dei test, se li hai eseguiti) va a Claude Desktop: lì si chiede **"correggi le mie risposte di EpicFeed"**. Alla prossima apertura della sezione Esame la correzione arriva nell'esercizio e nell'elenco *Correzioni di Claude*; finché non arriva, l'esercizio è segnato *In correzione*. Si legge come una revisione del codice ([ADR 0017](../decisions/0017-review-and-exam-m4.md#correzione-del-codice-come-si-mostra-pr-5)):
 - i punti di ogni criterio della griglia e il punteggio;
 - una scheda per ogni suggerimento, con un titolo breve, la spiegazione e le righe da cambiare: quella sbagliata in rosso con `−`, quella corretta in verde con `+`, i numeri di riga e qualche riga attorno;
 - sotto, il commento generale (complessità, chiarezza) e un riepilogo.
@@ -61,7 +61,7 @@ Gli esercizi d'esame del corso (il materiale *Exam Prep* che sta nello zip delle
 I progressi del ripasso (stato di ogni concetto, storico delle risposte, giorni di ripasso) stanno sul dispositivo, in IndexedDB. In navigazione privata alcuni browser non permettono di salvarli: la schermata lo dice e il ripasso non viene ricordato. Anche le bozze delle risposte agli esercizi, gli ultimi punteggi e la lingua dei suggerimenti restano sul dispositivo; le domande d'esame se ne tiene una copia per usarle offline.
 
 ## Telefono e PC
-I progressi si **sincronizzano** tra i dispositivi in forma **cifrata sul dispositivo** ([ADR 0018](../decisions/0018-sincronizzazione-cifrata-progressi.md)): la chiave nasce dalla password nel browser e il server ne conserva una copia che non può leggere.
+I progressi si **sincronizzano** tra i dispositivi in forma **cifrata sul dispositivo** ([ADR 0018](../decisions/0018-encrypted-progress-sync.md)): la chiave nasce dalla password nel browser e il server ne conserva una copia che non può leggere.
 
 - Si sincronizza da solo: all'apertura del feed e del Ripasso, poco dopo le risposte, alla fine di un ripasso e quando l'app va in secondo piano. In fondo alla home del Ripasso una riga dice *Progressi sincronizzati*, *in attesa della rete* o *non riuscita: riprovo più tardi*.
 - Le risposte date su due dispositivi, anche offline, si sommano: nessuna si perde, e il ripasso di ogni concetto si ricalcola da tutte.

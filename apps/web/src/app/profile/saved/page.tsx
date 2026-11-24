@@ -13,13 +13,13 @@ export default async function SavedPage() {
   return (
     <div className="ef-page">
       <header className="flex flex-col gap-1">
-        <Link href="/io" className="font-mono text-xs text-muted">
+        <Link href="/profile" className="font-mono text-xs text-muted">
           ← Io
         </Link>
         <h1 className="font-display text-3xl font-bold tracking-tight">Salvati</h1>
       </header>
       <SavedList />
-      <BottomNav active="io" />
+      <BottomNav active="profile" />
     </div>
   );
 }

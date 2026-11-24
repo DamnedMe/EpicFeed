@@ -179,7 +179,7 @@ export function FeedApp({
       (result) => {
         if (!alive) return;
         if (result.status === 'unauthorized') {
-          window.location.assign('/accedi');
+          window.location.assign('/login');
           return;
         }
         if (result.status === 'error' && shown) {
@@ -425,7 +425,7 @@ export function FeedApp({
   const finishSession = (again: boolean) => {
     setEnded(false);
     setSession(newSession(Date.now()));
-    if (!again) router.push('/io');
+    if (!again) router.push('/profile');
   };
 
   // Tastiera: le stesse azioni dei gesti.
@@ -717,11 +717,11 @@ function FeedFallback({ load, onRetry }: { load: LoadState; onRetry: () => void 
             : 'Hai importato delle lezioni ma nessuna ha ancora schede: generale con Claude Desktop.'}
         </p>
         <p>
-          <Link className="ef-link" href="/lezioni">
+          <Link className="ef-link" href="/lessons">
             Le mie lezioni
           </Link>{' '}
           ·{' '}
-          <Link className="ef-link" href="/estensione">
+          <Link className="ef-link" href="/extension">
             Estensione
           </Link>{' '}
           ·{' '}

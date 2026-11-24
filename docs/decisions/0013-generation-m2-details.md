@@ -5,7 +5,7 @@
 - Decisa da: Damian ("ok" alle cinque raccomandazioni del documento *EpicFeed M2: scelte tecniche da decidere*, 21/11/2026); Claude per i dettagli tecnici
 
 ## Contesto
-M2 era già in gran parte definita: genera Claude Desktop con il piano di Damian ([ADR 0007](0007-generazione-via-mcp-e-login.md)), in italiano e in inglese nella stessa passata ([ADR 0011](0011-studio-bilingue-it-en.md)), dai riassunti e dalle slide, con i sottotitoli solo per i tempi ([ADR 0006](0006-sottotitoli-come-fonte-secondaria.md), [ADR 0012](0012-slide-dallo-zip-ufficiale.md)). Restavano cinque scelte che cambiano come si usa la generazione.
+M2 era già in gran parte definita: genera Claude Desktop con il piano di Damian ([ADR 0007](0007-generation-via-mcp-and-login.md)), in italiano e in inglese nella stessa passata ([ADR 0011](0011-bilingual-study-it-en.md)), dai riassunti e dalle slide, con i sottotitoli solo per i tempi ([ADR 0006](0006-subtitles-as-secondary-source.md), [ADR 0012](0012-slides-from-official-zip.md)). Restavano cinque scelte che cambiano come si usa la generazione.
 
 Dati di partenza (database, 21/11/2026): corso *Data Structures and Algorithms* con 7 capitoli, 31 lezioni, in media 4 parti e circa 21.700 caratteri di fonti (IT+EN) per lezione; tutte le versioni nello stato `pending`.
 

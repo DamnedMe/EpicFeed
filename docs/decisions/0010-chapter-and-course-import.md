@@ -5,7 +5,7 @@
 - Decisa da: Damian (scelta "lezione, capitolo o corso intero a scelta, con tempi non compromettenti: va bene lasciare la scheda aperta qualche minuto"); Claude per i dettagli tecnici dei punti 2–6, da confermare in revisione della PR
 
 ## Contesto
-Con l'import di una lezione alla volta ([ADR 0009](0009-import-lezione-intera-e-sottotitoli.md)) un corso di 30–40 lezioni chiede decine di clic. Damian vuole poter importare anche un capitolo o l'intero corso, a patto che la sessione del portale regga e che il traffico non sembri un comportamento anomalo.
+Con l'import di una lezione alla volta ([ADR 0009](0009-whole-lesson-import-and-subtitles.md)) un corso di 30–40 lezioni chiede decine di clic. Damian vuole poter importare anche un capitolo o l'intero corso, a patto che la sessione del portale regga e che il traffico non sembri un comportamento anomalo.
 
 Verifiche sul portale reale (21/11/2026, profilo Chrome loggato, nessuna richiesta aggiuntiva al CMS):
 - a ogni pagina aperta il portale fa circa 15 richieste al CMS, tra cui **l'albero intero del corso** per la barra laterale (unità, moduli, attività e parti, titoli e visibilità);

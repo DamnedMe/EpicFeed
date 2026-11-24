@@ -14,11 +14,30 @@ const securityHeaders = [
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=()' },
 ];
 
+/**
+ * Vecchi indirizzi italiani delle pagine → nuovi indirizzi in inglese (ADR 0019).
+ * Permanenti, così link salvati, PWA installata e vecchie versioni
+ * dell'estensione continuano a funzionare. La query resta (es. `?code=` del login).
+ */
+const legacyPages: [string, string][] = [
+  ['/accedi/:path*', '/login/:path*'],
+  ['/io/salvati', '/profile/saved'],
+  ['/io', '/profile'],
+  ['/ripasso', '/review'],
+  ['/lezioni', '/lessons'],
+  ['/estensione', '/extension'],
+];
+
 const config: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   // I pacchetti del monorepo sono già compilati in `dist/`: nessuna trascrizione.
   serverExternalPackages: ['postgres'],
+  redirects() {
+    return Promise.resolve(
+      legacyPages.map(([source, destination]) => ({ source, destination, permanent: true })),
+    );
+  },
   headers() {
     return Promise.resolve([
       { source: '/:path*', headers: securityHeaders },

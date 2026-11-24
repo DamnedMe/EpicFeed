@@ -71,7 +71,7 @@ export function useReviewData(): { data: ReviewData; reload: () => void } {
     void loadFeed((input, init) => fetch(input, init)).then((result) => {
       if (!alive) return;
       if (result.status === 'unauthorized') {
-        window.location.assign('/accedi');
+        window.location.assign('/login');
         return;
       }
       if (result.status === 'ready') {

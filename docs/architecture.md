@@ -1,13 +1,13 @@
 # Architettura
 
 Stato: **approvata** (14/11/2026); milestone M0 Fondamenta realizzata il 15/11/2026 (monorepo, `core`, token di `ui`, schema e RLS in `db`, CI). Dettagli tecnici in [technical/](technical/setup.md).
-Le motivazioni delle singole scelte sono negli ADR in [decisions/](decisions/). Aggiornata il 14/11/2026 con la sezione Libri ([ADR 0005](decisions/0005-sezione-libri.md)) il 15/11/2026 con la gestione dei sottotitoli ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondaria.md)) e con generazione via MCP e login ([ADR 0007](decisions/0007-generazione-via-mcp-e-login.md)).
+Le motivazioni delle singole scelte sono negli ADR in [decisions/](decisions/). Aggiornata il 14/11/2026 con la sezione Libri ([ADR 0005](decisions/0005-books-section.md)) il 15/11/2026 con la gestione dei sottotitoli ([ADR 0006](decisions/0006-subtitles-as-secondary-source.md)) e con generazione via MCP e login ([ADR 0007](decisions/0007-generation-via-mcp-and-login.md)).
 
 ## 1. Panoramica
 
 EpicFeed trasforma le lezioni Epicode che lo studente sta già seguendo in un feed verticale di clip brevi, con quiz di fine capitolo e un ripasso mirato dei concetti sbagliati.
 
-L'architettura è **ibrida** ([ADR 0001](decisions/0001-architettura-ibrida.md)):
+L'architettura è **ibrida** ([ADR 0001](decisions/0001-hybrid-architecture.md)):
 
 ```
  PC dello studente                       Cloud                              Telefono / browser
@@ -55,7 +55,7 @@ Monorepo con pnpm workspaces e Turborepo ([setup](technical/setup.md)).
 
 ## 3. Clean architecture
 
-Dipendenze solo verso l'interno ([ADR 0004](decisions/0004-clean-architecture-e-qualita.md)):
+Dipendenze solo verso l'interno ([ADR 0004](decisions/0004-clean-architecture-and-quality.md)):
 
 ```
  apps (Next.js, estensione, MCP)  →  adapters  →  core/application  →  core/domain
@@ -70,7 +70,7 @@ Conseguenza pratica: passare dalla verifica "prova di possesso" alla verifica uf
 
 ## 4. Modello dei contenuti
 
-Catalogo **condiviso e deduplicato** ([ADR 0002](decisions/0002-contenuti-condivisi-con-prova-di-accesso.md)):
+Catalogo **condiviso e deduplicato** ([ADR 0002](decisions/0002-shared-content-with-proof-of-access.md)):
 
 ```
  StudyProgram (corso di studi, es. Full-Stack Web Development)
@@ -109,7 +109,7 @@ Esclusi: condivisione libera tra utenti (ridistribuzione di contenuti protetti) 
 
 ## 6. Dati personali sul dispositivo
 
-[ADR 0003](decisions/0003-risultati-sul-dispositivo.md).
+[ADR 0003](decisions/0003-results-on-device.md).
 - Risposte ai quiz, errori, schede di ripasso (FSRS) e preferenze restano nel browser (IndexedDB). Il server non conosce i risultati.
 - Export/import di un file di backup.
 - In futuro, se servono più dispositivi o il server MCP: sincronizzazione **cifrata end-to-end** (il server conserva solo dati che non può leggere).
@@ -117,19 +117,19 @@ Esclusi: condivisione libera tra utenti (ridistribuzione di contenuti protetti) 
 
 ## 7. Generazione dei contenuti
 
-Gerarchia delle fonti ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondaria.md)): **riassunti > glossario > sottotitoli**. I sottotitoli Epicode sono spesso generati automaticamente e imprecisi, quindi non sono la base del testo.
+Gerarchia delle fonti ([ADR 0006](decisions/0006-subtitles-as-secondary-source.md)): **riassunti > glossario > sottotitoli**. I sottotitoli Epicode sono spesso generati automaticamente e imprecisi, quindi non sono la base del testo.
 
 - Ogni versione viene divisa in clip di un concetto a partire dai **riassunti** (della parte video e del capitolo): titolo, frase chiave, spiegazione, codice. Quiz e concetti si ricavano **solo dai riassunti**. Modello: Claude, da Claude Desktop tramite il server MCP.
 - I **sottotitoli** servono per allineare ogni clip al suo intervallo nel video (inizio/fine in secondi) e per qualche dettaglio in più. L'allineamento usa concetti e parole chiave; se è incerto la clip punta all'inizio della parte video.
 - Ogni passaggio preso dai sottotitoli viene corretto da Claude confrontandolo con i riassunti e con il **glossario dei termini tecnici** della materia (costruito dai riassunti e arricchito dalle correzioni dell'utente). Ciò che non trova riscontro viene scartato.
 - Le **correzioni dell'utente** ("Segnala errore") sono salvate in un'area privata del server (RLS: solo l'autore), si applicano alla clip su tutti i suoi dispositivi e vengono passate alle generazioni successive. Non modificano il catalogo condiviso.
-- Esecuzione: da Claude Desktop tramite il server MCP ([ADR 0007](decisions/0007-generazione-via-mcp-e-login.md)); la versione passa da `da_generare` a `pronta`, idempotente per `contentHash`, con i risultati salvati e rivalidati dall'API.
+- Esecuzione: da Claude Desktop tramite il server MCP ([ADR 0007](decisions/0007-generation-via-mcp-and-login.md)); la versione passa da `da_generare` a `pronta`, idempotente per `contentHash`, con i risultati salvati e rivalidati dall'API.
 - Fonti testuali (vedi [portal-usage.md](portal-usage.md)): per ogni parte video il riassunto markdown (`summary.it/en`), il riassunto di capitolo in markdown e i sottotitoli VTT con timestamp. Gli URL dei VTT sono firmati e scadono, quindi l'estensione li legge al momento dell'import.
 - Riproduzione: i video Vimeo hanno `embed_permission: whitelist` e **non si possono incorporare** fuori dal dominio Epicode. Le clip sono quindi **schede testuali/animate** (titolo, frase chiave dai riassunti, codice, schema) con il pulsante "Guarda sul portale" che apre la lezione al minuto della clip.
 
 ## 7 bis. Libri personali
 
-[ADR 0005](decisions/0005-sezione-libri.md).
+[ADR 0005](decisions/0005-books-section.md).
 - L'utente carica un PDF o un EPUB senza DRM e sceglie la modalità: *Studiare* (clip, quiz, ripasso) o *Solo leggere* (passaggi chiave). La modalità si può cambiare dopo.
 - La trasformazione avviene via MCP da Claude Desktop sul PC: `importa_libro` legge il file in locale ed estrae capitoli e copertina, Claude genera il feed un capitolo alla volta, `salva_feed_capitolo` lo invia all'API e `stato_elaborazione` mostra l'avanzamento. Il file originale non lascia il PC.
 - Il feed generato è salvato in un'area **privata** del server (RLS: solo il proprietario). Nessuna condivisione né deduplica.
@@ -138,7 +138,7 @@ Gerarchia delle fonti ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondar
 
 ## 8. Sicurezza
 
-- Supabase Auth: codice via email al primo accesso, poi password, in seguito Accedi con Google ([ADR 0007](decisions/0007-generazione-via-mcp-e-login.md)). Il server MCP usa un token personale revocabile; l'estensione un token di import (solo `POST /api/import`, 30 giorni, revocabile, salvato come hash) consegnato dalla web app tramite `externally_connectable`. Row Level Security su ogni tabella, con i soli permessi di lettura per gli studenti e nessuno per gli utenti anonimi, verificata da test su un Postgres in memoria ([database.md](technical/database.md)); il client non usa mai la service key.
+- Supabase Auth: codice via email al primo accesso, poi password, in seguito Accedi con Google ([ADR 0007](decisions/0007-generation-via-mcp-and-login.md)). Il server MCP usa un token personale revocabile; l'estensione un token di import (solo `POST /api/import`, 30 giorni, revocabile, salvato come hash) consegnato dalla web app tramite `externally_connectable`. Row Level Security su ogni tabella, con i soli permessi di lettura per gli studenti e nessuno per gli utenti anonimi, verificata da test su un Postgres in memoria ([database.md](technical/database.md)); il client non usa mai la service key.
 - Validazione di ogni input con zod ai confini (API, estensione, MCP).
 - Nessun segreto nel bundle client; segreti solo in variabili d'ambiente del server.
 - Header di sicurezza (CSP restrittiva, HSTS, frame-ancestors) e permessi minimi nell'estensione (solo il dominio Epicode e la nostra API).
@@ -163,5 +163,5 @@ Gerarchia delle fonti ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondar
 
 - Termini d'uso per studenti.
 - Sincronizzazione cifrata e accesso del server MCP ai risultati personali.
-- Condivisione verificata delle correzioni nel catalogo comune ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondaria.md)).
+- Condivisione verificata delle correzioni nel catalogo comune ([ADR 0006](decisions/0006-subtitles-as-secondary-source.md)).
 - Limiti pratici della trasformazione via MCP per libri lunghi (contesto, durata), da misurare su un libro di prova.

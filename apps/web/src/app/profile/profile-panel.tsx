@@ -73,7 +73,7 @@ function LanguageChoice({
 }
 
 /** Pannello interattivo di *Io*: le scelte valgono subito, senza ricaricare. */
-export function IoPanel({ theme, accent }: { theme: ThemePreference; accent: AccentName }) {
+export function ProfilePanel({ theme, accent }: { theme: ThemePreference; accent: AccentName }) {
   const prefs = useLocalValue(preferences);
   const saved = useLocalValue(savedCards);
   const totals = useLocalValue(stats);
@@ -92,8 +92,8 @@ export function IoPanel({ theme, accent }: { theme: ThemePreference; accent: Acc
 
   return (
     <>
-      <section className="ef-section" aria-labelledby="io-look">
-        <h2 id="io-look">Aspetto</h2>
+      <section className="ef-section" aria-labelledby="profile-look">
+        <h2 id="profile-look">Aspetto</h2>
         <div className="ef-panel">
           <div className="ef-seg" role="group" aria-label="Tema">
             {THEMES.map((option) => (
@@ -128,8 +128,8 @@ export function IoPanel({ theme, accent }: { theme: ThemePreference; accent: Acc
         </div>
       </section>
 
-      <section className="ef-section" aria-labelledby="io-study">
-        <h2 id="io-study">Studio</h2>
+      <section className="ef-section" aria-labelledby="profile-study">
+        <h2 id="profile-study">Studio</h2>
         <div className="ef-panel">
           <LanguageChoice
             label="Lingua di studio"
@@ -149,7 +149,7 @@ export function IoPanel({ theme, accent }: { theme: ThemePreference; accent: Acc
           />
           {TOGGLES.map((toggle) => (
             <div key={toggle.key} className="ef-toggle">
-              <span id={`io-${toggle.key}`}>
+              <span id={`profile-${toggle.key}`}>
                 {toggle.label}
                 <small>{toggle.hint}</small>
               </span>
@@ -158,7 +158,7 @@ export function IoPanel({ theme, accent }: { theme: ThemePreference; accent: Acc
                 role="switch"
                 className="ef-switch"
                 aria-checked={prefs[toggle.key]}
-                aria-labelledby={`io-${toggle.key}`}
+                aria-labelledby={`profile-${toggle.key}`}
                 onClick={() => {
                   setPreference({ [toggle.key]: !prefs[toggle.key] });
                 }}
@@ -172,10 +172,10 @@ export function IoPanel({ theme, accent }: { theme: ThemePreference; accent: Acc
         </div>
       </section>
 
-      <section className="ef-section" aria-labelledby="io-mine">
-        <h2 id="io-mine">I tuoi dati sul dispositivo</h2>
+      <section className="ef-section" aria-labelledby="profile-mine">
+        <h2 id="profile-mine">I tuoi dati sul dispositivo</h2>
         <div className="ef-panel">
-          <Link className="ef-row-link" href="/io/salvati">
+          <Link className="ef-row-link" href="/profile/saved">
             Salvati
             <small>{saved.length}</small>
           </Link>
@@ -194,14 +194,14 @@ export function IoPanel({ theme, accent }: { theme: ThemePreference; accent: Acc
         </div>
       </section>
 
-      <section className="ef-section" aria-labelledby="io-content">
-        <h2 id="io-content">Contenuti</h2>
+      <section className="ef-section" aria-labelledby="profile-content">
+        <h2 id="profile-content">Contenuti</h2>
         <div className="ef-panel">
-          <Link className="ef-row-link" href="/lezioni">
+          <Link className="ef-row-link" href="/lessons">
             Le mie lezioni
             <small>→</small>
           </Link>
-          <Link className="ef-row-link" href="/estensione">
+          <Link className="ef-row-link" href="/extension">
             Estensione
             <small>→</small>
           </Link>

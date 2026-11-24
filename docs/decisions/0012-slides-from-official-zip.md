@@ -14,11 +14,11 @@ Verifiche sul portale (21/11/2026, profilo Chrome loggato):
 
 ## Decisione
 1. **Download fatto dallo studente**: Damian preme *Download all PDFs* sul portale, una volta per corso (e di nuovo se il corso aggiunge lezioni). È una funzione del portale usata come previsto: l'estensione non scarica nulla e non chiama Google.
-2. **Lettura sul PC con il server MCP (M2)**: un nuovo strumento `importa_slide` riceve il percorso dello zip (o della cartella estratta) e lo legge in locale. I PDF **non lasciano il PC**, come per i libri ([ADR 0005](0005-sezione-libri.md)).
+2. **Lettura sul PC con il server MCP (M2)**: un nuovo strumento `importa_slide` riceve il percorso dello zip (o della cartella estratta) e lo legge in locale. I PDF **non lasciano il PC**, come per i libri ([ADR 0005](0005-books-section.md)).
 3. **Abbinamento alla lezione per nome**: ogni file `{titolo lezione}-{n}.pdf` viene abbinato a una lezione già importata dallo studente (titolo normalizzato, nello stesso corso), con `n` come ordine della presentazione nella lezione. I file che non trovano una lezione, o ne trovano più di una, vengono elencati e lasciati fuori: nessun abbinamento a indovinare. Le lezioni non ancora importate si importano prima con l'estensione.
 4. **Cosa arriva al server**: il **testo** di ogni pagina, estratto sul PC, come nuova parte della lezione con provenienza `slides`, con la sua impronta (stesso testo, nessun doppione; testo cambiato, nuova versione). Le immagini e i PDF non si salvano sul server.
 5. **Diagrammi letti da Claude**: durante la generazione `leggi_lezione` passa a Claude Desktop, oltre al testo, l'immagine delle pagine con figure, prodotta sul PC al momento. Claude usa i diagrammi per spiegare il concetto nella scheda (per esempio la rotazione di un albero AVL), a parole.
-6. **Gerarchia delle fonti**: le slide sono materiale curato come i riassunti, quindi stanno allo stesso livello (riassunti e slide > glossario > sottotitoli, [ADR 0006](0006-sottotitoli-come-fonte-secondaria.md)). Essendo in inglese, sono anche la fonte migliore per la terminologia dell'esame ([ADR 0011](0011-studio-bilingue-it-en.md)).
+6. **Gerarchia delle fonti**: le slide sono materiale curato come i riassunti, quindi stanno allo stesso livello (riassunti e slide > glossario > sottotitoli, [ADR 0006](0006-subtitles-as-secondary-source.md)). Essendo in inglese, sono anche la fonte migliore per la terminologia dell'esame ([ADR 0011](0011-bilingual-study-it-en.md)).
 
 ## Alternative scartate
 - **Estensione, solo il testo** (era la consigliata): pulsante *Importa slide* che scarica i PDF dal link Google del portale ed estrae il testo nel browser. Automatico, ma perde i diagrammi e aggiunge richieste a Google fatte dall'estensione.

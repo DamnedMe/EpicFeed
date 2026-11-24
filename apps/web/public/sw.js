@@ -12,7 +12,7 @@
  *   prima la cache; si tiene solo la versione in uso. Il worker dei test
  *   (`/python-worker.js`) prima dalla rete, con la copia come riserva: così i
  *   test del codice girano anche offline dopo il primo uso;
- * - pagine del feed e del ripasso (`/`, `/ripasso`): prima la rete, e la copia in cache solo se la rete
+ * - pagine del feed e del ripasso (`/`, `/review`): prima la rete, e la copia in cache solo se la rete
  *   manca. Una risposta che rimanda all'accesso cancella la copia: dopo
  *   l'uscita il feed non resta aperto offline;
  * - tutto il resto (API, altre pagine, altri siti): non lo tocca.
@@ -24,7 +24,7 @@ const SHELL_CACHE = `epicfeed-shell-${VERSION}`;
 const STATIC_CACHE = `epicfeed-static-${VERSION}`;
 const PYODIDE_CACHE = 'epicfeed-pyodide';
 /** Pagine conservate per l'uso offline. */
-const OFFLINE_PAGES = ['/', '/ripasso'];
+const OFFLINE_PAGES = ['/', '/review'];
 /** Tetto ai file statici in cache: a ogni deploy cambiano nome, i vecchi si scartano. */
 const STATIC_LIMIT = 120;
 

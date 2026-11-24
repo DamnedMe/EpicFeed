@@ -3,7 +3,7 @@
  * Stato dello sviluppo nella documentazione.
  *
  * Legge `docs/status.json` (unica fonte di verità) e rigenera:
- * - `apps/web/public/readme/stato-scuro.svg` e `stato-chiaro.svg`: la plancia in cima al README;
+ * - `apps/web/public/readme/status-dark.svg` e `status-light.svg`: la plancia in cima al README;
  * - il blocco tra `<!-- stato:inizio -->` e `<!-- stato:fine -->` nel README (plancia e riquadro).
  *
  * Le immagini del README sono servite dall'app pubblica su Vercel e non dalla repo: la repo è
@@ -230,8 +230,8 @@ function renderReadmeBlock(status) {
     MARK_START,
     '<!-- Blocco generato da scripts/docs-status.mjs a partire da docs/status.json: non modificarlo a mano. -->',
     '<picture>',
-    `  <source media="(prefers-color-scheme: light)" srcset="${PUBLIC_URL}/stato-chiaro.svg?v=${version}">`,
-    `  <img src="${PUBLIC_URL}/stato-scuro.svg?v=${version}" alt="Stato dello sviluppo di EpicFeed: milestone da ${status.milestone[0].id} a ${status.milestone.at(-1).id}" width="100%">`,
+    `  <source media="(prefers-color-scheme: light)" srcset="${PUBLIC_URL}/status-light.svg?v=${version}">`,
+    `  <img src="${PUBLIC_URL}/status-dark.svg?v=${version}" alt="Stato dello sviluppo di EpicFeed: milestone da ${status.milestone[0].id} a ${status.milestone.at(-1).id}" width="100%">`,
     '</picture>',
     '',
     '> [!TIP]',
@@ -260,8 +260,8 @@ function main() {
   const check = process.argv.includes('--check');
   const status = JSON.parse(readFileSync(STATUS_PATH, 'utf8'));
   const outputs = [
-    [join(ROOT, PUBLIC_DIR, 'stato-scuro.svg'), renderBoard(status, 'scuro')],
-    [join(ROOT, PUBLIC_DIR, 'stato-chiaro.svg'), renderBoard(status, 'chiaro')],
+    [join(ROOT, PUBLIC_DIR, 'status-dark.svg'), renderBoard(status, 'scuro')],
+    [join(ROOT, PUBLIC_DIR, 'status-light.svg'), renderBoard(status, 'chiaro')],
     [README_PATH, replaceBlock(readFileSync(README_PATH, 'utf8'), renderReadmeBlock(status))],
   ];
   const stale = [];

@@ -9,7 +9,7 @@ import { Icon } from '@/features/feed/icons';
  * lettori di schermo (`sr-only`) ma non si vedono, perché su mobile le
  * etichette sotto le icone appesantivano la barra.
  */
-export function BottomNav({ active }: { active?: 'feed' | 'review' | 'io' }) {
+export function BottomNav({ active }: { active?: 'feed' | 'review' | 'profile' }) {
   return (
     <nav className="ef-nav" aria-label="Sezioni">
       <Link
@@ -21,7 +21,7 @@ export function BottomNav({ active }: { active?: 'feed' | 'review' | 'io' }) {
         <span className="sr-only">Feed</span>
       </Link>
       <Link
-        href="/ripasso"
+        href="/review"
         className={active === 'review' ? 'on' : ''}
         aria-current={active === 'review' ? 'page' : undefined}
       >
@@ -33,9 +33,9 @@ export function BottomNav({ active }: { active?: 'feed' | 'review' | 'io' }) {
         <span className="sr-only">Libri, in arrivo</span>
       </span>
       <Link
-        href="/io"
-        className={active === 'io' ? 'on' : ''}
-        aria-current={active === 'io' ? 'page' : undefined}
+        href="/profile"
+        className={active === 'profile' ? 'on' : ''}
+        aria-current={active === 'profile' ? 'page' : undefined}
       >
         <Icon name="user" />
         <span className="sr-only">Io</span>

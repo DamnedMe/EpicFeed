@@ -2,6 +2,7 @@
 
 | Documento | Contenuto |
 |---|---|
+| [navigation.md](navigation.md) | Come orientarsi nel codice: dove sta ogni funzione |
 | [status.json](status.json) | Stato dello sviluppo: unica fonte della plancia e del riquadro in cima al README |
 | [development-plan.md](development-plan.md) | Piano di sviluppo: perimetro dell'MVP, milestone, struttura della repo, stack e scelte aperte |
 | [architecture.md](architecture.md) | Architettura tecnica: componenti, clean architecture, modello dati e accessi, sicurezza, performance, qualità |

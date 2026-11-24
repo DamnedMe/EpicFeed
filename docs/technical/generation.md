@@ -1,6 +1,6 @@
 # Generazione di schede e quiz (M2)
 
-Stato: in sviluppo. Decisioni: [ADR 0007](../decisions/0007-generazione-via-mcp-e-login.md), [ADR 0011](../decisions/0011-studio-bilingue-it-en.md), [ADR 0012](../decisions/0012-slide-dallo-zip-ufficiale.md), [ADR 0013](../decisions/0013-generazione-m2-dettagli.md).
+Stato: in sviluppo. Decisioni: [ADR 0007](../decisions/0007-generation-via-mcp-and-login.md), [ADR 0011](../decisions/0011-bilingual-study-it-en.md), [ADR 0012](../decisions/0012-slides-from-official-zip.md), [ADR 0013](../decisions/0013-generation-m2-details.md).
 
 ## Flusso
 ```
@@ -37,7 +37,7 @@ Ogni testo per lo studente è una coppia `{ it, en }` (ADR 0011). Schemi in `pac
 Il server MCP esegue entrambi i controlli prima di inviare e restituisce a Claude l'elenco dei problemi da correggere; l'API li ripete, perché non si fida del client.
 
 ## Allineamento al minuto
-`alignCard(scheda, tracce)` in `packages/core/src/domain/alignment.ts`, eseguito dall'API al salvataggio. Da M3 ([ADR 0015](../decisions/0015-feed-di-studio-m3.md)) lo chiama `alignCardToLesson(scheda, video della lezione)` (regole **versione 2**, `ALIGNMENT_VERSION`):
+`alignCard(scheda, tracce)` in `packages/core/src/domain/alignment.ts`, eseguito dall'API al salvataggio. Da M3 ([ADR 0015](../decisions/0015-study-feed-m3.md)) lo chiama `alignCardToLesson(scheda, video della lezione)` (regole **versione 2**, `ALIGNMENT_VERSION`):
 - una scheda tratta da un video cerca solo in quel video, come in M2;
 - una scheda tratta da slide o lettura cerca in tutti i video della lezione e tiene il tratto più sicuro (a parità, il video che viene prima);
 - il tratto salvato riporta la parte video in `partId` (nei feed di M2 manca e vale la parte di provenienza);
@@ -140,7 +140,7 @@ Installazione (una volta): in EpicFeed, pagina **Claude**, *Crea token*; in Clau
 Test: `apps/mcp/src/*.test.ts` con un `fetch` finto (client) e il trasporto in memoria dell'SDK (server e strumenti); le slide con PDF e zip veri in `apps/mcp/test/fixtures` (testo, diagramma, logo del modello) e con un toolkit in memoria per gli strumenti.
 
 ## Pacchetti d'esame (M4)
-Decisioni: [ADR 0014](../decisions/0014-preparazione-esame.md) (§6 e §8) e [ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md) (scelta 3). Ogni lezione con un feed riceve un **pacchetto d'esame** separato dal feed, così schede e domande già studiate non cambiano:
+Decisioni: [ADR 0014](../decisions/0014-exam-preparation.md) (§6 e §8) e [ADR 0017](../decisions/0017-review-and-exam-m4.md) (scelta 3). Ogni lezione con un feed riceve un **pacchetto d'esame** separato dal feed, così schede e domande già studiate non cambiano:
 
 - **10 domande a scelta multipla** in più (limiti accettati 8–12), 4 opzioni, spiegazione, concetto e difficoltà: con le 6–8 del feed fanno circa 90 domande per modulo, da cui il quiz di modulo ne pesca 50;
 - **1–2 domande aperte** "stile esame": `code` (firma della funzione e 2–8 test `{ call, expected }` da eseguire nel browser), `explain` o `analyze` (con il codice da analizzare); suggerimenti progressivi `{ it, en }` (1–3), soluzione modello, griglia di 3–5 criteri con punti interi 1–5, 1–3 concetti, domanda di approfondimento per il colloquio.
@@ -163,7 +163,7 @@ Claude Desktop ──▶ server MCP ──▶ API EpicFeed ──▶ Postgres
 Uso: in Claude Desktop, "genera le domande d'esame di EpicFeed" (o il prompt `genera_domande_esame`). La sezione *Esame* dell'app che le usa arriva con la PR successiva di M4.
 
 ## Banca degli esercizi (M4)
-Decisioni: [ADR 0014](../decisions/0014-preparazione-esame.md) §2 e [ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md) (scelta 8). Dal materiale d'esame del corso (i PDF *Exam Prep* dello zip delle slide, 14 esercizi nel corso DSA) Claude Desktop scrive la **banca degli esercizi** della materia:
+Decisioni: [ADR 0014](../decisions/0014-exam-preparation.md) §2 e [ADR 0017](../decisions/0017-review-and-exam-m4.md) (scelta 8). Dal materiale d'esame del corso (i PDF *Exam Prep* dello zip delle slide, 14 esercizi nel corso DSA) Claude Desktop scrive la **banca degli esercizi** della materia:
 
 - un esercizio **ufficiale** per ogni esercizio del materiale, con il testo fedele all'originale e gli esempi trascritti dalle immagini, e la pagina del PDF;
 - **2 varianti** per ogni ufficiale (`variantOf`), stesso argomento con dati o richiesta diversi;
@@ -184,7 +184,7 @@ Claude Desktop ──▶ server MCP (legge lo zip sul PC) ──▶ API EpicFeed
 Uso: in Claude Desktop, "crea la banca degli esercizi d'esame di EpicFeed dallo zip delle slide" indicando lo zip.
 
 ## Correzione delle risposte (M4)
-Decisioni: [ADR 0014](../decisions/0014-preparazione-esame.md) §4 e [ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md#correzione-del-codice-come-si-mostra-pr-5). Dalla sezione Esame lo studente invia un esercizio o un colloquio simulato con *Fai correggere a Claude*; Claude Desktop lo corregge in inglese.
+Decisioni: [ADR 0014](../decisions/0014-exam-preparation.md) §4 e [ADR 0017](../decisions/0017-review-and-exam-m4.md#correzione-del-codice-come-si-mostra-pr-5). Dalla sezione Esame lo studente invia un esercizio o un colloquio simulato con *Fai correggere a Claude*; Claude Desktop lo corregge in inglese.
 
 ```
 App ── POST /api/exam/submissions (sessione) ──▶ exam_submissions
@@ -196,7 +196,7 @@ App ── GET /api/exam/submissions ──▶ conserva la correzione ──▶ 
 
 - **Correzione**: per ogni domanda i punti di ogni criterio della griglia, un commento e fino a 8 **suggerimenti di revisione** (`fromLine`–`toLine` della risposta, testo sostitutivo, titolo all'imperativo e spiegazione); in più un riepilogo. L'app li mostra come un diff (`suggestionDiff` del core).
 - **Controlli** (`checkCorrection`, nel server MCP e nell'API): una correzione per ogni domanda, punti interi entro quelli del criterio, righe esistenti, nessuna sovrapposizione, nessuna sostituzione identica. Una correzione già salvata non si sovrascrive (`409`).
-- **Privacy** (eccezione limitata all'[ADR 0003](../decisions/0003-risultati-sul-dispositivo.md)): sul server resta solo l'invio, finché l'app non scarica la correzione e lo cancella; al massimo 30 giorni. Al massimo 20 invii in attesa per studente. Punteggi e storico restano sul dispositivo.
+- **Privacy** (eccezione limitata all'[ADR 0003](../decisions/0003-results-on-device.md)): sul server resta solo l'invio, finché l'app non scarica la correzione e lo cancella; al massimo 30 giorni. Al massimo 20 invii in attesa per studente. Punteggi e storico restano sul dispositivo.
 
 Uso: in Claude Desktop, "correggi le mie risposte di EpicFeed" (o il prompt `correggi_risposte`).
 

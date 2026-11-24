@@ -31,7 +31,7 @@ export default async function LessonsPage() {
           <p>Non hai ancora importato lezioni.</p>
           <ol className="list-decimal space-y-1 pl-5 text-muted">
             <li>
-              <Link href="/estensione" className="text-accent-text underline underline-offset-4">
+              <Link href="/extension" className="text-accent-text underline underline-offset-4">
                 Collega l&apos;estensione
               </Link>{' '}
               al tuo account.

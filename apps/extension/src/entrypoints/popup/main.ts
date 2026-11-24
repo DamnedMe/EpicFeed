@@ -57,7 +57,7 @@ async function main(): Promise<void> {
     const card = el('div', undefined, 'card');
     card.append(
       el('p', 'Collega l’estensione al tuo account EpicFeed: '),
-      appLink('apri la pagina Estensione', '/estensione'),
+      appLink('apri la pagina Estensione', '/extension'),
     );
     show(card);
     return;
@@ -330,7 +330,7 @@ function renderStatus(status: ImportStatus): void {
           el('p', `Sottotitoli non trovati per ${String(status.missingSubtitles)} video.`, 'mono'),
         );
       }
-      card.append(appLink('Apri Le mie lezioni', '/lezioni'));
+      card.append(appLink('Apri Le mie lezioni', '/lessons'));
       show(card);
       break;
     }
@@ -374,7 +374,7 @@ function batchSummary(status: Extract<ImportStatus, { phase: 'batch-done' }>): H
       el('p', 'Riavviando lo stesso import, le lezioni già importate si saltano.', 'mono note'),
     );
   }
-  card.append(appLink('Apri Le mie lezioni', '/lezioni'));
+  card.append(appLink('Apri Le mie lezioni', '/lessons'));
   return card;
 }
 

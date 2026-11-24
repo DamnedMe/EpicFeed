@@ -39,7 +39,7 @@ export function useExamData(feed: SubjectFeed | null): ExamData {
     void loadExamContent((input, init) => fetch(input, init), subjectId).then((result) => {
       if (!alive) return;
       if (result.status === 'unauthorized') {
-        window.location.assign('/accedi');
+        window.location.assign('/login');
         return;
       }
       setLoaded((previous) =>

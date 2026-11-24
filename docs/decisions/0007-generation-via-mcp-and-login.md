@@ -12,10 +12,10 @@ Il [piano di sviluppo](../development-plan.md) §4 lasciava aperte, tra le altre
 ### Generazione delle lezioni via MCP
 - La generazione la fa **Claude Desktop sul PC di Damian**, tramite il server MCP (`apps/mcp`), usando il suo piano Claude. Nessuna chiave Claude API sul server, nessun costo per capitolo.
 - Flusso: l'estensione importa la lezione → la versione entra nello stato `da_generare` → da Claude Desktop Damian chiede di generare le lezioni nuove → il server MCP fornisce riassunti, sottotitoli e glossario (`lezioni_da_generare`, `leggi_lezione`) → Claude genera → `salva_feed_lezione` valida e invia il risultato all'API.
-- Le regole dell'[ADR 0006](0006-sottotitoli-come-fonte-secondaria.md) restano: schede, quiz e concetti dai soli riassunti; le istruzioni di generazione sono un prompt MCP versionato nella repo.
+- Le regole dell'[ADR 0006](0006-subtitles-as-secondary-source.md) restano: schede, quiz e concetti dai soli riassunti; le istruzioni di generazione sono un prompt MCP versionato nella repo.
 - L'allineamento delle schede al minuto del video è codice deterministico nel `core`, non una richiesta a Claude.
 - Il server MCP si autentica all'API con un token personale, limitato agli strumenti di generazione e revocabile dalla sezione Io.
-- È lo stesso modello già scelto per i libri ([ADR 0005](0005-sezione-libri.md)).
+- È lo stesso modello già scelto per i libri ([ADR 0005](0005-books-section.md)).
 
 ### Login
 1. **Primo accesso** con codice monouso via email (Supabase Auth).
