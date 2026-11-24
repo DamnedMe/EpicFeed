@@ -22,14 +22,14 @@
 <!-- stato:inizio -->
 <!-- Blocco generato da scripts/docs-status.mjs a partire da docs/status.json: non modificarlo a mano. -->
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://study-feed-steel.vercel.app/readme/stato-chiaro.svg?v=2026-11-23">
-  <img src="https://study-feed-steel.vercel.app/readme/stato-scuro.svg?v=2026-11-23" alt="Stato dello sviluppo di EpicFeed: milestone da M0 a M9" width="100%">
+  <source media="(prefers-color-scheme: light)" srcset="https://study-feed-steel.vercel.app/readme/stato-chiaro.svg?v=2026-11-24">
+  <img src="https://study-feed-steel.vercel.app/readme/stato-scuro.svg?v=2026-11-24" alt="Stato dello sviluppo di EpicFeed: milestone da M0 a M9" width="100%">
 </picture>
 
 > [!TIP]
 > 🏁 Ultimo traguardo: **M3 Feed di studio** unita il 23/11: feed a battute con gesti, domande a gruppi di 3, punti e sessioni da 5 minuti, PWA installabile.
 >
-> 🛠️ Ora: **M4 Ripasso ed esame**: ripasso dei concetti e sincronizzazione cifrata uniti (PR 1 e 2 di 6); domande d'esame per lezione unite; in revisione la banca degli esercizi da *Exam Prep*.
+> 🛠️ Ora: **M4 Ripasso ed esame**: ripasso, sincronizzazione cifrata, domande d'esame e banca degli esercizi uniti; in revisione la sezione Esame nell'app (PR 4 di 6).
 
 <!-- stato:fine -->
 

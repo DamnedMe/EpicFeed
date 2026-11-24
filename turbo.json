@@ -3,7 +3,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**", ".output/**"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**", ".output/**", "public/pyodide/**"],
       "env": ["NEXT_PUBLIC_*"]
     },
     "lint": {

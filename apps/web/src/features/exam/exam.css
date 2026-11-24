@@ -1,0 +1,171 @@
+/*
+ * Sezione Esame (M4, ADR 0014 e 0017): elenchi, quiz di modulo ed esercizi.
+ * Riusa le classi del feed e del ripasso (.ef-panel, .ef-opt, .ef-fb,
+ * .ef-seg); qui solo ciò che manca. Solo token del design system (--sf-*).
+ */
+.ef-ex {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ef-ex-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ef-ex-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.ef-ex-question {
+  font: 700 22px/1.25 var(--sf-font-display);
+  margin: 0;
+  text-wrap: balance;
+}
+.ef-ex-question:focus {
+  outline: none;
+}
+.ef-ex-prompt {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+.ef-ex-code {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-surface);
+  font: 400 13.5px/1.5 var(--sf-font-mono);
+  overflow-x: auto;
+  white-space: pre;
+}
+.ef-ex-examples ul,
+.ef-ex-results ul,
+.ef-ex-hint-list {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ef-ex-examples code,
+.ef-ex-results code {
+  font: 400 13px var(--sf-font-mono);
+  overflow-wrap: anywhere;
+}
+.ef-ex-hints {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ef-ex-text {
+  width: 100%;
+  min-height: 180px;
+  resize: vertical;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-surface);
+  color: var(--sf-text);
+  font: 400 15px/1.5 var(--sf-font-body);
+}
+.ef-ex-text.mono {
+  font: 400 14px/1.5 var(--sf-font-mono);
+  tab-size: 4;
+}
+.ef-ex-text:focus-visible {
+  outline: 2px solid var(--sf-accent-fill);
+  outline-offset: 1px;
+}
+.ef-ex-run:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.ef-ex-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ef-ex-results p {
+  margin: 0;
+}
+.ef-ex-results ul {
+  list-style: none;
+  padding: 0;
+}
+.ef-ex-results li {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 2px 8px;
+}
+.ef-ex-results li small {
+  grid-column: 2;
+  color: var(--sf-text-muted);
+}
+.ef-ex-results li.ok > span {
+  color: var(--sf-accent-text);
+}
+.ef-ex-results li.ko > span {
+  color: var(--sf-review);
+}
+.ef-ex-rubric {
+  list-style: none;
+  margin: 0;
+}
+.ef-ex-rubric li {
+  padding: 10px 0 0;
+  border-bottom: 1px solid var(--sf-border);
+}
+.ef-ex-rubric li:last-child {
+  border-bottom: 0;
+}
+.ef-ex-list {
+  list-style: none;
+  margin: 0;
+}
+.ef-ex-list li:last-child .ef-row-link {
+  border-bottom: 0;
+}
+.ef-ex-list li.variant .ef-row-link {
+  padding-left: 14px;
+}
+.ef-ex-list .ef-row-link > span:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ef-ex-timer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+}
+.ef-ex-timer.on .ef-stat {
+  font-variant-numeric: tabular-nums;
+}
+.ef-ex-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--sf-border);
+  overflow: hidden;
+}
+.ef-ex-progress i {
+  display: block;
+  height: 100%;
+  background: var(--sf-accent-fill);
+  transition: width var(--sf-motion-fast) var(--sf-motion-easing);
+}
+.ef-fb.mono {
+  font: 400 13px var(--sf-font-mono);
+}
+.ef-fb p {
+  margin: 0 0 6px;
+}
+.ef-fb p:last-child {
+  margin: 0;
+}

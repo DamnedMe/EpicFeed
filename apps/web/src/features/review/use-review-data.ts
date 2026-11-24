@@ -16,6 +16,8 @@ export type ReviewData =
   | { readonly status: 'error' }
   | {
       readonly status: 'ready';
+      /** Materia scaricata (serve anche alla sezione Esame). */
+      readonly feed: SubjectFeed;
       readonly catalog: ReviewCatalog;
       readonly states: readonly ConceptReviewState[];
       readonly streak: DayStreak;
@@ -96,14 +98,15 @@ export function useReviewData(): { data: ReviewData; reload: () => void } {
   const catalog = useMemo(() => (feed ? buildReviewCatalog(feed.feed) : null), [feed]);
 
   let data: ReviewData;
-  if (feedStatus === 'ready' && catalog && progress) {
+  if (feedStatus === 'ready' && feed && catalog && progress) {
     data = {
       status: 'ready',
+      feed: feed.feed,
       catalog,
       states: progress.states,
       streak: progress.streak,
       persistent: progress.persistent,
-      offline: feed?.offline ?? false,
+      offline: feed.offline,
     };
   } else if (feedStatus === 'empty' || feedStatus === 'error') {
     data = { status: feedStatus };

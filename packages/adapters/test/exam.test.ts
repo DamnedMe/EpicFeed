@@ -13,6 +13,7 @@ import {
   ListLessonsForExam,
   ListSubjectsForExam,
   PossessionProofVerifier,
+  ReadExamContent,
   ReadLessonForExam,
   ReadLessonForGeneration,
   SaveExamBank,
@@ -246,5 +247,22 @@ describe('DrizzleExamPackRepository', () => {
     expect(await save.execute(anna as UserId, input)).toEqual({ ...first, created: false });
     expect((await list.execute(anna as UserId))[0]?.hasBank).toBe(true);
     await expect(save.execute(bruno as UserId, input)).rejects.toMatchObject({ code: 'NOT_FOUND' });
+  });
+
+  it('legge pacchetti e banca della materia per la sezione Esame, solo a chi li vede', async () => {
+    const [subject] = await new ListSubjectsForExam(exams).execute(anna as UserId);
+    if (!subject) throw new Error('fixture');
+    const read = new ReadExamContent(exams);
+    const content = await read.execute(anna as UserId, subject.subjectId);
+    // Solo la lezione con il pacchetto (Heaps non ne ha).
+    expect(content.packs.map((item) => item.lessonId)).toEqual([binaryTrees]);
+    expect(content.packs[0]?.questions).toHaveLength(10);
+    expect(content.bank?.exercises).toHaveLength(3);
+    expect((await read.execute(anna as UserId, subject.subjectId)).version).toBe(content.version);
+
+    // Bruno non vede la materia.
+    await expect(read.execute(bruno as UserId, subject.subjectId)).rejects.toMatchObject({
+      code: 'NOT_FOUND',
+    });
   });
 });

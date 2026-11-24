@@ -95,6 +95,14 @@ Regole pure del feed sul telefono ([ADR 0015](../decisions/0015-feed-di-studio-m
 - Serie di giorni: `extendDayStreak`, `currentDayStreak`, `localDay` (giorno nell'ora del dispositivo).
 - Porta `ProgressStore` e casi d'uso `recordAnswer` (stato + storico con fonte e lingua), `completeReviewSession` (serie), `planReviewSession` (fino a 10 concetti: scaduti dal più in ritardo, altrimenti in anticipo i meno ricordati; mai concetti non ancora visti o senza domande; domanda successiva all'ultima fatta, a giro), `summarizeReview` (scaduti, deboli, avanzamento per modulo).
 
+## Esame
+`domain/exam.ts` (regole dei pacchetti e della banca, [generation.md](generation.md#pacchetti-desame-m4)), `domain/exam-practice.ts` e `application/exam-study.ts` (M4, [ADR 0014](../decisions/0014-preparazione-esame.md)):
+- `drawRandom(elementi, n, casuale)`: estrazione senza ripetizioni (Fisher–Yates parziale) per il quiz di modulo da `MODULE_QUIZ_SIZE` (50) domande; con meno domande le prende tutte.
+- `rubricScore(griglia, punti)`: punteggio dell'autovalutazione tra 0 e 1 (ogni voce limitata ai punti del criterio), da passare a `gradeFromScore`.
+- `testPassed(esito)`: un test del codice passa se non dà errore e il `repr()` coincide con quello atteso.
+- `EXERCISE_TIMER_MINUTES`: durate proposte per il timer facoltativo.
+- Porta `ExamContentRepository` e caso d'uso `ReadExamContent`: pacchetti dei feed correnti di una materia e banca dello studente, con un'impronta (`version`) degli id, usata come ETag.
+
 ## Sincronizzazione dei progressi
 `application/progress-sync.ts` (M4, [ADR 0018](../decisions/0018-sincronizzazione-cifrata-progressi.md)). Niente cifratura qui: la fanno gli adapter.
 - `ProgressSnapshot`: risposte, giorni di ripasso (ultimi 400) e serie migliore. `mergeSnapshots` unisce due copie senza doppioni (`answerKey`: momento, concetto, fonte, domanda) in un ordine che non dipende da chi unisce; `addsToSnapshot` dice se un'unione porta qualcosa di nuovo; `replayAnswers` ricalcola gli stati FSRS ripassando le risposte in ordine di tempo (stesso risultato delle risposte date una alla volta); `streakFromDays` ricostruisce la serie.

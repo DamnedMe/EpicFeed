@@ -16,6 +16,8 @@ export default createConfig({
       ignores: [
         '.next/**',
         'e2e/.harness/**',
+        // Pyodide copiato al build dal pacchetto npm (scripts/copy-pyodide.mjs).
+        'public/pyodide/**',
         'test-results/**',
         'next-env.d.ts',
         'postcss.config.mjs',

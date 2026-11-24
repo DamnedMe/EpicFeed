@@ -22,6 +22,7 @@ import type { ReviewOutcome } from './review-session';
 import { ReviewSession } from './review-session';
 import type { ReviewData } from './use-review-data';
 import { useReviewData } from './use-review-data';
+import { ExamSection } from '../exam/exam-section';
 
 type Section = 'review' | 'exam';
 
@@ -36,8 +37,9 @@ function sectionFromHash(): Section {
  * I progressi si sincronizzano cifrati tra i dispositivi (ADR 0018).
  *
  * @param props.account - Utente della sessione.
+ * @param props.nonce - Nonce della CSP (per l'editor del codice nella sezione Esame).
  */
-export function ReviewApp({ account }: { account: string }) {
+export function ReviewApp({ account, nonce = null }: { account: string; nonce?: string | null }) {
   useProgressSync(account);
   const { data } = useReviewData();
   const [section, setSection] = useState<Section>('review');
@@ -136,7 +138,11 @@ export function ReviewApp({ account }: { account: string }) {
           }}
         />
       ) : (
-        <ExamSoon />
+        <ExamSection
+          feed={data.status === 'ready' ? data.feed : null}
+          reviewCatalog={data.status === 'ready' ? data.catalog : null}
+          nonce={nonce}
+        />
       )}
       {section === 'review' ? <SyncPanel account={account} /> : null}
       <BottomNav active="review" />
@@ -347,22 +353,6 @@ function ReviewEnd({
       <button type="button" className="ef-link" onClick={onClose}>
         Chiudi
       </button>
-    </section>
-  );
-}
-
-/** Sezione Esame: arriva con le prossime PR di M4 (ADR 0014). */
-function ExamSoon() {
-  return (
-    <section className="ef-panel ef-rv-box" aria-labelledby="rv-exam">
-      <h2 id="rv-exam" className="ef-rv-label">
-        In arrivo
-      </h2>
-      <p className="ef-rv-note">
-        Qui troverai, tutto in inglese come all’esame: i quiz di modulo da 50 domande, gli esercizi
-        d’esame con timer, editor e test del codice, e la simulazione scritta del colloquio di 20
-        minuti.
-      </p>
     </section>
   );
 }

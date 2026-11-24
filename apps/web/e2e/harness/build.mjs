@@ -67,6 +67,9 @@ const links = css
   .join('');
 const page = (script) =>
   `<!doctype html><html lang="it" data-theme="dark" data-accent="racing-red" class="ef-fonts ${fontClasses.join(' ')}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">${links}</head><body class="min-h-dvh bg-background text-text"><div id="root"></div><script src="/${script}.js"></script></body></html>`;
+// Worker dei test Python e Pyodide (copiato da `pnpm build` in public/pyodide).
+cpSync(join(app, 'public', 'python-worker.js'), join(out, 'python-worker.js'));
+cpSync(join(app, 'public', 'pyodide'), join(out, 'pyodide'), { recursive: true });
 writeFileSync(join(out, 'index.html'), page('app'));
 writeFileSync(join(out, 'io.html'), page('io'));
 writeFileSync(join(out, 'ripasso.html'), page('review'));

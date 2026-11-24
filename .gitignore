@@ -16,3 +16,6 @@ coverage/
 apps/web/e2e/.harness/
 test-results/
 playwright-report/
+
+# Pyodide copiato dal pacchetto npm al build (scripts/copy-pyodide.mjs)
+apps/web/public/pyodide/

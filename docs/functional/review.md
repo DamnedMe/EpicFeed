@@ -27,7 +27,20 @@ In alto: la **×** per uscire (le risposte già date restano), quanti concetti m
 Alla fine compare il riepilogo: concetti ripassati, risposte giuste, punti e la serie di giorni aggiornata.
 
 ## Esame
-La sezione **Esame** (stesso tab, oppure `/ripasso#esame`) arriva con le prossime versioni di M4, tutta in inglese come all'esame ([ADR 0014](../decisions/0014-preparazione-esame.md)): quiz di modulo da 50 domande, esercizi d'esame con timer, editor e test del codice, correzione di Claude e simulazione scritta del colloquio di 20 minuti in forma di chat.
+La sezione **Esame** (stesso tab, oppure `/ripasso#esame`) è tutta in inglese, come all'esame ([ADR 0014](../decisions/0014-preparazione-esame.md)); l'interfaccia resta in italiano. Ogni risposta entra nel ripasso dei suoi concetti, come quelle del feed. In alto un avviso dice per quante lezioni ci sono già le domande d'esame e come prepararle per le altre.
+
+### Quiz di modulo
+Come l'autovalutazione ufficiale di fine modulo: **50 domande a scelta multipla**, estratte a caso ogni volta tra quelle del feed delle lezioni del modulo e le domande d'esame in più (circa 90 per modulo). Se un modulo ne ha meno di 50 il quiz le usa tutte e lo dice. Dopo ogni risposta si vede la spiegazione; alla fine il punteggio, le risposte giuste e i concetti da rivedere, che nel ripasso tornano prima.
+
+### Esercizi d'esame
+L'elenco mostra prima la **banca degli esercizi** (ogni esercizio ufficiale con le sue 2 varianti), poi le **domande aperte delle lezioni**; accanto a quelli già fatti c'è l'ultimo punteggio. Aprendo un esercizio:
+- **Timer** facoltativo: si sceglie 10, 15, 20 o 30 minuti; a fine tempo avvisa e si può continuare.
+- **Suggerimenti** uno alla volta, nascosti finché non li chiedi, in italiano o in inglese (pulsante IT/EN, indipendente dalla lingua di studio).
+- **Risposta**: per il codice un editor Python con i numeri di riga e l'indentazione automatica, che parte dalla firma della funzione; per le spiegazioni un'area di testo. La bozza resta sul dispositivo: si può uscire e riprendere.
+- **Esegui i test** (esercizi di codice): Python gira nel browser e mostra quali esempi passano, con il risultato atteso e quello ottenuto e l'eventuale `print`. La prima volta scarica circa 10 MB, poi funziona anche offline. Un test che dura più di 5 secondi (per esempio un ciclo infinito) si ferma. I test controllano gli esempi, non la qualità della soluzione.
+- **Mostra soluzione e griglia**: la soluzione modello e i criteri di correzione; per ogni criterio si segnano i punti presi e si salva il punteggio. Sotto il 50% il concetto torna presto nel ripasso, tra il 50% e l'80% è "difficile", sopra è "bene". Dopo il salvataggio compare la domanda di approfondimento, come al colloquio.
+
+La correzione di Claude e la simulazione del colloquio di 20 minuti in chat arrivano con la prossima versione.
 
 ### Preparare le domande d'esame
 Le domande della sezione si preparano con Claude Desktop, come il feed: dopo aver generato le lezioni si chiede **"genera le domande d'esame di EpicFeed"**. Per ogni lezione Claude aggiunge, in inglese, **10 domande a scelta multipla** nuove (non ripete quelle del feed) e **1 o 2 domande aperte** come al colloquio: scrivere una funzione Python con i suoi test, spiegare un concetto o analizzare un codice, ognuna con suggerimenti in italiano e in inglese, soluzione modello, griglia di correzione e una domanda di approfondimento. Le schede e le domande del feed restano come sono. Se una lezione viene rigenerata, le sue domande d'esame vanno rifatte.
@@ -36,7 +49,7 @@ Le domande della sezione si preparano con Claude Desktop, come il feed: dopo ave
 Gli esercizi d'esame del corso (il materiale *Exam Prep* che sta nello zip delle slide, 14 esercizi nel corso DSA) diventano la **banca degli esercizi**: si chiede a Claude Desktop di crearla indicando lo zip. Claude trascrive ogni esercizio ufficiale con i suoi esempi e ne scrive **2 varianti** sullo stesso argomento, ognuno con suggerimenti, soluzione modello e griglia. Il PDF resta sul PC e la banca è **personale**: la vede solo chi l'ha creata.
 
 ## Dove restano i dati
-I progressi del ripasso (stato di ogni concetto, storico delle risposte, giorni di ripasso) stanno sul dispositivo, in IndexedDB. In navigazione privata alcuni browser non permettono di salvarli: la schermata lo dice e il ripasso non viene ricordato.
+I progressi del ripasso (stato di ogni concetto, storico delle risposte, giorni di ripasso) stanno sul dispositivo, in IndexedDB. In navigazione privata alcuni browser non permettono di salvarli: la schermata lo dice e il ripasso non viene ricordato. Anche le bozze delle risposte agli esercizi, gli ultimi punteggi e la lingua dei suggerimenti restano sul dispositivo; le domande d'esame se ne tiene una copia per usarle offline.
 
 ## Telefono e PC
 I progressi si **sincronizzano** tra i dispositivi in forma **cifrata sul dispositivo** ([ADR 0018](../decisions/0018-sincronizzazione-cifrata-progressi.md)): la chiave nasce dalla password nel browser e il server ne conserva una copia che non può leggere.

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { ReviewApp } from '@/features/review/review-app';
 import { requireUser } from '@/server/auth';
 
@@ -12,5 +13,7 @@ export const dynamic = 'force-dynamic';
  */
 export default async function ReviewPage() {
   const user = await requireUser();
-  return <ReviewApp account={user.id} />;
+  // Il nonce della CSP serve all'editor del codice della sezione Esame (stili di CodeMirror).
+  const nonce = (await headers()).get('x-nonce');
+  return <ReviewApp account={user.id} nonce={nonce} />;
 }

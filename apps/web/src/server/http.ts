@@ -112,3 +112,19 @@ export async function readLimited(request: Request, limit: number): Promise<stri
   }
   return new TextDecoder().decode(bytes);
 }
+
+/**
+ * `true` se il valore di `If-None-Match` corrisponde all'ETag (anche in forma
+ * debole o in elenco): l'app ha già la versione corrente.
+ *
+ * @param header - Valore dell'header, se c'è.
+ * @param etag - ETag della risposta, tra virgolette.
+ * @returns `true` se si può rispondere `304`.
+ */
+export function matchesEtag(header: string | null, etag: string): boolean {
+  if (!header) return false;
+  return header
+    .split(',')
+    .map((value) => value.trim().replace(/^W\//, ''))
+    .some((value) => value === etag || value === '*');
+}

@@ -23,6 +23,7 @@ import {
   PossessionProofVerifier,
   ReadLessonForExam,
   ReadLessonForGeneration,
+  ReadExamContent,
   ReadSubjectFeed,
   RealignLessonFeeds,
   SaveExamBank,
@@ -61,6 +62,7 @@ export interface Services {
   readonly saveExamPack: SaveExamPack;
   readonly listSubjectsForExam: ListSubjectsForExam;
   readonly saveExamBank: SaveExamBank;
+  readonly readExamContent: ReadExamContent;
 }
 
 let services: Services | undefined;
@@ -117,6 +119,7 @@ export function getServices(): Services {
     saveExamPack: new SaveExamPack({ repository: exams, clock: systemClock }),
     listSubjectsForExam: new ListSubjectsForExam(exams),
     saveExamBank: new SaveExamBank({ repository: exams, clock: systemClock }),
+    readExamContent: new ReadExamContent(exams),
   };
   return services;
 }

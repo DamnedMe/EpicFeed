@@ -22,6 +22,23 @@ const config: NextConfig = {
   headers() {
     return Promise.resolve([
       { source: '/:path*', headers: securityHeaders },
+      // Pyodide (M4): la versione è nel percorso, quindi i file non cambiano mai.
+      {
+        source: '/pyodide/:path*',
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=31536000, immutable' }],
+      },
+      // Worker dei test Python: niente rete se non verso l'app (da cui scarica
+      // Pyodide) e WebAssembly permesso solo qui, non nelle pagine.
+      {
+        source: '/python-worker.js',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, max-age=0' },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'",
+          },
+        ],
+      },
       // Il service worker va sempre ricontrollato, altrimenti un aggiornamento arriverebbe in ritardo.
       {
         source: '/sw.js',

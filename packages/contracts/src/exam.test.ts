@@ -2,6 +2,7 @@ import { checkExamPack } from '@study-feed/core';
 import { describe, expect, it } from 'vitest';
 import {
   examBankDraftSchema,
+  examContentResponseSchema,
   examPackDraftSchema,
   saveExamBankRequestSchema,
   saveExamPackRequestSchema,
@@ -121,5 +122,32 @@ describe('examBankDraftSchema', () => {
     expect(examBankDraftSchema.safeParse({ exercises: [exercise('x', { page: 0 })] }).success).toBe(
       false,
     );
+  });
+});
+
+describe('examContentResponseSchema', () => {
+  const stored = {
+    ...pack,
+    lessonId: LESSON,
+    feedId: FEED,
+    promptVersion: '2026-11-24.1',
+    generatedAt: '2026-11-24T10:00:00.000Z',
+  };
+
+  it('accetta pacchetti e banca assente', () => {
+    expect(
+      examContentResponseSchema.safeParse({
+        subjectId: LESSON,
+        version: 'a'.repeat(64),
+        packs: [stored],
+        bank: null,
+      }).success,
+    ).toBe(true);
+  });
+
+  it('rifiuta un’impronta non valida o campi in più', () => {
+    const base = { subjectId: LESSON, version: 'a'.repeat(64), packs: [], bank: null };
+    expect(examContentResponseSchema.safeParse({ ...base, version: 'x' }).success).toBe(false);
+    expect(examContentResponseSchema.safeParse({ ...base, extra: 1 }).success).toBe(false);
   });
 });
