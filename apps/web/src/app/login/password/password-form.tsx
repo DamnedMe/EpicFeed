@@ -1,7 +1,7 @@
 'use client';
 
 import { startTransition, useActionState, useEffect, useState } from 'react';
-import { forgetPasswordKey, rememberPasswordKey } from '@/features/sync/engine';
+import { forgetPasswordKey, rememberPasswordKey } from '@/features/review/sync/engine';
 import { setPassword, type PasswordFormState } from '../actions';
 
 const input =

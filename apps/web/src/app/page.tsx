@@ -4,8 +4,8 @@ import { parseId } from '@epicfeed/shared';
 import { FEED_COPY_COOKIE } from '@/features/device-flags';
 import { FeedApp } from '@/features/feed/feed-app';
 import { requireUser } from '@/server/auth';
-import { feedDeps } from '@/server/feed-deps';
-import { loadFeedPreview } from '@/server/feed-preview';
+import { feedDeps } from '@/features/feed/api/feed-deps';
+import { loadFeedPreview } from '@/features/feed/api/feed-preview';
 
 export const metadata: Metadata = { title: 'Feed' };
 export const dynamic = 'force-dynamic';

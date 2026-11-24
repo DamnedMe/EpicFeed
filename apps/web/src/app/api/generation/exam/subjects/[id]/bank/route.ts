@@ -1,5 +1,5 @@
-import { handleSaveExamBank } from '@/server/generation-handler';
-import { generationDeps } from '@/server/generation-deps';
+import { handleSaveExamBank } from '@/features/exam/api/generation-handler';
+import { examGenerationDeps } from '@/features/exam/api/generation-deps';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,5 +8,5 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  return handleSaveExamBank(request, (await params).id, generationDeps());
+  return handleSaveExamBank(request, (await params).id, examGenerationDeps());
 }

@@ -39,19 +39,25 @@ Tutte le pagine sono dinamiche (`force-dynamic`): dipendono dalla sessione e non
 apps/web/src/
 ├─ proxy.ts             CSP con nonce, rinnovo della sessione, redirect a /login
 ├─ app/                 pagine e route (solo composizione e presentazione)
-├─ components/          guscio delle pagine di servizio, barra in basso
-├─ features/feed/       feed di studio (client): modello, gesti, dati sul dispositivo, schermate
-└─ server/              solo lato server ('server-only')
+├─ components/          guscio dell'app (shell.css), barra in basso, pagine di servizio
+├─ features/<funzione>/ schermate della funzione (client) e, in api/, i suoi handler
+│  ├─ feed/             feed di studio: modello, gesti, dati sul dispositivo, schermate, styles/
+│  │  └─ api/           GET /api/feed/subjects, anteprima, API della generazione del feed
+│  ├─ review/           ripasso; sync/ sincronizzazione cifrata nel browser
+│  │  └─ api/           GET/PUT /api/progress
+│  ├─ exam/             sezione Esame
+│  │  └─ api/           /api/exam, API della generazione per l'esame
+│  └─ ingest/api/       POST /api/import
+└─ server/              solo lato server ('server-only'), comune a tutte le funzioni
    ├─ env.ts            variabili d'ambiente validate con zod alla prima lettura
    ├─ supabase.ts       client Supabase con i cookie della richiesta
    ├─ auth.ts           utente corrente, allowlist delle email, password impostata
    ├─ container.ts      composizione: connessione Postgres, repository, casi d'uso
    ├─ http.ts           risposte di errore uniformi, controllo dell'origine, bearer
-   ├─ import-handler.ts POST /api/import, testabile senza Next.js
-   ├─ feed-handler.ts   GET /api/feed/subjects[/{id}], testabile senza Next.js
-   ├─ appearance.ts     tema e accento dai cookie, per il primo render
-   └─ feed-deps.ts      collega gli handler del feed ai servizi e al riallineamento con `after`
+   ├─ generation-api.ts token "genera", limite di frequenza e lettura del corpo per l'API della generazione
+   └─ appearance.ts     tema e accento dai cookie, per il primo render
 ```
+Ogni handler (`features/<funzione>/api/*-handler.ts`) riceve una `Request` standard e le sue dipendenze, così si testa senza Next.js; il file `*-deps.ts` accanto lo collega ai servizi reali.
 Le route chiamano `getServices()` di `container.ts`, che crea una sola volta la connessione (`postgres`, `prepare: false` per il pooler di Supabase, TLS obbligatorio tranne che su `localhost`) e collega le implementazioni di `@epicfeed/<funzione>/infrastructure` ai casi d'uso dei pacchetti di funzione.
 
 ## Accesso
@@ -90,9 +96,11 @@ Le regole pure stanno in `@epicfeed/feed` ([core.md](core.md#feed-di-studio)): `
 | `feed-client.ts` | `readCachedFeed`: copia sul dispositivo, validata una volta e poi tenuta in memoria; `loadFeed`: materia scelta (ultima aperta con lezioni pronte), `If-None-Match` con la versione salvata, `304` → copia; senza rete la copia, con l'avviso *offline*. `FeedApp` mostra subito la copia e poi applica l'esito di `loadFeed`: se la materia è cambiata la sostituisce restando sulla scheda della posizione salvata |
 | `storage.ts`, `local-state.ts` | `localStorage` con prefisso `ef:`, ogni lettura validata con zod e ogni errore assorbito; valori condivisi tra i componenti con `useSyncExternalStore` (sul server e al primo render valgono i predefiniti, quindi niente differenze di idratazione) |
 | `gestures.ts` | `GestureRecognizer` senza DOM, con timer sostituibili: tocco (destra/sinistra, quota sinistra 30%), doppio tocco entro 230 ms, pressione di 500 ms, tolleranza di 12 px oltre la quale è uno scroll; `swipeAnswer` per il vero/falso (80 px, soprattutto orizzontale) |
+| `feed-hud.tsx`, `feed-fallback.tsx` | Barra in alto (capitolo, punti, serie, anello dei 5 minuti, lingua) e stati senza feed |
+| `session.ts`, `use-speech.ts`, `use-keyboard.ts` | Sessione da 5 minuti, lettura ad alta voce (*Ascolta*), tastiera con le stesse azioni dei gesti |
 | `feed-app.tsx` | Composizione: scroll verticale nativo con `scroll-snap`, solo le schede entro ±2 da quella visibile sono disegnate (le altre sono segnaposto vuoti alti uno schermo), le schede non visibili sono `inert`; sessione, punti, toast, sintesi vocale, tastiera, avanzamento automatico |
 | `card-slide.tsx`, `quiz-slide.tsx`, `sheets.tsx`, `overlays.tsx` | Scheda a battute, domande, fogli delle azioni e dei capitoli, spiegazione dei gesti e riepilogo della sessione |
-| `feed.css` | Stili del feed con i token `--sf-*`: tema e accento cambiano senza ricaricare; `data-motion='off'` e `prefers-reduced-motion` spengono animazioni e transizioni |
+| `styles/*.css` (e `components/shell.css`) | Stili del feed con i token `--sf-*`, un file per parte (barra in alto, schede, domande, effetti, fogli): tema e accento cambiano senza ricaricare; `data-motion='off'` e `prefers-reduced-motion` spengono animazioni e transizioni |
 
 **CSP e stili**: la CSP non permette attributi `style` nell'HTML del server. I pochi valori dinamici (durata della battuta in avanzamento automatico, anello dei 5 minuti, trascinamento del vero/falso) sono variabili CSS impostate dal client con `style.setProperty` dopo il montaggio; il feed stesso si disegna solo nel browser, dopo il caricamento della materia.
 
@@ -142,7 +150,7 @@ Decisioni in [ADR 0014](../decisions/0014-exam-preparation.md) e [ADR 0017](../d
 - `next.config.ts`: `/pyodide/*` con cache di un anno (la versione è nel percorso); `/python-worker.js` con `no-cache` e una CSP propria (`script-src 'self' 'wasm-unsafe-eval'`, `connect-src 'self'`): WebAssembly è permesso solo nel worker, le pagine restano con la CSP di sempre. `proxy.ts` esclude entrambi.
 - Il service worker tiene i file di Pyodide (prima la cache, solo la versione in uso) e il worker (prima la rete): dopo il primo uso i test girano anche offline.
 
-Lato server: `src/server/exam-handler.ts` (handler puri), `exam-deps.ts`, `src/app/api/exam/subjects/[id]/route.ts`, `src/app/api/exam/submissions/`; per Claude Desktop `src/app/api/generation/exam/submissions/` con il token "genera"; caso d'uso `ReadExamContent` nel core e `loadExamContent` di `DrizzleExamPackRepository` (una lettura con la RLS dello studente: materia visibile, pacchetto del feed corrente di ogni lezione, banca propria). L'ETag è l'impronta degli id di pacchetti e banca, che non cambiano mai: un feed nuovo ha un pacchetto nuovo.
+Lato server: `src/features/exam/api/exam-handler.ts` (handler puri), `exam-deps.ts`, `src/app/api/exam/subjects/[id]/route.ts`, `src/app/api/exam/submissions/`; per Claude Desktop `src/app/api/generation/exam/submissions/` con il token "genera"; caso d'uso `ReadExamContent` nel core e `loadExamContent` di `DrizzleExamPackRepository` (una lettura con la RLS dello studente: materia visibile, pacchetto del feed corrente di ogni lezione, banca propria). L'ETag è l'impronta degli id di pacchetti e banca, che non cambiano mai: un feed nuovo ha un pacchetto nuovo.
 
 ### Budget Lighthouse
 `apps/web/perf/lighthouse.mjs` (`pnpm --filter @epicfeed/web perf`, dopo `pnpm build`; nella CI dopo i test Playwright). Lighthouse 13 con la configurazione mobile (telefono emulato, 4G lenta, CPU rallentata 4 volte) applicata davvero al browser (`throttlingMethod: 'devtools'`): la stima simulata conta nel LCP anche gli script che non lo bloccano e su queste pagine lo gonfia di circa un secondo. Ogni pagina si misura 3 volte e vale la mediana; il riepilogo va in `perf/.results/summary.json`.
@@ -158,7 +166,7 @@ Per tutte: TBT ≤ 300 ms e CLS ≤ 0,1. Le pagine protette si misurano sul banc
 #### Prima schermata dal server
 Su 4G lenta gli script (circa 150 KB compressi) arrivano dopo 2,5 s: alla prima apertura la schermata principale deve essere già nell'HTML.
 
-- **Feed**: senza il cookie `ef-feed-copy` la pagina (`src/app/page.tsx`) legge l'anteprima con `loadFeedPreview` (`src/server/feed-preview.ts`): tutti i capitoli e i titoli, ma il feed solo della prima lezione pronta (`feedPreview` in `model.ts`, versione con il prefisso `anteprima:`). `FeedApp` parte da lì (`preview`), poi la materia intera la sostituisce restando sulla scheda. Con la copia sul dispositivo il server non legge il feed.
+- **Feed**: senza il cookie `ef-feed-copy` la pagina (`src/app/page.tsx`) legge l'anteprima con `loadFeedPreview` (`src/features/feed/api/feed-preview.ts`): tutti i capitoli e i titoli, ma il feed solo della prima lezione pronta (`feedPreview` in `model.ts`, versione con il prefisso `anteprima:`). `FeedApp` parte da lì (`preview`), poi la materia intera la sostituisce restando sulla scheda. Con la copia sul dispositivo il server non legge il feed.
 - **Ripasso**: senza il cookie `ef-sync-key` la richiesta della password è già nella pagina, in cima (il ripasso che arriva dopo non la sposta). Con la chiave lo stato della sincronizzazione resta in fondo.
 - I cookie (`src/features/device-flags.ts`) contengono solo `1`, durano un anno e non portano dati di studio: `ef-feed-copy` si accende quando la materia è salvata sul dispositivo, `ef-sync-key` segue la chiave a ogni sincronizzazione (si spegne se manca). Se un cookie sbaglia (cancellato a mano) la pagina si corregge appena gli script leggono il dispositivo.
 - **zod** si importa come `import * as z from 'zod'`: con `import { z }` esbuild includeva tutta la libreria (443 KB invece di 97 KB minificati).
@@ -166,7 +174,7 @@ Su 4G lenta gli script (circa 150 KB compressi) arrivano dopo 2,5 s: alla prima 
 ### Sincronizzazione dei progressi (M4)
 Decisioni in [ADR 0018](../decisions/0018-encrypted-progress-sync.md); unione e ricalcolo puri in `@epicfeed/review` ([core.md](core.md#sincronizzazione-dei-progressi)).
 
-| File (`src/features/sync`) | Ruolo |
+| File (`src/features/review/sync`) | Ruolo |
 |---|---|
 | `crypto.ts` | WebCrypto: `derivePasswordKey` (PBKDF2-SHA256 600.000 iterazioni, sale dall'email → chiave HKDF non estraibile), `encryptSnapshot`/`decryptSnapshot` (HKDF con sale casuale → AES-GCM 256, iv casuale, gzip, dati associati con il `kdf`); la copia decifrata passa da uno schema zod |
 | `key-store.ts` | Database `epicfeed-sync`: la chiave (`CryptoKey` non estraibile, email, account, `trusted`) e il proprietario dei progressi del dispositivo |
@@ -176,7 +184,7 @@ Decisioni in [ADR 0018](../decisions/0018-encrypted-progress-sync.md); unione e 
 | `sync-panel.tsx` | Stato in fondo alla home del Ripasso e richiesta della password (*Sincronizza telefono e PC*, *La password è cambiata*); senza chiave (`keyExpected={false}`) la richiesta sta in cima e si mostra subito |
 
 - La chiave si prepara nel form di accesso (`login-form.tsx`) e in quello della password (`password-form.tsx`) **prima** di mandare il form: è l'unico momento in cui il browser ha la password. Se l'accesso o il salvataggio non riescono, la chiave si cancella.
-- Lato server: `src/server/progress-handler.ts` (handler puri, testati senza Next.js), `progress-deps.ts`, `src/app/api/progress/route.ts`; `DrizzleProgressRepository` in `packages/review/src/infrastructure` (lettura con la RLS dello studente, scrittura con `revision = base` e incremento atomico).
+- Lato server: `src/features/review/api/progress-handler.ts` (handler puri, testati senza Next.js), `progress-deps.ts`, `src/app/api/progress/route.ts`; `DrizzleProgressRepository` in `packages/review/src/infrastructure` (lettura con la RLS dello studente, scrittura con `revision = base` e incremento atomico).
 - Nel banco di prova Playwright `confirmPassword` è una funzione vuota e non c'è chiave: la home del Ripasso mostra la richiesta della password, il resto non cambia.
 
 ### PWA e uso senza rete
@@ -222,6 +230,6 @@ pnpm --filter @epicfeed/web dev              # http://localhost:3000
 ```
 
 ## Test
-`src/server/*.test.ts` (Vitest): `handleImport` con servizi finti (ogni caso di errore), controllo dell'origine e lettura del bearer. I flussi con il database sono coperti dai test delle cartelle `infrastructure` dei pacchetti e dalla prova end-to-end descritta in [import.md](import.md#come-è-testato). `src/features/feed/*.test.ts`: modello del feed, salvataggi sul dispositivo, gesti e caricamento della materia. `src/features/exam/*.test.ts`: catalogo d'esame, caricamento con ETag e copia, esecutore Python con worker e timer finti.
+`src/server/*.test.ts` e `src/features/*/api/*.test.ts` (Vitest): gli handler con servizi finti (ogni caso di errore), controllo dell'origine, lettura del bearer e token "genera". I flussi con il database sono coperti dai test delle cartelle `infrastructure` dei pacchetti e dalla prova end-to-end descritta in [import.md](import.md#come-è-testato). `src/features/feed/*.test.ts`: modello del feed, salvataggi sul dispositivo, gesti e caricamento della materia. `src/features/exam/*.test.ts`: catalogo d'esame, caricamento con ETag e copia, esecutore Python con worker e timer finti.
 
 **Feed sul telefono (Playwright, `apps/web/e2e`)**: `pnpm --filter @epicfeed/web test:e2e`, dopo la build. Un banco di prova (`e2e/harness/build.mjs`) impacchetta con esbuild il vero `FeedApp` con una materia di prova (`fixture.ts`, validata dallo stesso schema dell'API) e un `fetch` finto, al posto di `next/link` e `next/navigation` mette due sostituti minimi, e prende i CSS e i font dalla build di Next (`.next/static`). I test servono i file con `page.route` (nessun server, nessun database) e con una CSP come quella di produzione per gli stili, quindi un attributo `style` nell'HTML o un errore in console fanno fallire il test. Chromium con le viste di **iPhone 13** e **Pixel 7** (tocco attivo): spiegazione dei gesti al primo avvio, battute avanti e indietro, parola da indovinare, doppio tocco, tieni premuto con il minuto sul portale, scorrimento con domanda in inglese e codice, vero/falso con lo swipe, foglio dei capitoli, tastiera, ripresa dall'ultima scheda; apertura dalla copia con la rete lenta (`?rete=lenta`) o assente (`?rete=assente`); andata e ritorno da *Io* con posizione e punti conservati; sessione da 5 minuti contata alla fine (orologio simulato). Sezione Esame (`review-entry.tsx` con i contenuti d'esame di `fixture.ts`): quiz di modulo con domande del feed e del pacchetto, esercizio di codice con suggerimento, editor CodeMirror, test eseguiti davvero con Pyodide nel worker (stessa CSP del worker di produzione) e griglia, ciclo infinito interrotto dopo 5 secondi per test, correzione di Claude con le schede dei suggerimenti (invii simulati in `sessionStorage`), colloquio in chat con approfondimento. Il banco usa un nonce fisso per gli stili dell'editor, come la CSP di produzione. Il banco ha anche la pagina *Io* (`io-entry.tsx`, server action sostituita da una funzione vuota): righe allineate sui telefoni stretti, nessuno scorrimento orizzontale, barra in basso sfocata e coprente.

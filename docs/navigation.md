@@ -31,15 +31,15 @@ L'infrastruttura si importa da `@epicfeed/<funzione>/infrastructure`. I test sta
 
 ## Database
 
-Schema in `packages/db/src/schema.ts`, migrazioni in `packages/db/migrations/` (una sola sequenza per tutto il database). Il tipo `Database`, `withUserRls` e gli strumenti di test (`@epicfeed/db/testing`: `setupTestDatabase`, `TEST_USERS`) stanno nello stesso pacchetto.
+Schema in `packages/db/src/schema/`, un file per funzione, migrazioni in `packages/db/migrations/` (una sola sequenza per tutto il database). Il tipo `Database`, `withUserRls` e gli strumenti di test (`@epicfeed/db/testing`: `setupTestDatabase`, `TEST_USERS`) stanno nello stesso pacchetto.
 
 ## Le app
 
 | App | Cartella | Cosa guardare |
 | --- | --- | --- |
-| Web app e API | `apps/web` | `src/app/` pagine e rotte; `src/server/` handler delle API e `container.ts` (montaggio); `src/features/<funzione>/` schermate; `src/proxy.ts` sicurezza e sessione |
+| Web app e API | `apps/web` | `src/app/` pagine e rotte (solo composizione); `src/features/<funzione>/` schermate e, in `api/`, gli handler delle API; `src/server/` parti comuni lato server e `container.ts` (montaggio); `src/proxy.ts` sicurezza e sessione |
 | Estensione Chrome | `apps/extension` | `src/entrypoints/` popup e script del portale, `src/lib/` logica |
-| Server MCP | `apps/mcp` | `src/main.ts`, `src/server.ts` (registra gli strumenti) |
+| Server MCP | `apps/mcp` | `src/main.ts`, `src/server.ts` (monta gli strumenti); `src/feed/` strumenti del feed e import delle slide; `src/exam/` pacchetti, banca degli esercizi e correzioni |
 
 ## Nomi nell'interfaccia e nel codice
 
@@ -52,4 +52,15 @@ Schema in `packages/db/src/schema.ts`, migrazioni in `packages/db/migrations/` (
 | Salvati | `saved` |
 | Accedi | `login` |
 | Import | `ingest` |
-| Generazione | `generation` (diventerà parte di `feed` ed `exam`) |
+| Generazione | `generation` (in `feed` ed `exam`: `features/<funzione>/api/generation-handler.ts`) |
+
+## Dove cercare, per funzione
+
+| Funzione | Regole e casi d'uso | Database | API (web app) | Schermate | Server MCP |
+| --- | --- | --- | --- | --- | --- |
+| `catalog` | `packages/catalog` | `db/src/schema/catalog.ts` | | `app/lessons` | |
+| `ingest` | `packages/ingest` | | `features/ingest/api` | `app/extension` | |
+| `access` | `packages/access` | `db/src/schema/access.ts` | `server/generation-api.ts` | `app/extension`, `app/claude-desktop` | |
+| `feed` | `packages/feed` | `db/src/schema/feed.ts` | `features/feed/api` | `features/feed` | `src/feed` |
+| `review` | `packages/review` | `db/src/schema/review.ts` | `features/review/api` | `features/review` | |
+| `exam` | `packages/exam` | `db/src/schema/exam.ts` | `features/exam/api` | `features/exam` | `src/exam` |

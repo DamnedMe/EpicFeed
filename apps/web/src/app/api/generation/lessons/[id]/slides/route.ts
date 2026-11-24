@@ -1,5 +1,5 @@
-import { handleImportSlides } from '@/server/generation-handler';
-import { generationDeps } from '@/server/generation-deps';
+import { handleImportSlides } from '@/features/feed/api/generation-handler';
+import { feedGenerationDeps } from '@/features/feed/api/generation-deps';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,5 +8,5 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  return handleImportSlides(request, (await params).id, generationDeps());
+  return handleImportSlides(request, (await params).id, feedGenerationDeps());
 }

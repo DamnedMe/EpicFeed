@@ -1,5 +1,8 @@
-import { examDeps } from '@/server/exam-deps';
-import { handleListMySubmissions, handleSubmitForCorrection } from '@/server/exam-handler';
+import { examDeps } from '@/features/exam/api/exam-deps';
+import {
+  handleListMySubmissions,
+  handleSubmitForCorrection,
+} from '@/features/exam/api/exam-handler';
 
 export const dynamic = 'force-dynamic';
 

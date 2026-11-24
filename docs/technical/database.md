@@ -1,6 +1,6 @@
 # Database: schema, RLS e migrazioni
 
-Pacchetto `packages/db`. Postgres su Supabase (regione UE, Francoforte), schema definito con Drizzle in `src/schema.ts`, migrazioni SQL in `migrations/`.
+Pacchetto `packages/db`. Postgres su Supabase (regione UE, Francoforte), schema definito con Drizzle in `src/schema/`, un file per funzione (`catalog.ts`, `access.ts`, `feed.ts`, `exam.ts`, `review.ts`, colonne comuni in `columns.ts`), migrazioni SQL in `migrations/`.
 
 ## Tabelle
 ```
@@ -74,7 +74,7 @@ L'ambiente di test (PGlite + shim) è esportato come `@epicfeed/db/testing` e lo
 Ogni nuova tabella deve aggiungere qui la sua policy e un test che verifica che un altro utente non la legga ([piano di sviluppo](../development-plan.md) §5).
 
 ## Migrazioni
-- `pnpm --filter @epicfeed/db db:generate` dopo ogni modifica a `src/schema.ts`; per SQL scritto a mano (permessi, funzioni) `pnpm exec drizzle-kit generate --custom --name <nome>`.
+- `pnpm --filter @epicfeed/db db:generate` dopo ogni modifica a `src/schema/`; per SQL scritto a mano (permessi, funzioni) `pnpm exec drizzle-kit generate --custom --name <nome>`.
 - La CI esegue `db:check`: se lo schema cambia senza la migrazione corrispondente, fallisce.
 - Le migrazioni non si modificano dopo essere state applicate: si aggiunge una migrazione nuova.
 

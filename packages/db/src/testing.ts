@@ -10,7 +10,7 @@ import { readFileSync } from 'node:fs';
 import { PGlite, type Transaction } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import type { Database } from './database.js';
-import * as schema from './schema.js';
+import * as schema from './schema/index.js';
 
 // Valgono sia da `src/` (test) sia da `dist/` (pacchetto compilato).
 const migrationsDir = new URL('../migrations/', import.meta.url);

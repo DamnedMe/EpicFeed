@@ -4,7 +4,14 @@ import { Inter, JetBrains_Mono, Space_Grotesk } from 'next/font/google';
 import { ServiceWorkerRegistration } from '@/components/service-worker';
 import { readAppearance } from '@/server/appearance';
 import './globals.css';
-import '@/features/feed/feed.css';
+import '@/components/shell.css';
+import '@/features/feed/styles/top-bar.css';
+import '@/features/feed/styles/cards.css';
+import '@/features/feed/styles/quiz.css';
+import '@/features/feed/styles/effects.css';
+import '@/features/feed/styles/sheets.css';
+import '@/components/bottom-nav.css';
+import '@/components/page.css';
 import '@/features/review/review.css';
 import '@/features/exam/exam.css';
 

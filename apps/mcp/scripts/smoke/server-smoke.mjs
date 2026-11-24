@@ -9,8 +9,8 @@
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { defaultSlidesToolkit } from '../../src/slides/toolkit.js';
-import { importSlides, newImportSession, slideImagesFor } from '../../src/slides/tools.js';
+import { defaultSlidesToolkit } from '../../src/feed/slides/toolkit.js';
+import { importSlides, newImportSession, slideImagesFor } from '../../src/feed/slides/tools.js';
 
 const [zipPath, resultPath] = process.argv.slice(-2);
 const lessonId = '10000000-0000-4000-8000-000000000001';

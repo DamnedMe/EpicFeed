@@ -1,0 +1,59 @@
+/* Feed di studio (M3, ADR 0015): punti e scintille. */
+/* Punti che volano e scintille. */
+.ef-toast {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  font: 700 30px var(--sf-font-display);
+  color: var(--sf-accent-text);
+  pointer-events: none;
+  text-shadow: 0 6px 30px var(--ef-glow);
+  z-index: 20;
+  animation: ef-float 1s ease-out forwards;
+  white-space: nowrap;
+}
+@keyframes ef-float {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -30%) scale(0.7);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -110%);
+  }
+}
+.ef-saved-flash {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: 96px;
+  height: 96px;
+  margin: -48px 0 0 -48px;
+  color: var(--sf-accent-fill);
+  pointer-events: none;
+  z-index: 20;
+  animation: ef-heart 0.7s ease-out forwards;
+}
+.ef-saved-flash svg {
+  width: 96px;
+  height: 96px;
+  fill: currentColor;
+}
+@keyframes ef-heart {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}

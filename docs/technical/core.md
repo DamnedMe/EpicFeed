@@ -110,7 +110,7 @@ In `packages/exam/src`: `domain/exam.ts` (regole dei pacchetti e della banca, [g
 - Porta `ExamContentRepository` e caso d'uso `ReadExamContent`: pacchetti dei feed correnti di una materia e banca dello studente, con un'impronta (`version`) degli id, usata come ETag.
 
 ## Sincronizzazione dei progressi
-`packages/review/src/application/progress-sync.ts` (M4, [ADR 0018](../decisions/0018-encrypted-progress-sync.md)). Niente cifratura qui: la fa il browser (`apps/web/src/features/sync`).
+`packages/review/src/application/progress-sync.ts` (M4, [ADR 0018](../decisions/0018-encrypted-progress-sync.md)). Niente cifratura qui: la fa il browser (`apps/web/src/features/review/sync`).
 - `ProgressSnapshot`: risposte, giorni di ripasso (ultimi 400) e serie migliore. `mergeSnapshots` unisce due copie senza doppioni (`answerKey`: momento, concetto, fonte, domanda) in un ordine che non dipende da chi unisce; `addsToSnapshot` dice se un'unione porta qualcosa di nuovo; `replayAnswers` ricalcola gli stati FSRS ripassando le risposte in ordine di tempo (stesso risultato delle risposte date una alla volta); `streakFromDays` ricostruisce la serie.
 - Porte `SyncableProgressStore` (dispositivo: `loadSnapshot`, `mergeSnapshot`), `ProgressVault` (copia cifrata sul server: `pull`, `push` con concorrenza ottimistica) e `EncryptedProgressRepository` (lato server: righe cifrate per utente).
 - `syncProgress`: legge, unisce, riscrive solo se il dispositivo ha qualcosa in più; riprova fino a 3 volte se un altro dispositivo scrive nello stesso momento; con una copia che non si decifra si ferma (`locked`), oppure la rifà da questo dispositivo se la chiave è appena verificata (`replaceUnreadable`).

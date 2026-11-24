@@ -1,0 +1,53 @@
+/* Barra in basso: Feed · Ripasso · Libri · Io. */
+.ef-nav {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 8px 12px calc(10px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--sf-border);
+  /* Vetro su un fondo quasi pieno: il testo che scorre sotto non deve
+     trasparire (la sola superficie al 7% lo lasciava leggere). */
+  background:
+    linear-gradient(var(--sf-surface), var(--sf-surface)),
+    color-mix(in srgb, var(--sf-background) 90%, transparent);
+  /* Solo la forma standard: Lightning CSS aggiunge da sé il prefisso -webkit-
+     per Safari; scritte entrambe, teneva solo quella prefissata e Chrome
+     restava senza sfocatura. */
+  backdrop-filter: blur(var(--sf-glass-blur));
+}
+.ef-nav > a,
+.ef-nav > span {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 44px;
+  color: var(--sf-text-muted);
+  text-decoration: none;
+}
+/* Risposta immediata al tocco: il cambio di pagina può richiedere un attimo,
+   la pressione si vede subito. */
+.ef-nav a,
+.ef-row-link,
+.ef-seg button,
+.ef-switch,
+.ef-link {
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--sf-motion-fast) var(--sf-motion-easing),
+    opacity var(--sf-motion-fast) var(--sf-motion-easing),
+    background 0.2s;
+}
+.ef-nav a:active,
+.ef-seg button:active,
+.ef-switch:active {
+  transform: scale(0.94);
+}
+.ef-row-link:active,
+.ef-link:active {
+  opacity: 0.6;
+}
+.ef-nav .on {
+  color: var(--sf-accent-text);
+}
+.ef-nav .off {
+  opacity: 0.45;
+}

@@ -1,6 +1,6 @@
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
-import type * as schema from './schema.js';
+import type * as schema from './schema/index.js';
 
 /**
  * Database Drizzle usato dagli adapter. È il tipo comune ai driver: in

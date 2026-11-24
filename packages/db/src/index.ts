@@ -11,9 +11,9 @@ import type {
   lessonParts,
   lessons,
   subtitleTracks,
-} from './schema.js';
+} from './schema/index.js';
 
-export * from './schema.js';
+export * from './schema/index.js';
 export * from './database.js';
 
 /** Riga della tabella `lessons`. */
