@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { LessonPartContent, VideoPartContent } from './content.js';
 import { MAX_TEXT_LENGTH, canonicalJson, hasSummary, normalizeContent } from './content.js';
-import { DomainError } from './errors.js';
+import { DomainError } from '@epicfeed/shared';
 
 const video: VideoPartContent = {
   kind: 'video',

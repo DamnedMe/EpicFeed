@@ -1,6 +1,6 @@
 'use client';
 
-import type { StudyLanguage } from '@study-feed/core';
+import type { StudyLanguage } from '@epicfeed/core';
 import {
   answerPoints,
   autoAdvanceMs,
@@ -9,7 +9,7 @@ import {
   POINTS,
   SESSION_MS,
   storyOf,
-} from '@study-feed/core';
+} from '@epicfeed/core';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import * as z from 'zod';

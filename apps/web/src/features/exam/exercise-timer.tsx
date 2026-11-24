@@ -1,6 +1,6 @@
 'use client';
 
-import { EXERCISE_TIMER_MINUTES } from '@study-feed/core';
+import { EXERCISE_TIMER_MINUTES } from '@epicfeed/core';
 import { useEffect, useState } from 'react';
 
 /** Minuti e secondi, con il segno meno oltre il tempo. */

@@ -1,5 +1,5 @@
-import type { ExamCorrectionDraft, ExamSubmissionDraft } from '@study-feed/core';
-import { EXAM_CORRECTION_LIMITS } from '@study-feed/core';
+import type { ExamCorrectionDraft, ExamSubmissionDraft } from '@epicfeed/core';
+import { EXAM_CORRECTION_LIMITS } from '@epicfeed/core';
 import * as z from 'zod';
 import { line, paragraph } from './schema-helpers.js';
 

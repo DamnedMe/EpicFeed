@@ -1,4 +1,4 @@
-import type { StudyLanguage } from '@study-feed/core';
+import type { StudyLanguage } from '@epicfeed/core';
 
 /**
  * Testi dentro la scheda, nella lingua della scheda: chi studia in inglese

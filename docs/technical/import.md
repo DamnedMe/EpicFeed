@@ -61,7 +61,7 @@ L'ID dell'estensione è fisso (`bchcghaegcogobjapblaanbpnkpkihdd`) grazie alla c
 
 ### Build e installazione
 ```bash
-WXT_APP_ORIGIN=https://<indirizzo-della-web-app> pnpm --filter @study-feed/extension build
+WXT_APP_ORIGIN=https://<indirizzo-della-web-app> pnpm --filter @epicfeed/extension build
 ```
 Poi in Chrome: `chrome://extensions` → *Modalità sviluppatore* → *Carica estensione non pacchettizzata* → cartella `apps/extension/.output/chrome-mv3`. Senza `WXT_APP_ORIGIN` l'origine predefinita è `https://study-feed.vercel.app`; `http://localhost:3000` è ammessa solo con `wxt` in modalità sviluppo.
 

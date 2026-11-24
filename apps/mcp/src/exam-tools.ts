@@ -1,8 +1,8 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { LessonForExamResponse } from '@study-feed/contracts';
-import { examPackDraftSchema } from '@study-feed/contracts';
-import type { ExamPackCheckContext } from '@study-feed/core';
-import { checkExamPack } from '@study-feed/core';
+import type { LessonForExamResponse } from '@epicfeed/contracts';
+import { examPackDraftSchema } from '@epicfeed/contracts';
+import type { ExamPackCheckContext } from '@epicfeed/core';
+import { checkExamPack } from '@epicfeed/core';
 import * as z from 'zod';
 import type { EpicFeedApi } from './api-client.js';
 import { EXAM_INSTRUCTIONS, EXAM_PROMPT_VERSION } from './exam-prompt.js';

@@ -1,5 +1,5 @@
 import { and, count, eq, gt } from 'drizzle-orm';
-import { generationEvents, importEvents } from '@study-feed/db';
+import { generationEvents, importEvents } from '@epicfeed/db';
 import type { Database } from './database.js';
 
 /** Regola del limite: al massimo `limit` import ogni `windowMs` millisecondi. */

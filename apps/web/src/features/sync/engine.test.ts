@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { StoredProgress } from '@study-feed/core';
-import { recordAnswer, systemClock } from '@study-feed/core';
+import type { StoredProgress } from '@epicfeed/core';
+import { recordAnswer, systemClock } from '@epicfeed/core';
 import { progressStore } from '../review/progress-store';
 import { decryptSnapshot, derivePasswordKey } from './crypto';
 import { currentSyncStatus, forgetPasswordKey, rememberPasswordKey, syncNow } from './engine';

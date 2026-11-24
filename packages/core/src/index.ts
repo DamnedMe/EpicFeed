@@ -1,5 +1,5 @@
 /**
- * `@study-feed/core`: dominio e casi d'uso, TypeScript puro.
+ * `@epicfeed/core`: dominio e casi d'uso, TypeScript puro.
  *
  * @packageDocumentation
  */

@@ -55,8 +55,8 @@ jobs:
 
       - name: Compila e impacchetta
         run: |
-          pnpm turbo run build --filter=@study-feed/mcp
-          pnpm --filter @study-feed/mcp run pack
+          pnpm turbo run build --filter=@epicfeed/mcp
+          pnpm --filter @epicfeed/mcp run pack
           node apps/mcp/scripts/smoke/build.mjs
 
       - uses: actions/upload-artifact@v4

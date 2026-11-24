@@ -8,7 +8,7 @@ import {
   tokenize,
 } from './alignment.js';
 import type { ConceptKey, FeedCard } from './feed.js';
-import type { LessonPartId } from './ids.js';
+import type { LessonPartId } from '@epicfeed/shared';
 import type { SubtitleCue, SubtitleTrack } from './subtitles.js';
 
 /** Righe di 5 secondi l'una, a partire da 0. */

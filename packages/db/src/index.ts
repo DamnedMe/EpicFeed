@@ -1,5 +1,5 @@
 /**
- * `@study-feed/db`: schema Drizzle, tipi delle righe e migrazioni.
+ * `@epicfeed/db`: schema Drizzle, tipi delle righe e migrazioni.
  *
  * @packageDocumentation
  */

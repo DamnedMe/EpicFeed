@@ -1,7 +1,7 @@
 import type { ContentHash } from './content-hash.js';
 import type { ContentVersion } from './content-version.js';
-import type { ContentVersionId, LessonPartId, UserId } from './ids.js';
-import { DomainError } from './errors.js';
+import type { ContentVersionId, LessonPartId, UserId } from '@epicfeed/shared';
+import { DomainError } from '@epicfeed/shared';
 
 /**
  * Su che base è stato concesso il permesso. Oggi solo la prova di possesso;

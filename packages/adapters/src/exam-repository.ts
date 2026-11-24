@@ -12,8 +12,8 @@ import type {
   LessonFeedDocument,
   LessonId,
   UserId,
-} from '@study-feed/core';
-import { parseId } from '@study-feed/core';
+} from '@epicfeed/core';
+import { parseId } from '@epicfeed/core';
 import {
   chapters,
   lessonExamPacks,
@@ -21,7 +21,7 @@ import {
   lessons,
   subjectExamBanks,
   subjects,
-} from '@study-feed/db';
+} from '@epicfeed/db';
 import type { Database, DatabaseTransaction } from './database.js';
 import { withUserRls } from './database.js';
 

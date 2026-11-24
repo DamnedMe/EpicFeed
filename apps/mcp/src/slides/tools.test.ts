@@ -1,4 +1,4 @@
-import type { LessonSourcesResponse } from '@study-feed/contracts';
+import type { LessonSourcesResponse } from '@epicfeed/contracts';
 import { describe, expect, it, vi } from 'vitest';
 import { ApiRequestError } from '../api-client.js';
 import { memorySlidesToolkit } from './testing.js';

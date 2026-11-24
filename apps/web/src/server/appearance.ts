@@ -1,7 +1,7 @@
 import 'server-only';
 import { cookies } from 'next/headers';
-import type { AccentName, ThemePreference } from '@study-feed/ui';
-import { themeAttributes } from '@study-feed/ui';
+import type { AccentName, ThemePreference } from '@epicfeed/ui';
+import { themeAttributes } from '@epicfeed/ui';
 
 /** Cookie di tema e accento: il server li legge per disegnare la pagina già nei colori scelti, senza lampi. */
 export const APPEARANCE_COOKIES = { theme: 'ef-theme', accent: 'ef-accent' } as const;

@@ -2,10 +2,10 @@ import type { LessonPartKind } from './catalog.js';
 import { requireEpicodeId, requireVideoId } from './catalog.js';
 import type { LessonPartContent } from './content.js';
 import { hasSummary, normalizeContent } from './content.js';
-import { DomainError } from './errors.js';
+import { DomainError } from '@epicfeed/shared';
 import type { SubtitleTrack } from './subtitles.js';
 import { MAX_SUBTITLE_TRACKS, normalizeSubtitleTrack } from './subtitles.js';
-import { requirePosition, requireTitle } from './text.js';
+import { requirePosition, requireTitle } from '@epicfeed/shared';
 
 /**
  * Nodo del catalogo come arriva dal portale: id Epicode, titolo e posizione.

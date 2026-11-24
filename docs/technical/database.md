@@ -67,14 +67,14 @@ Vincoli `CHECK` replicano nel database le regole del core (titoli 1–300 caratt
 
 `test/rls-import.test.ts` fa lo stesso per le tabelle di M1: tracce visibili solo con il proprio accesso, token e registro degli import solo i propri, nessuna scrittura dal client, vincoli su lingua, hash e `video_id`.
 
-L'ambiente di test (PGlite + shim) è esportato come `@study-feed/db/testing` e lo usano anche i test di `packages/adapters`.
+L'ambiente di test (PGlite + shim) è esportato come `@epicfeed/db/testing` e lo usano anche i test di `packages/adapters`.
 
 `test/rls-generation.test.ts` copre le tabelle di M2: il feed è visibile a chi possiede tutte le fonti e nascosto a chi ne possiede solo una parte, glossario visibile a chi vede la materia, nessuna scrittura dal client, unicità di feed e termini, nuovo ambito di token `generate`.
 
 Ogni nuova tabella deve aggiungere qui la sua policy e un test che verifica che un altro utente non la legga ([piano di sviluppo](../development-plan.md) §5).
 
 ## Migrazioni
-- `pnpm --filter @study-feed/db db:generate` dopo ogni modifica a `src/schema.ts`; per SQL scritto a mano (permessi, funzioni) `pnpm exec drizzle-kit generate --custom --name <nome>`.
+- `pnpm --filter @epicfeed/db db:generate` dopo ogni modifica a `src/schema.ts`; per SQL scritto a mano (permessi, funzioni) `pnpm exec drizzle-kit generate --custom --name <nome>`.
 - La CI esegue `db:check`: se lo schema cambia senza la migrazione corrispondente, fallisce.
 - Le migrazioni non si modificano dopo essere state applicate: si aggiunge una migrazione nuova.
 
@@ -111,7 +111,7 @@ Se qualcosa va storto, l'errore nel log del workflow dice il motivo e cosa fare 
 Il workflow gira solo su `main`, mai due volte in parallelo, e la stringa di connessione non compare nei log. La connessione verso Supabase è sempre cifrata (`ssl: require`).
 
 ### Applicare le migrazioni dal PC (alternativa)
-Crea `packages/db/.env` (ignorato da git) con `DATABASE_URL=<stringa>` e lancia `pnpm --filter @study-feed/db db:migrate`.
+Crea `packages/db/.env` (ignorato da git) con `DATABASE_URL=<stringa>` e lancia `pnpm --filter @epicfeed/db db:migrate`.
 
 ### Altre impostazioni
 - *Authentication → Providers*: lascia attivo solo Email (codice monouso e password, [ADR 0007](../decisions/0007-generation-via-mcp-and-login.md)).

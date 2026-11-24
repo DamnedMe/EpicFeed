@@ -3,7 +3,7 @@ import {
   importLessonResponseSchema,
   type ImportLessonRequest,
   type ImportLessonResponse,
-} from '@study-feed/contracts';
+} from '@epicfeed/contracts';
 
 /** Errore dell'API già tradotto in un messaggio per l'utente. */
 export class ApiCallError extends Error {

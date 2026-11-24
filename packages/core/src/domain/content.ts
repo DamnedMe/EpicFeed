@@ -1,5 +1,5 @@
-import { DomainError } from './errors.js';
-import { normalizeText } from './text.js';
+import { DomainError } from '@epicfeed/shared';
+import { normalizeText } from '@epicfeed/shared';
 
 /** Lingue dei riassunti forniti dal portale. */
 export type SummaryLanguage = 'it' | 'en';

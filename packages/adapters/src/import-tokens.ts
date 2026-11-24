@@ -1,6 +1,6 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { and, eq, gt, isNull, sql } from 'drizzle-orm';
-import { apiTokens } from '@study-feed/db';
+import { apiTokens } from '@epicfeed/db';
 import type { Database } from './database.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;

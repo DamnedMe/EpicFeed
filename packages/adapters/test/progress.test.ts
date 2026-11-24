@@ -1,5 +1,5 @@
 import type { PGlite } from '@electric-sql/pglite';
-import type { UserId } from '@study-feed/core';
+import type { UserId } from '@epicfeed/core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Database } from '../src/database.js';
 import { DrizzleProgressRepository } from '../src/progress-repository.js';

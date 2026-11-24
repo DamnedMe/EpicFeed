@@ -1,6 +1,6 @@
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
-import type * as schema from '@study-feed/db';
+import type * as schema from '@epicfeed/db';
 
 /**
  * Database Drizzle usato dagli adapter. È il tipo comune ai driver: in

@@ -20,22 +20,23 @@ pnpm check            # formattazione + lint + typecheck + test + build, come in
 | `pnpm typecheck` | Controllo dei tipi senza emettere file |
 | `pnpm test` | Test Vitest (core e ui con soglie di copertura; db e adapters su Postgres in memoria) |
 | `pnpm format` / `pnpm format:check` | Prettier (i file `.md` sono esclusi: la prosa resta com'è scritta) |
-| `pnpm --filter @study-feed/db db:generate` | Genera una nuova migrazione SQL dallo schema |
-| `pnpm --filter @study-feed/db db:check` | Verifica che le migrazioni siano allineate allo schema |
-| `pnpm --filter @study-feed/db db:migrate` | Applica le migrazioni al database di `DATABASE_URL` |
-| `pnpm --filter @study-feed/web test:e2e` | Test del feed su viste di iPhone e Android (Playwright, dopo `pnpm build`; la prima volta `pnpm --filter @study-feed/web exec playwright install chromium`) |
-| `pnpm --filter @study-feed/web dev` | Web app in locale su `http://localhost:3000` (serve `apps/web/.env.local`) |
-| `pnpm --filter @study-feed/extension dev` | Estensione in modalità sviluppo (Chrome con ricarica automatica) |
-| `pnpm --filter @study-feed/extension build` | Estensione da caricare in Chrome (`apps/extension/.output/chrome-mv3`) |
+| `pnpm --filter @epicfeed/db db:generate` | Genera una nuova migrazione SQL dallo schema |
+| `pnpm --filter @epicfeed/db db:check` | Verifica che le migrazioni siano allineate allo schema |
+| `pnpm --filter @epicfeed/db db:migrate` | Applica le migrazioni al database di `DATABASE_URL` |
+| `pnpm --filter @epicfeed/web test:e2e` | Test del feed su viste di iPhone e Android (Playwright, dopo `pnpm build`; la prima volta `pnpm --filter @epicfeed/web exec playwright install chromium`) |
+| `pnpm --filter @epicfeed/web dev` | Web app in locale su `http://localhost:3000` (serve `apps/web/.env.local`) |
+| `pnpm --filter @epicfeed/extension dev` | Estensione in modalità sviluppo (Chrome con ricarica automatica) |
+| `pnpm --filter @epicfeed/extension build` | Estensione da caricare in Chrome (`apps/extension/.output/chrome-mv3`) |
 
 ## Struttura
 ```
-study-feed/
+epicfeed/
 ├─ apps/
 │  ├─ web/        Next.js: accesso, Le mie lezioni, API         → technical/web.md
 │  └─ extension/  estensione Chrome (WXT) che importa le lezioni → technical/import.md
 ├─ packages/
-│  ├─ config/     tsconfig ed ESLint condivisi
+│  ├─ config/     tsconfig, ESLint e confini dei pacchetti (boundaries.js)
+│  ├─ shared/     nucleo condiviso: errori, id, testo
 │  ├─ core/       dominio e casi d'uso, TypeScript puro       → technical/core.md
 │  ├─ contracts/  schemi zod condivisi tra API ed estensione   → technical/import.md
 │  ├─ adapters/   implementazioni Drizzle delle porte del core
@@ -44,7 +45,7 @@ study-feed/
 ├─ docs/
 └─ .github/       CI e Dependabot
 ```
-`apps/mcp` è il server MCP per Claude Desktop (M2): `pnpm --filter @study-feed/mcp run pack` crea il pacchetto `epicfeed.mcpb` ([generation.md](generation.md#server-mcp-appsmcp)).
+`apps/mcp` è il server MCP per Claude Desktop (M2): `pnpm --filter @epicfeed/mcp run pack` crea il pacchetto `epicfeed.mcpb` ([generation.md](generation.md#server-mcp-appsmcp)).
 
 Ogni pacchetto ha gli stessi script (`build`, `lint`, `typecheck`, `test`) e Turborepo li esegue nell'ordine delle dipendenze, con cache: se un pacchetto non cambia, il suo risultato viene riusato.
 
@@ -52,7 +53,8 @@ Ogni pacchetto ha gli stessi script (`build`, `lint`, `typecheck`, `test`) e Tur
 - **TypeScript strict** con `noUncheckedIndexedAccess` ed `exactOptionalPropertyTypes`; moduli ESM.
 - **TSDoc obbligatoria** su funzioni, classi, metodi, interfacce e tipi esportati: la regola `jsdoc/require-jsdoc` fa fallire il lint se manca.
 - Identificatori in inglese, commenti e documentazione in italiano. I commenti interni spiegano il *perché*, non il *cosa*.
-- Regola delle dipendenze: `core` non importa altri pacchetti del monorepo, framework, ORM né moduli `node:*` (ESLint, `packages/core/eslint.config.js`).
+- Regola delle dipendenze: `core` importa solo `@epicfeed/shared`, mai framework, ORM né moduli `node:*` (ESLint, `packages/core/eslint.config.js`).
+- Pacchetti di funzione ([ADR 0019](../decisions/0019-feature-packages.md)): l'`eslint.config.js` di ognuno usa `featureBoundaries({ dependsOn })` di `@epicfeed/config/boundaries`, che vieta i pacchetti non dichiarati, gli import dei file interni di un altro pacchetto e, dentro il pacchetto, le dipendenze verso l'esterno (`domain` ← `application`, `contracts` ← `infrastructure`).
 - Versioni delle dipendenze fissate in modo esatto e nel lockfile; pnpm non installa versioni pubblicate da meno di 24 ore (`minimumReleaseAge`) e solo `esbuild` può eseguire script di installazione.
 
 ## Integrazione continua

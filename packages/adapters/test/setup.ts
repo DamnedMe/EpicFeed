@@ -1,7 +1,7 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
-import * as schema from '@study-feed/db';
-import { createTestDatabase } from '@study-feed/db/testing';
+import * as schema from '@epicfeed/db';
+import { createTestDatabase } from '@epicfeed/db/testing';
 import type { Database } from '../src/database.js';
 
 export const anna = '0a0a0a0a-0000-4000-8000-00000000000a';

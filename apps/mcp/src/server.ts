@@ -1,8 +1,8 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import type { LessonSourcesResponse } from '@study-feed/contracts';
-import { lessonFeedDraftSchema } from '@study-feed/contracts';
-import { checkLessonFeed } from '@study-feed/core';
+import type { LessonSourcesResponse } from '@epicfeed/contracts';
+import { lessonFeedDraftSchema } from '@epicfeed/contracts';
+import { checkLessonFeed } from '@epicfeed/core';
 import * as z from 'zod';
 import type { EpicFeedApi } from './api-client.js';
 import { ApiRequestError } from './api-client.js';

@@ -1,7 +1,7 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { LessonImport, UserId } from '@study-feed/core';
-import { ImportLesson, PossessionProofVerifier } from '@study-feed/core';
+import type { LessonImport, UserId } from '@epicfeed/core';
+import { ImportLesson, PossessionProofVerifier } from '@epicfeed/core';
 import { DrizzleCatalogRepository } from '../src/catalog-repository.js';
 import type { Database } from '../src/database.js';
 import { MyLessonsQuery } from '../src/my-lessons.js';

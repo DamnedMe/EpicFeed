@@ -6,8 +6,8 @@ import type {
   StoredSubmission,
   SubmissionKind,
   UserId,
-} from '@study-feed/core';
-import { examSubmissions, subjects } from '@study-feed/db';
+} from '@epicfeed/core';
+import { examSubmissions, subjects } from '@epicfeed/db';
 import type { Database } from './database.js';
 import { withUserRls } from './database.js';
 

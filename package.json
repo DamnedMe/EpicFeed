@@ -1,5 +1,5 @@
 {
-  "name": "study-feed",
+  "name": "epicfeed",
   "private": true,
   "description": "Study Feed: lezioni Epicode trasformate in un feed di schede, quiz e ripasso.",
   "license": "MIT",
@@ -20,7 +20,7 @@
     "docs:status:check": "node scripts/docs-status.mjs --check"
   },
   "devDependencies": {
-    "@study-feed/config": "workspace:*",
+    "@epicfeed/config": "workspace:*",
     "prettier": "3.10.1",
     "turbo": "2.11.11",
     "typescript": "6.0.3"

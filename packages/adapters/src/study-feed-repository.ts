@@ -7,9 +7,9 @@ import type {
   StudyFeedSubjectRows,
   StudySubject,
   UserId,
-} from '@study-feed/core';
-import { parseId } from '@study-feed/core';
-import { chapters, editions, lessonFeeds, lessonParts, lessons, subjects } from '@study-feed/db';
+} from '@epicfeed/core';
+import { parseId } from '@epicfeed/core';
+import { chapters, editions, lessonFeeds, lessonParts, lessons, subjects } from '@epicfeed/db';
 import type { Database } from './database.js';
 import { withUserRls } from './database.js';
 

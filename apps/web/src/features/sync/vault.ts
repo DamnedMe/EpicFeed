@@ -1,6 +1,6 @@
-import type { ProgressPut } from '@study-feed/contracts';
-import { progressPutResponseSchema, progressResponseSchema } from '@study-feed/contracts';
-import type { ProgressSnapshot, ProgressVault, PushResult, RemoteProgress } from '@study-feed/core';
+import type { ProgressPut } from '@epicfeed/contracts';
+import { progressPutResponseSchema, progressResponseSchema } from '@epicfeed/contracts';
+import type { ProgressSnapshot, ProgressVault, PushResult, RemoteProgress } from '@epicfeed/core';
 import { decryptSnapshot, encryptSnapshot } from './crypto';
 
 /** Errore di rete o del server: la sincronizzazione riproverà più tardi. */

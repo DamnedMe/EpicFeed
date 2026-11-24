@@ -1,6 +1,6 @@
 import { and, eq, sql } from 'drizzle-orm';
-import type { EncryptedProgressRepository, StoredProgress, UserId } from '@study-feed/core';
-import { progressSnapshots } from '@study-feed/db';
+import type { EncryptedProgressRepository, StoredProgress, UserId } from '@epicfeed/core';
+import { progressSnapshots } from '@epicfeed/db';
 import type { Database } from './database.js';
 import { withUserRls } from './database.js';
 

@@ -7,7 +7,7 @@ import type {
   LessonId,
   LessonImport,
   UserId,
-} from '@study-feed/core';
+} from '@epicfeed/core';
 import {
   ImportLesson,
   ListLessonsForExam,
@@ -23,7 +23,7 @@ import {
   SaveExamBank,
   SaveExamPack,
   SaveLessonFeed,
-} from '@study-feed/core';
+} from '@epicfeed/core';
 import { DrizzleCatalogRepository } from '../src/catalog-repository.js';
 import type { Database } from '../src/database.js';
 import { DrizzleExamPackRepository } from '../src/exam-repository.js';

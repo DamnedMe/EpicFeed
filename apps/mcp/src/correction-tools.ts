@@ -1,7 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { StoredSubmissionResponse } from '@study-feed/contracts';
-import { examCorrectionSchema } from '@study-feed/contracts';
-import { checkCorrection } from '@study-feed/core';
+import type { StoredSubmissionResponse } from '@epicfeed/contracts';
+import { examCorrectionSchema } from '@epicfeed/contracts';
+import { checkCorrection } from '@epicfeed/core';
 import * as z from 'zod';
 import type { EpicFeedApi } from './api-client.js';
 import { CORRECTION_INSTRUCTIONS } from './correction-prompt.js';

@@ -1,5 +1,5 @@
 /**
- * `@study-feed/contracts`: schemi zod dei dati che attraversano i confini
+ * `@epicfeed/contracts`: schemi zod dei dati che attraversano i confini
  * (estensione → API, web app → estensione, MCP → API).
  *
  * @packageDocumentation

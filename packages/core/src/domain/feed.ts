@@ -1,8 +1,8 @@
 import type { ContentHash, Sha256 } from './content-hash.js';
 import { hashCanonical, webCryptoSha256 } from './content-hash.js';
 import type { VideoAlignment } from './alignment.js';
-import { DomainError } from './errors.js';
-import type { Brand, LessonId, LessonPartId } from './ids.js';
+import { DomainError } from '@epicfeed/shared';
+import type { Brand, LessonId, LessonPartId } from '@epicfeed/shared';
 
 /**
  * Feed di una lezione: schede, quiz, concetti e voci di glossario generati da
@@ -14,7 +14,7 @@ import type { Brand, LessonId, LessonPartId } from './ids.js';
  *
  * Qui stanno le regole che la forma da sola non esprime (riferimenti tra
  * elementi, lunghezze uguali nelle due lingue, quantità): la forma dei campi è
- * validata dagli schemi zod di `@study-feed/contracts`.
+ * validata dagli schemi zod di `@epicfeed/contracts`.
  */
 
 /** Lingue di studio (ADR 0011). */

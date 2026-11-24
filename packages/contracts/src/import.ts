@@ -3,7 +3,7 @@ import {
   MAX_SUBTITLE_CUES,
   MAX_SUBTITLE_TRACKS,
   MAX_TEXT_LENGTH,
-} from '@study-feed/core';
+} from '@epicfeed/core';
 import * as z from 'zod';
 
 /**

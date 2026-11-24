@@ -12,7 +12,7 @@ import {
   ImportTokenService,
   MyLessonsQuery,
   type Database,
-} from '@study-feed/adapters';
+} from '@epicfeed/adapters';
 import {
   DeleteSubmission,
   ListSubmissions,
@@ -35,8 +35,8 @@ import {
   SaveExamPack,
   SaveLessonFeed,
   systemClock,
-} from '@study-feed/core';
-import * as schema from '@study-feed/db';
+} from '@epicfeed/core';
+import * as schema from '@epicfeed/db';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { serverEnv } from './env';

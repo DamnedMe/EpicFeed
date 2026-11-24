@@ -1,4 +1,4 @@
-# @study-feed/core
+# @epicfeed/core
 
 Dominio e casi d'uso di Study Feed, in TypeScript puro: nessun framework, nessun I/O, gira uguale nel browser, in Node e nelle funzioni edge.
 

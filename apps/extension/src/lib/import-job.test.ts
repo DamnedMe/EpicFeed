@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { ImportLessonRequest } from '@study-feed/contracts';
+import type { ImportLessonRequest } from '@epicfeed/contracts';
 import { runImportJob, type ImportJobDeps } from './import-job';
 import type { ImportStatus, LessonPreview } from './messages';
 

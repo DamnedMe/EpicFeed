@@ -1,5 +1,5 @@
 /**
- * `@study-feed/ui`: token del design system e utilità di tema.
+ * `@epicfeed/ui`: token del design system e utilità di tema.
  * I componenti React arriveranno con la web app (milestone M3).
  *
  * @packageDocumentation

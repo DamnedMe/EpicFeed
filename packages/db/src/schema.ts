@@ -39,7 +39,7 @@ import {
 import { authUid, authUsers, authenticatedRole } from 'drizzle-orm/supabase';
 
 // ---------------------------------------------------------------------------
-// Tipi enumerati (allineati ai tipi del dominio in @study-feed/core)
+// Tipi enumerati (allineati ai tipi del dominio in @epicfeed/core)
 // ---------------------------------------------------------------------------
 
 /** Tipo di parte di lezione: video (riassunti + sottotitoli) o testo da leggere. */

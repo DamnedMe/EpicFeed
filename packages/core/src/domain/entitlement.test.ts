@@ -3,7 +3,7 @@ import type { LessonPartContent } from './content.js';
 import { computeContentHash } from './content-hash.js';
 import type { ContentVersion } from './content-version.js';
 import { grantByPossessionProof } from './entitlement.js';
-import type { ContentVersionId, LessonPartId, UserId } from './ids.js';
+import type { ContentVersionId, LessonPartId, UserId } from '@epicfeed/shared';
 
 const content: LessonPartContent = { kind: 'reading', markdown: '# Riassunto del capitolo' };
 const userId = '55555555-5555-4555-8555-555555555555' as UserId;

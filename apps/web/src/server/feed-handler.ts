@@ -1,6 +1,6 @@
-import type { OutdatedFeed, ReadSubjectFeedResult, StudySubject, UserId } from '@study-feed/core';
-import { DomainError, parseId } from '@study-feed/core';
-import type { StudySubjectsResponse, SubjectFeedResponse } from '@study-feed/contracts';
+import type { OutdatedFeed, ReadSubjectFeedResult, StudySubject, UserId } from '@epicfeed/core';
+import { DomainError, parseId } from '@epicfeed/core';
+import type { StudySubjectsResponse, SubjectFeedResponse } from '@epicfeed/contracts';
 import * as z from 'zod';
 import { apiError, matchesEtag } from './http';
 

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { ContentHash, ExamContent } from '@study-feed/core';
-import { DomainError } from '@study-feed/core';
-import { examContentResponseSchema } from '@study-feed/contracts';
+import type { ContentHash, ExamContent } from '@epicfeed/core';
+import { DomainError } from '@epicfeed/core';
+import { examContentResponseSchema } from '@epicfeed/contracts';
 import type { ExamHandlerDeps } from './exam-handler';
 import {
   handleDeleteSubmission,

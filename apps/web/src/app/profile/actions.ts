@@ -1,7 +1,7 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { isAccentName, isThemePreference } from '@study-feed/ui';
+import { isAccentName, isThemePreference } from '@epicfeed/ui';
 import { APPEARANCE_COOKIES } from '@/server/appearance';
 
 const ONE_YEAR = 60 * 60 * 24 * 365;

@@ -1,5 +1,5 @@
 // @ts-check
-import { createConfig } from '@study-feed/config/eslint';
+import { createConfig } from '@epicfeed/config/eslint';
 
 /**
  * Gli adapter implementano le porte del core: possono usare database e

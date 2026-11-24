@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createLesson, createLessonPart, portalContentUrl } from './catalog.js';
-import type { ChapterId, LessonId, LessonPartId } from './ids.js';
-import { DomainError } from './errors.js';
+import type { ChapterId, LessonId, LessonPartId } from '@epicfeed/shared';
+import { DomainError } from '@epicfeed/shared';
 
 const lessonId = '11111111-1111-4111-8111-111111111111' as LessonId;
 const chapterId = '22222222-2222-4222-8222-222222222222' as ChapterId;

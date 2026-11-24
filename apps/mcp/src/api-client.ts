@@ -15,7 +15,7 @@ import type {
   SaveLessonFeedRequest,
   OwnedLessonsResponse,
   SaveLessonFeedResponse,
-} from '@study-feed/contracts';
+} from '@epicfeed/contracts';
 import {
   apiErrorSchema,
   importSlidesResponseSchema,
@@ -30,7 +30,7 @@ import {
   lessonSourcesResponseSchema,
   lessonsToGenerateResponseSchema,
   saveLessonFeedResponseSchema,
-} from '@study-feed/contracts';
+} from '@epicfeed/contracts';
 import type { z } from 'zod';
 
 /** Problema puntuale restituito dall'API (feed non valido). */
@@ -78,7 +78,7 @@ export interface EpicFeedApiOptions {
  *
  * - Il token viaggia solo nell'header `Authorization`, mai nell'URL, e solo
  *   verso l'origine configurata (HTTPS, o HTTP solo verso localhost).
- * - Ogni risposta è validata con gli schemi di `@study-feed/contracts`: una
+ * - Ogni risposta è validata con gli schemi di `@epicfeed/contracts`: una
  *   risposta inattesa diventa un errore chiaro, non dati sbagliati per Claude.
  */
 export class EpicFeedApi {

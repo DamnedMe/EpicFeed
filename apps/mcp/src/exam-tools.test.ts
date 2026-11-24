@@ -1,7 +1,7 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { LessonForExamResponse } from '@study-feed/contracts';
+import type { LessonForExamResponse } from '@epicfeed/contracts';
 import { describe, expect, it, vi } from 'vitest';
 import { ApiRequestError } from './api-client.js';
 import { EXAM_PROMPT_VERSION } from './exam-prompt.js';

@@ -1,5 +1,5 @@
 import type { Bilingual, FeedCard, StudyLanguage } from './feed.js';
-import type { LessonPartId } from './ids.js';
+import type { LessonPartId } from '@epicfeed/shared';
 import type { SubtitleCue, SubtitleTrack } from './subtitles.js';
 
 /**

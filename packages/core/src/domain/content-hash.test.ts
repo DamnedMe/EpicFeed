@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { LessonPartContent } from './content.js';
 import { computeContentHash, parseContentHash, webCryptoSha256 } from './content-hash.js';
-import { DomainError } from './errors.js';
+import { DomainError } from '@epicfeed/shared';
 
 const content: LessonPartContent = {
   kind: 'video',

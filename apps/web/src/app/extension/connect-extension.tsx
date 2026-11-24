@@ -6,7 +6,7 @@ import {
   createImportTokenResponseSchema,
   extensionAckSchema,
   type ExtensionConnectMessage,
-} from '@study-feed/contracts';
+} from '@epicfeed/contracts';
 
 interface TokenRow {
   id: string;

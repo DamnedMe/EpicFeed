@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { importLessonRequestSchema } from '@study-feed/contracts';
+import { importLessonRequestSchema } from '@epicfeed/contracts';
 import { DirectusClient } from './directus';
 import { buildLessonDraft } from './lesson';
 import type { CourseOutline } from './outline';

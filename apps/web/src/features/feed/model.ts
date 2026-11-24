@@ -1,7 +1,7 @@
-import type { SubjectFeedResponse } from '@study-feed/contracts';
-import type { SequenceItem } from '@study-feed/core';
-import type { QuizBatchPosition } from '@study-feed/core';
-import { buildStudySequence } from '@study-feed/core';
+import type { SubjectFeedResponse } from '@epicfeed/contracts';
+import type { SequenceItem } from '@epicfeed/core';
+import type { QuizBatchPosition } from '@epicfeed/core';
+import { buildStudySequence } from '@epicfeed/core';
 
 /**
  * Modello del feed nella web app: trasforma la materia scaricata

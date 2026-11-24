@@ -1,4 +1,4 @@
-import { extensionConnectMessageSchema, type ExtensionConnectMessage } from '@study-feed/contracts';
+import { extensionConnectMessageSchema, type ExtensionConnectMessage } from '@epicfeed/contracts';
 
 /** Collegamento con la web app salvato in `storage.local` (mai sincronizzato). */
 export type Connection = Pick<ExtensionConnectMessage, 'token' | 'expiresAt' | 'apiBaseUrl'>;

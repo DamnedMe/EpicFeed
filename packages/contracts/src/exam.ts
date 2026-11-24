@@ -1,5 +1,5 @@
-import type { ExamBankDraft, ExamPackDraft } from '@study-feed/core';
-import { EXAM_BANK_LIMITS, EXAM_PACK_LIMITS } from '@study-feed/core';
+import type { ExamBankDraft, ExamPackDraft } from '@epicfeed/core';
+import { EXAM_BANK_LIMITS, EXAM_PACK_LIMITS } from '@epicfeed/core';
 import * as z from 'zod';
 import {
   bilingual,

@@ -1,7 +1,7 @@
-import type { Brand } from './ids.js';
+import type { Brand } from '@epicfeed/shared';
 import type { LessonPartContent } from './content.js';
 import { canonicalJson, normalizeContent } from './content.js';
-import { DomainError } from './errors.js';
+import { DomainError } from '@epicfeed/shared';
 
 /** Impronta SHA-256 (64 caratteri esadecimali minuscoli) del contenuto canonico. */
 export type ContentHash = Brand<string, 'ContentHash'>;

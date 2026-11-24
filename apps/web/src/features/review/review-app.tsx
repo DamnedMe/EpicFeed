@@ -1,6 +1,6 @@
 'use client';
 
-import type { PlannedReview } from '@study-feed/core';
+import type { PlannedReview } from '@epicfeed/core';
 import {
   completeReviewSession,
   currentDayStreak,
@@ -8,7 +8,7 @@ import {
   planReviewSession,
   summarizeReview,
   systemClock,
-} from '@study-feed/core';
+} from '@epicfeed/core';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BottomNav } from '@/components/bottom-nav';

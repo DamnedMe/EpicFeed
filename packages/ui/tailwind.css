@@ -2,8 +2,8 @@
  * Collega i token di Study Feed a Tailwind CSS 4.
  * Uso nella web app:
  *   @import 'tailwindcss';
- *   @import '@study-feed/ui/tokens.css';
- *   @import '@study-feed/ui/tailwind.css';
+ *   @import '@epicfeed/ui/tokens.css';
+ *   @import '@epicfeed/ui/tailwind.css';
  * Poi: bg-background, text-muted, bg-accent, text-accent, rounded-card, font-display…
  * `inline` fa sì che le classi leggano le variabili a runtime: cambiare tema o
  * accento non richiede di rigenerare il CSS.

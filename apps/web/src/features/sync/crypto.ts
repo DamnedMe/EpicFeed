@@ -1,7 +1,7 @@
-import type { EncryptedProgress } from '@study-feed/contracts';
-import { PROGRESS_KDF } from '@study-feed/contracts';
-import type { ProgressSnapshot } from '@study-feed/core';
-import { PROGRESS_SNAPSHOT_VERSION } from '@study-feed/core';
+import type { EncryptedProgress } from '@epicfeed/contracts';
+import { PROGRESS_KDF } from '@epicfeed/contracts';
+import type { ProgressSnapshot } from '@epicfeed/core';
+import { PROGRESS_SNAPSHOT_VERSION } from '@epicfeed/core';
 import * as z from 'zod';
 import { answerSchema } from '../review/progress-store';
 

@@ -14,7 +14,7 @@
 //   stessi CSS della build, dati di prova al posto dell'API), perché le
 //   pagine protette richiedono una sessione.
 //
-// Uso: `pnpm build && pnpm --filter @study-feed/web perf` (costruisce da sé il
+// Uso: `pnpm build && pnpm --filter @epicfeed/web perf` (costruisce da sé il
 // banco di prova). Ogni pagina si misura 3 volte e vale la mediana.
 import { chromium } from '@playwright/test';
 import * as chromeLauncher from 'chrome-launcher';

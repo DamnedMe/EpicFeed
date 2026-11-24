@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { ExamContentResponse } from '@study-feed/contracts';
+import type { ExamContentResponse } from '@epicfeed/contracts';
 import type { SubjectFeed } from '../feed/model';
 import type { ExamCatalog } from './catalog';
 import { buildExamCatalog } from './catalog';

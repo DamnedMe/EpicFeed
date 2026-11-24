@@ -1,7 +1,7 @@
 'use client';
 
-import type { AccentName, ThemePreference } from '@study-feed/ui';
-import { accents } from '@study-feed/ui';
+import type { AccentName, ThemePreference } from '@epicfeed/ui';
+import { accents } from '@epicfeed/ui';
 import Link from 'next/link';
 import { useState, useTransition } from 'react';
 import { preferences, savedCards, stats, useLocalValue } from '@/features/feed/local-state';

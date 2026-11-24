@@ -1,5 +1,5 @@
-import type { ConceptKey } from '@study-feed/core';
-import { MAX_SLUG_LENGTH, SLUG_PATTERN } from '@study-feed/core';
+import type { ConceptKey } from '@epicfeed/core';
+import { MAX_SLUG_LENGTH, SLUG_PATTERN } from '@epicfeed/core';
 import * as z from 'zod';
 
 /**

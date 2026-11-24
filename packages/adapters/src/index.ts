@@ -1,5 +1,5 @@
 /**
- * `@study-feed/adapters`: implementazioni delle porte del core e servizi di
+ * `@epicfeed/adapters`: implementazioni delle porte del core e servizi di
  * infrastruttura usati dall'API (solo lato server).
  *
  * @packageDocumentation

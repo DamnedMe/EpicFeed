@@ -17,8 +17,8 @@ import type {
   SaveLessonFeedInput,
   SaveLessonFeedResult,
   UserId,
-} from '@study-feed/core';
-import { DomainError, FeedValidationError, parseId } from '@study-feed/core';
+} from '@epicfeed/core';
+import { DomainError, FeedValidationError, parseId } from '@epicfeed/core';
 import type {
   ImportSlidesResponse,
   LessonForExamResponse,
@@ -30,7 +30,7 @@ import type {
   LessonsToGenerateResponse,
   OwnedLessonsResponse,
   SaveLessonFeedResponse,
-} from '@study-feed/contracts';
+} from '@epicfeed/contracts';
 import {
   MAX_CORRECTION_BODY_BYTES,
   saveCorrectionRequestSchema,
@@ -42,7 +42,7 @@ import {
   saveExamBankRequestSchema,
   saveExamPackRequestSchema,
   saveLessonFeedRequestSchema,
-} from '@study-feed/contracts';
+} from '@epicfeed/contracts';
 import * as z from 'zod';
 import { apiError, apiOk, bearerToken, readLimited } from './http';
 

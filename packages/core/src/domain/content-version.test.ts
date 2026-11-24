@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { ContentHash } from './content-hash.js';
 import type { ContentVersion, GenerationStatus } from './content-version.js';
 import { canTransition, transitionGeneration } from './content-version.js';
-import type { ContentVersionId, LessonPartId } from './ids.js';
+import type { ContentVersionId, LessonPartId } from '@epicfeed/shared';
 
 const version: ContentVersion = {
   id: '44444444-4444-4444-8444-444444444444' as ContentVersionId,

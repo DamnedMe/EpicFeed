@@ -12,7 +12,7 @@ importers:
 
   .:
     devDependencies:
-      '@study-feed/config':
+      '@epicfeed/config':
         specifier: workspace:*
         version: link:packages/config
       prettier:
@@ -27,14 +27,14 @@ importers:
 
   apps/extension:
     dependencies:
-      '@study-feed/contracts':
+      '@epicfeed/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
       zod:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@study-feed/config':
+      '@epicfeed/config':
         specifier: workspace:*
         version: link:../../packages/config
       eslint:
@@ -55,18 +55,18 @@ importers:
 
   apps/mcp:
     dependencies:
+      '@epicfeed/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@epicfeed/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@modelcontextprotocol/sdk':
         specifier: 1.32.2
         version: 1.32.2(zod@4.6.6)
       '@napi-rs/canvas':
         specifier: 1.1.0
         version: 1.1.0
-      '@study-feed/contracts':
-        specifier: workspace:*
-        version: link:../../packages/contracts
-      '@study-feed/core':
-        specifier: workspace:*
-        version: link:../../packages/core
       pdfjs-dist:
         specifier: 6.5.438
         version: 6.5.438
@@ -77,7 +77,7 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@study-feed/config':
+      '@epicfeed/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@types/node':
@@ -119,24 +119,24 @@ importers:
       '@codemirror/view':
         specifier: 6.43.15
         version: 6.43.15
+      '@epicfeed/adapters':
+        specifier: workspace:*
+        version: link:../../packages/adapters
+      '@epicfeed/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@epicfeed/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@epicfeed/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@epicfeed/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@lezer/highlight':
         specifier: 1.2.5
         version: 1.2.5
-      '@study-feed/adapters':
-        specifier: workspace:*
-        version: link:../../packages/adapters
-      '@study-feed/contracts':
-        specifier: workspace:*
-        version: link:../../packages/contracts
-      '@study-feed/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@study-feed/db':
-        specifier: workspace:*
-        version: link:../../packages/db
-      '@study-feed/ui':
-        specifier: workspace:*
-        version: link:../../packages/ui
       '@supabase/ssr':
         specifier: 0.12.7
         version: 0.12.7(@supabase/supabase-js@2.119.0(@opentelemetry/api@1.9.1))
@@ -168,15 +168,15 @@ importers:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@epicfeed/config':
+        specifier: workspace:*
+        version: link:../../packages/config
       '@next/eslint-plugin-next':
         specifier: 16.4.6
         version: 16.4.6(eslint@10.15.0(jiti@2.7.0))
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
-      '@study-feed/config':
-        specifier: workspace:*
-        version: link:../../packages/config
       '@tailwindcss/postcss':
         specifier: 4.3.5
         version: 4.3.5
@@ -219,12 +219,15 @@ importers:
 
   packages/adapters:
     dependencies:
-      '@study-feed/core':
+      '@epicfeed/core':
         specifier: workspace:*
         version: link:../core
-      '@study-feed/db':
+      '@epicfeed/db':
         specifier: workspace:*
         version: link:../db
+      '@epicfeed/shared':
+        specifier: workspace:*
+        version: link:../shared
       drizzle-orm:
         specifier: 0.45.4
         version: 0.45.4(@electric-sql/pglite@0.5.16)(@opentelemetry/api@1.9.1)(postgres@3.4.9)
@@ -232,7 +235,7 @@ importers:
       '@electric-sql/pglite':
         specifier: 0.5.16
         version: 0.5.16
-      '@study-feed/config':
+      '@epicfeed/config':
         specifier: workspace:*
         version: link:../config
       '@types/node':
@@ -274,14 +277,17 @@ importers:
 
   packages/contracts:
     dependencies:
-      '@study-feed/core':
+      '@epicfeed/core':
         specifier: workspace:*
         version: link:../core
+      '@epicfeed/shared':
+        specifier: workspace:*
+        version: link:../shared
       zod:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
-      '@study-feed/config':
+      '@epicfeed/config':
         specifier: workspace:*
         version: link:../config
       '@vitest/coverage-v8':
@@ -299,11 +305,14 @@ importers:
 
   packages/core:
     dependencies:
+      '@epicfeed/shared':
+        specifier: workspace:*
+        version: link:../shared
       ts-fsrs:
         specifier: 5.4.2
         version: 5.4.2
     devDependencies:
-      '@study-feed/config':
+      '@epicfeed/config':
         specifier: workspace:*
         version: link:../config
       '@vitest/coverage-v8':
@@ -334,7 +343,7 @@ importers:
       '@electric-sql/pglite-socket':
         specifier: 0.2.19
         version: 0.2.19(@electric-sql/pglite-age@0.0.17(@electric-sql/pglite@0.5.16))(@electric-sql/pglite-pg_hashids@0.0.17(@electric-sql/pglite@0.5.16))(@electric-sql/pglite-pg_ivm@0.0.17(@electric-sql/pglite@0.5.16))(@electric-sql/pglite-pg_textsearch@0.0.18(@electric-sql/pglite@0.5.16))(@electric-sql/pglite-pg_uuidv7@0.0.17(@electric-sql/pglite@0.5.16))(@electric-sql/pglite-pgtap@0.0.17(@electric-sql/pglite@0.5.16))(@electric-sql/pglite-pgvector@0.0.17(@electric-sql/pglite@0.5.16))(@electric-sql/pglite@0.5.16)
-      '@study-feed/config':
+      '@epicfeed/config':
         specifier: workspace:*
         version: link:../config
       '@types/node':
@@ -353,9 +362,27 @@ importers:
         specifier: 5.1.0
         version: 5.1.0(@opentelemetry/api@1.9.1)(@types/node@26.6.6)(@vitest/coverage-v8@5.1.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
 
+  packages/shared:
+    devDependencies:
+      '@epicfeed/config':
+        specifier: workspace:*
+        version: link:../config
+      '@vitest/coverage-v8':
+        specifier: 5.1.0
+        version: 5.1.0(vitest@5.1.0)
+      eslint:
+        specifier: 10.15.0
+        version: 10.15.0(jiti@2.7.0)
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: 5.1.0
+        version: 5.1.0(@opentelemetry/api@1.9.1)(@types/node@26.6.6)(@vitest/coverage-v8@5.1.0)(vite@8.3.8(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+
   packages/ui:
     devDependencies:
-      '@study-feed/config':
+      '@epicfeed/config':
         specifier: workspace:*
         version: link:../config
       '@types/node':

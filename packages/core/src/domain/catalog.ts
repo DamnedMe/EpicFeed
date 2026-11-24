@@ -1,6 +1,6 @@
-import type { BookId, ChapterId, LessonId, LessonPartId } from './ids.js';
-import { DomainError } from './errors.js';
-import { requirePosition, requireTitle } from './text.js';
+import type { BookId, ChapterId, LessonId, LessonPartId } from '@epicfeed/shared';
+import { DomainError } from '@epicfeed/shared';
+import { requirePosition, requireTitle } from '@epicfeed/shared';
 
 /**
  * Fonte di studio. Una lezione Epicode e un libro personale hanno la stessa

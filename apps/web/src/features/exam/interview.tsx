@@ -1,6 +1,6 @@
 'use client';
 
-import { gradeFromScore, rubricScore } from '@study-feed/core';
+import { gradeFromScore, rubricScore } from '@epicfeed/core';
 import { useEffect, useRef, useState } from 'react';
 import { useLocalValue } from '../feed/local-state';
 import { recordStudyAnswer } from '../review/record';

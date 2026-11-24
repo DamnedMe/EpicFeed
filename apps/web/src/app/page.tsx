@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
-import { parseId } from '@study-feed/core';
+import { parseId } from '@epicfeed/core';
 import { FEED_COPY_COOKIE } from '@/features/device-flags';
 import { FeedApp } from '@/features/feed/feed-app';
 import { requireUser } from '@/server/auth';

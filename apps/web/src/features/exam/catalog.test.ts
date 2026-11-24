@@ -1,4 +1,4 @@
-import { examContentResponseSchema } from '@study-feed/contracts';
+import { examContentResponseSchema } from '@epicfeed/contracts';
 import { describe, expect, it } from 'vitest';
 import type { FeedLesson, SubjectFeed } from '../feed/model';
 import { buildExamCatalog } from './catalog';

@@ -1,4 +1,4 @@
-import { checkLessonFeed } from '@study-feed/core';
+import { checkLessonFeed } from '@epicfeed/core';
 import { describe, expect, it } from 'vitest';
 import {
   importSlidesRequestSchema,

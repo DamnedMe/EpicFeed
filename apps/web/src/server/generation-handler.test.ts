@@ -6,9 +6,9 @@ import type {
   LessonId,
   LessonsToGenerateResult,
   SaveLessonFeedResult,
-} from '@study-feed/core';
-import { DomainError, FeedValidationError } from '@study-feed/core';
-import { MAX_FEED_BODY_BYTES, MAX_SLIDES_BODY_BYTES } from '@study-feed/contracts';
+} from '@epicfeed/core';
+import { DomainError, FeedValidationError } from '@epicfeed/core';
+import { MAX_FEED_BODY_BYTES, MAX_SLIDES_BODY_BYTES } from '@epicfeed/contracts';
 import {
   handleImportSlides,
   handleListCatalog,

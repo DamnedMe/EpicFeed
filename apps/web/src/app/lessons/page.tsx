@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import type { MyLesson } from '@study-feed/adapters';
+import type { MyLesson } from '@epicfeed/adapters';
 import { Shell } from '@/components/shell';
 import { requireUser } from '@/server/auth';
 import { getServices } from '@/server/container';

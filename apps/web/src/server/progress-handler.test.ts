@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { EncryptedProgressRepository, StoredProgress } from '@study-feed/core';
-import { progressResponseSchema } from '@study-feed/contracts';
+import type { EncryptedProgressRepository, StoredProgress } from '@epicfeed/core';
+import { progressResponseSchema } from '@epicfeed/contracts';
 import {
   handleReadProgress,
   handleWriteProgress,

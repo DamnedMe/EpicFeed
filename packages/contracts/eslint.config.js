@@ -1,5 +1,5 @@
 // @ts-check
-import { createConfig } from '@study-feed/config/eslint';
+import { createConfig } from '@epicfeed/config/eslint';
 
 /**
  * I contratti descrivono solo la forma dei dati ai confini: possono usare zod,
@@ -17,8 +17,8 @@ export default createConfig({
             patterns: [
               {
                 group: [
-                  '@study-feed/adapters',
-                  '@study-feed/db',
+                  '@epicfeed/adapters',
+                  '@epicfeed/db',
                   'drizzle-orm',
                   '@supabase/*',
                   'react',

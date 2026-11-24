@@ -1,8 +1,8 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import type { SubjectsForExamResponse } from '@study-feed/contracts';
-import { examBankDraftSchema } from '@study-feed/contracts';
-import { checkExamBank } from '@study-feed/core';
+import type { SubjectsForExamResponse } from '@epicfeed/contracts';
+import { examBankDraftSchema } from '@epicfeed/contracts';
+import { checkExamBank } from '@epicfeed/core';
 import * as z from 'zod';
 import type { EpicFeedApi } from './api-client.js';
 import { EXAM_BANK_INSTRUCTIONS, EXAM_BANK_PROMPT_VERSION } from './exam-prompt.js';

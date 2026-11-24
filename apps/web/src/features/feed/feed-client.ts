@@ -1,5 +1,5 @@
-import type { StudySubjectsResponse } from '@study-feed/contracts';
-import { studySubjectsResponseSchema, subjectFeedResponseSchema } from '@study-feed/contracts';
+import type { StudySubjectsResponse } from '@epicfeed/contracts';
+import { studySubjectsResponseSchema, subjectFeedResponseSchema } from '@epicfeed/contracts';
 import { FEED_COPY_COOKIE, setDeviceFlag } from '../device-flags';
 import type { SubjectFeed } from './model';
 import type { KeyValueStore } from './storage';

@@ -6,6 +6,7 @@ Mappa "funzione → file". La repo sta passando a un pacchetto per funzione ([AD
 
 | Funzione | Cosa fa | Pagina | Dopo |
 | --- | --- | --- | --- |
+| `shared` | errori di dominio, id, regole sul testo | | `packages/shared` (già fatto) |
 | `catalog` | corsi, materie, capitoli, lezioni, versioni dei contenuti, permessi | `/lessons` | `packages/catalog` |
 | `ingest` | import delle lezioni dall'estensione | `/extension` | `packages/ingest` |
 | `access` | token di estensione e Claude Desktop, limiti di frequenza | `/extension`, `/claude-desktop` | `packages/access` |

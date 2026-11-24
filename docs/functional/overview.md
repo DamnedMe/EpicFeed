@@ -1,6 +1,6 @@
 # Documentazione funzionale: panoramica
 
-Il nome dell'app, nella web app e nell'estensione, è **EpicFeed** (la repository e i pacchetti restano `study-feed`).
+Il nome dell'app, nella web app e nell'estensione, è **EpicFeed** (i pacchetti si chiamano `@epicfeed/*`).
 
 Cosa fa l'app dal punto di vista dello studente. Ogni funzione nuova aggiunge o aggiorna una sezione qui.
 

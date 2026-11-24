@@ -2,7 +2,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { describe, expect, it, vi } from 'vitest';
-import type { StoredSubmissionResponse } from '@study-feed/contracts';
+import type { StoredSubmissionResponse } from '@epicfeed/contracts';
 import { CORRECTION_PROMPT_VERSION } from './correction-prompt.js';
 import type { CorrectionApi } from './correction-tools.js';
 import { formatSubmission, registerCorrectionTools } from './correction-tools.js';

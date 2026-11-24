@@ -1,6 +1,6 @@
 'use client';
 
-import { syncProgress } from '@study-feed/core';
+import { syncProgress } from '@epicfeed/core';
 import { setDeviceFlag, SYNC_KEY_COOKIE } from '../device-flags';
 import { useEffect, useSyncExternalStore } from 'react';
 import { notifyProgress, onProgress, progressStore } from '../review/progress-store';

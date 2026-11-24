@@ -1,6 +1,6 @@
 import type { ContentHash } from './content-hash.js';
-import type { ContentVersionId, LessonPartId } from './ids.js';
-import { DomainError } from './errors.js';
+import type { ContentVersionId, LessonPartId } from '@epicfeed/shared';
+import { DomainError } from '@epicfeed/shared';
 
 /**
  * Stato di generazione di una versione (ADR 0007). Le schede le genera Claude

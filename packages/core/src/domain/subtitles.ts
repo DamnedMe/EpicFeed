@@ -1,9 +1,9 @@
 import type { ContentHash, Sha256 } from './content-hash.js';
 import { hashCanonical, webCryptoSha256 } from './content-hash.js';
 import { limitLength } from './content.js';
-import { DomainError } from './errors.js';
-import type { LessonPartId, SubtitleTrackId, UserId } from './ids.js';
-import { normalizeText } from './text.js';
+import { DomainError } from '@epicfeed/shared';
+import type { LessonPartId, SubtitleTrackId, UserId } from '@epicfeed/shared';
+import { normalizeText } from '@epicfeed/shared';
 
 /**
  * Riga dei sottotitoli. I tempi sono in millisecondi interi, così il

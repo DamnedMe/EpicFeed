@@ -1,4 +1,4 @@
-import type { LessonSourcesResponse } from '@study-feed/contracts';
+import type { LessonSourcesResponse } from '@epicfeed/contracts';
 import type { EpicFeedApi } from '../api-client.js';
 import { ApiRequestError } from '../api-client.js';
 import { isExamMaterial, matchSlideFiles } from './match.js';

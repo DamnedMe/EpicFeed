@@ -1,5 +1,5 @@
 // @ts-check
-import { createConfig } from '@study-feed/config/eslint';
+import { createConfig } from '@epicfeed/config/eslint';
 
 /**
  * Il server MCP gira sul PC dello studente e parla con EpicFeed solo
@@ -18,7 +18,7 @@ export default createConfig({
           {
             patterns: [
               {
-                group: ['@study-feed/adapters', '@study-feed/db', 'drizzle-orm', '@supabase/*'],
+                group: ['@epicfeed/adapters', '@epicfeed/db', 'drizzle-orm', '@supabase/*'],
                 message: "Il server MCP usa solo l'API di EpicFeed, mai il database.",
               },
             ],

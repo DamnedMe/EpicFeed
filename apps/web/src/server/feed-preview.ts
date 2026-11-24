@@ -2,7 +2,7 @@ import 'server-only';
 import { chooseSubject } from '../features/feed/feed-client';
 import type { SubjectFeed } from '../features/feed/model';
 import { feedPreview } from '../features/feed/model';
-import type { UserId } from '@study-feed/core';
+import type { UserId } from '@epicfeed/core';
 import type { FeedHandlerDeps } from './feed-handler';
 import { subjectFeedBody } from './feed-handler';
 

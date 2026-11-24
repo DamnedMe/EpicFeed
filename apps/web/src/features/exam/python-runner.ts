@@ -1,4 +1,4 @@
-import type { CodeTest, CodeTestOutcome } from '@study-feed/core';
+import type { CodeTest, CodeTestOutcome } from '@epicfeed/core';
 
 /**
  * Esecuzione dei test del codice nel browser (M4, ADR 0014 §5): Python con

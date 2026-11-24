@@ -12,8 +12,8 @@ import type {
   NewSubtitleTrack,
   StoredSubtitleTrack,
   SubtitleAccess,
-} from '@study-feed/core';
-import { parseContentHash, parseId } from '@study-feed/core';
+} from '@epicfeed/core';
+import { parseContentHash, parseId } from '@epicfeed/core';
 import {
   chapters,
   contentVersions,
@@ -25,8 +25,8 @@ import {
   subjects,
   subtitleAccess,
   subtitleTracks,
-} from '@study-feed/db';
-import type { ContentVersionRow, SubtitleTrackRow } from '@study-feed/db';
+} from '@epicfeed/db';
+import type { ContentVersionRow, SubtitleTrackRow } from '@epicfeed/db';
 import type { Database, DatabaseTransaction } from './database.js';
 
 /**

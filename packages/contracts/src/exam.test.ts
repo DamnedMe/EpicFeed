@@ -1,4 +1,4 @@
-import { checkExamPack } from '@study-feed/core';
+import { checkExamPack } from '@epicfeed/core';
 import { describe, expect, it } from 'vitest';
 import {
   examBankDraftSchema,

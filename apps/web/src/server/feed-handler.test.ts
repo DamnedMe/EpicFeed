@@ -6,9 +6,9 @@ import type {
   LessonPartId,
   ReadSubjectFeedResult,
   UserId,
-} from '@study-feed/core';
-import { DomainError } from '@study-feed/core';
-import { studySubjectsResponseSchema, subjectFeedResponseSchema } from '@study-feed/contracts';
+} from '@epicfeed/core';
+import { DomainError } from '@epicfeed/core';
+import { studySubjectsResponseSchema, subjectFeedResponseSchema } from '@epicfeed/contracts';
 import { handleListSubjects, handleReadSubjectFeed, type FeedHandlerDeps } from './feed-handler';
 import { loadFeedPreview } from './feed-preview';
 

@@ -1,6 +1,6 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { LessonFeedDraft, LessonId, LessonImport, UserId } from '@study-feed/core';
+import type { LessonFeedDraft, LessonId, LessonImport, UserId } from '@epicfeed/core';
 import {
   ImportLesson,
   ImportLessonSlides,
@@ -9,7 +9,7 @@ import {
   PossessionProofVerifier,
   ReadLessonForGeneration,
   SaveLessonFeed,
-} from '@study-feed/core';
+} from '@epicfeed/core';
 import { DrizzleCatalogRepository } from '../src/catalog-repository.js';
 import type { Database } from '../src/database.js';
 import { DrizzleGenerationRepository } from '../src/generation-repository.js';

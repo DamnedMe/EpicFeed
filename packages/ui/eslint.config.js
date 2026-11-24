@@ -1,4 +1,4 @@
 // @ts-check
-import { createConfig } from '@study-feed/config/eslint';
+import { createConfig } from '@epicfeed/config/eslint';
 
 export default createConfig({ tsconfigRootDir: import.meta.dirname });

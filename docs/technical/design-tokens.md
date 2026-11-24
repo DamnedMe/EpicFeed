@@ -4,7 +4,7 @@ Pacchetto `packages/ui`. Specifiche visive in [design-system.md](../design-syste
 
 ## Una sola fonte
 `src/tokens.ts` contiene tutti i valori (temi, accenti, font, raggi, vetro, animazioni). Da lì:
-- `pnpm build` genera `dist/tokens.css` (`src/css.ts` → `scripts/write-css.js`), esportato come `@study-feed/ui/tokens.css`;
+- `pnpm build` genera `dist/tokens.css` (`src/css.ts` → `scripts/write-css.js`), esportato come `@epicfeed/ui/tokens.css`;
 - `tailwind.css` collega le variabili a Tailwind CSS 4 (`bg-background`, `text-muted`, `bg-accent`, `text-accent-text`, `rounded-card`, `font-display`…);
 - `src/theme.ts` offre tipi e utilità: `resolveTheme`, `isAccentName`, `themeAttributes`.
 

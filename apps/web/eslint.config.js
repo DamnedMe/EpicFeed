@@ -1,7 +1,7 @@
 // @ts-check
 import nextPlugin from '@next/eslint-plugin-next';
 import reactHooks from 'eslint-plugin-react-hooks';
-import { createConfig } from '@study-feed/config/eslint';
+import { createConfig } from '@epicfeed/config/eslint';
 
 /**
  * ESLint della web app: regole condivise + Next.js + hook di React.

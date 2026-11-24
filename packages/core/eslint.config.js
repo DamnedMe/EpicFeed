@@ -1,5 +1,5 @@
 // @ts-check
-import { createConfig } from '@study-feed/config/eslint';
+import { createConfig } from '@epicfeed/config/eslint';
 
 /**
  * Regola delle dipendenze della clean architecture (ADR 0004): il core non
@@ -8,8 +8,8 @@ import { createConfig } from '@study-feed/config/eslint';
  */
 const forbiddenOutside = [
   {
-    group: ['@study-feed/*', '!@study-feed/config'],
-    message: 'Il core non dipende da altri pacchetti del monorepo (clean architecture).',
+    group: ['@epicfeed/*', '!@epicfeed/config', '!@epicfeed/shared'],
+    message: 'Il core dipende solo da @epicfeed/shared (clean architecture, ADR 0019).',
   },
   {
     group: [

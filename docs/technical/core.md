@@ -1,13 +1,10 @@
-# `@study-feed/core`: dominio
+# `@epicfeed/core`: dominio
 
-Il core contiene le regole dell'app in TypeScript puro ([ADR 0004](../decisions/0004-clean-architecture-and-quality.md)): nessun framework, nessun accesso a rete o database. Gira uguale nel browser, in Node, nelle funzioni edge e nel server MCP, e si testa senza simulare nulla.
+Il core contiene le regole dell'app in TypeScript puro ([ADR 0004](../decisions/0004-clean-architecture-and-quality.md)): nessun framework, nessun accesso a rete o database. Gira uguale nel browser, in Node, nelle funzioni edge e nel server MCP, e si testa senza simulare nulla. Id (`LessonId`…), `DomainError` e regole sul testo stanno in `@epicfeed/shared` ([ADR 0019](../decisions/0019-feature-packages.md)) e il core li riesporta.
 
 ```
 packages/core/src/
 ├─ domain/
-│  ├─ ids.ts              id "marchiati" (LessonId, LessonPartId…) e parseId
-│  ├─ errors.ts           DomainError con codici stabili
-│  ├─ text.ts             normalizzazione dei testi
 │  ├─ catalog.ts          Source, Lesson, LessonPart
 │  ├─ content.ts          contenuto di una parte e forma canonica
 │  ├─ content-hash.ts     impronta SHA-256 del contenuto

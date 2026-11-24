@@ -1,5 +1,5 @@
 /**
- * Strumenti di test condivisi (`@study-feed/db/testing`): un Postgres in
+ * Strumenti di test condivisi (`@epicfeed/db/testing`): un Postgres in
  * memoria (PGlite) con lo strato Supabase simulato e tutte le migrazioni.
  * Li usano i test di `db` (RLS) e di `adapters` (repository Drizzle).
  * Richiedono `@electric-sql/pglite` tra le dipendenze di sviluppo.

@@ -1,12 +1,12 @@
 'use client';
 
-import type { ExamSubmissionRequest, StoredSubmissionResponse } from '@study-feed/contracts';
+import type { ExamSubmissionRequest, StoredSubmissionResponse } from '@epicfeed/contracts';
 import {
   storedSubmissionSchema,
   submissionsResponseSchema,
   submitResponseSchema,
-} from '@study-feed/contracts';
-import { gradeFromScore, rubricScore } from '@study-feed/core';
+} from '@epicfeed/contracts';
+import { gradeFromScore, rubricScore } from '@epicfeed/core';
 import * as z from 'zod';
 import type { LocalValue } from '../feed/local-state';
 import { localValue } from '../feed/local-state';

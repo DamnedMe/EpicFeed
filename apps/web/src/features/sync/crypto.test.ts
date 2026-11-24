@@ -1,4 +1,4 @@
-import type { ProgressSnapshot } from '@study-feed/core';
+import type { ProgressSnapshot } from '@epicfeed/core';
 import { describe, expect, it } from 'vitest';
 import {
   decryptSnapshot,

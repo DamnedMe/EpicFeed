@@ -1,6 +1,6 @@
 import type { SQL } from 'drizzle-orm';
 import { desc, eq, sql } from 'drizzle-orm';
-import type { GenerationStatus } from '@study-feed/core';
+import type { GenerationStatus } from '@epicfeed/core';
 import {
   chapters,
   contentVersions,
@@ -10,7 +10,7 @@ import {
   lessons,
   subjects,
   subtitleTracks,
-} from '@study-feed/db';
+} from '@epicfeed/db';
 import type { Database } from './database.js';
 import { withUserRls } from './database.js';
 

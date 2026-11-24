@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
-import { createGenerateTokenResponseSchema } from '@study-feed/contracts';
+import { createGenerateTokenResponseSchema } from '@epicfeed/contracts';
 
 interface TokenRow {
   id: string;
