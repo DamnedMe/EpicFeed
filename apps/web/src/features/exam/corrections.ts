@@ -6,7 +6,8 @@ import {
   submissionsResponseSchema,
   submitResponseSchema,
 } from '@epicfeed/contracts';
-import { gradeFromScore, rubricScore } from '@epicfeed/core';
+import { gradeFromScore } from '@epicfeed/review';
+import { rubricScore } from '@epicfeed/core';
 import * as z from 'zod';
 import type { LocalValue } from '../feed/local-state';
 import { localValue } from '../feed/local-state';

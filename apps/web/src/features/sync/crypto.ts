@@ -1,7 +1,5 @@
-import type { EncryptedProgress } from '@epicfeed/contracts';
-import { PROGRESS_KDF } from '@epicfeed/contracts';
-import type { ProgressSnapshot } from '@epicfeed/core';
-import { PROGRESS_SNAPSHOT_VERSION } from '@epicfeed/core';
+import type { EncryptedProgress, ProgressSnapshot } from '@epicfeed/review';
+import { PROGRESS_KDF, PROGRESS_SNAPSHOT_VERSION } from '@epicfeed/review';
 import * as z from 'zod';
 import { answerSchema } from '../review/progress-store';
 

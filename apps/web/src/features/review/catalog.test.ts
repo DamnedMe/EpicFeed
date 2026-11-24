@@ -1,4 +1,4 @@
-import { conceptId } from '@epicfeed/core';
+import { conceptId } from '@epicfeed/review';
 import { describe, expect, it } from 'vitest';
 import type { FeedLesson, SubjectFeed } from '../feed/model';
 import { entryKey } from '../feed/model';

@@ -6,5 +6,3 @@
 export * from './exam-correction.js';
 export * from './exam-generation.js';
 export * from './exam-study.js';
-export * from './progress-sync.js';
-export * from './review.js';

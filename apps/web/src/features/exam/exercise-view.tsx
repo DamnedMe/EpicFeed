@@ -1,7 +1,8 @@
 'use client';
 
 import type { CodeTestOutcome } from '@epicfeed/core';
-import { gradeFromScore, rubricScore, testPassed } from '@epicfeed/core';
+import { gradeFromScore } from '@epicfeed/review';
+import { rubricScore, testPassed } from '@epicfeed/core';
 import { useEffect, useRef, useState } from 'react';
 import { useLocalValue } from '../feed/local-state';
 import { readValue, removeValue, STORAGE_KEYS, writeValue } from '../feed/storage';

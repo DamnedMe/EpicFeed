@@ -1,4 +1,4 @@
-import type { ProgressSnapshot } from '@epicfeed/core';
+import type { ProgressSnapshot } from '@epicfeed/review';
 import { describe, expect, it } from 'vitest';
 import {
   decryptSnapshot,

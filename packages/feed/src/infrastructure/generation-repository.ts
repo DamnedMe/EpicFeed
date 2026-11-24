@@ -1,6 +1,14 @@
 import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import type { ContentVersionId, LessonId, UserId } from '@epicfeed/shared';
 import type {
+  GenerationStatus,
+  LessonPartContent,
+  SubtitleCue,
+  SubtitleTrack,
+} from '@epicfeed/catalog';
+import { parseContentHash } from '@epicfeed/catalog';
+import { parseId } from '@epicfeed/shared';
+import type {
   GenerationRepository,
   LessonSourcePart,
   LessonSources,
@@ -8,15 +16,7 @@ import type {
   OwnedLesson,
 } from '../application/generation.js';
 import type { GlossaryEntry } from '../domain/feed.js';
-import type {
-  GenerationStatus,
-  LessonPartContent,
-  SubtitleCue,
-  SubtitleTrack,
-} from '@epicfeed/catalog';
 import { glossaryKey } from '../domain/feed.js';
-import { parseContentHash } from '@epicfeed/catalog';
-import { parseId } from '@epicfeed/shared';
 import {
   chapters,
   contentVersions,

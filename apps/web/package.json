@@ -28,6 +28,7 @@
     "@epicfeed/db": "workspace:*",
     "@epicfeed/feed": "workspace:*",
     "@epicfeed/ingest": "workspace:*",
+    "@epicfeed/review": "workspace:*",
     "@epicfeed/shared": "workspace:*",
     "@epicfeed/ui": "workspace:*",
     "@lezer/highlight": "1.2.5",

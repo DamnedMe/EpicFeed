@@ -4,6 +4,8 @@ import type { LessonFeedDraft } from '../domain/feed.js';
 import type { LessonId, UserId } from '@epicfeed/shared';
 import type { LessonImport } from '@epicfeed/ingest';
 import { ImportLesson } from '@epicfeed/ingest';
+import { PossessionProofVerifier } from '@epicfeed/catalog';
+import { DrizzleCatalogRepository } from '@epicfeed/catalog/infrastructure';
 import { ImportLessonSlides } from '../application/slides.js';
 import {
   ListLessonsToGenerate,
@@ -11,8 +13,6 @@ import {
   ReadLessonForGeneration,
   SaveLessonFeed,
 } from '../application/generation.js';
-import { PossessionProofVerifier } from '@epicfeed/catalog';
-import { DrizzleCatalogRepository } from '@epicfeed/catalog/infrastructure';
 import { DrizzleGenerationRepository } from './generation-repository.js';
 import { setupTestDatabase as setup, TEST_USERS } from '@epicfeed/db/testing';
 import type { Database } from '@epicfeed/db';

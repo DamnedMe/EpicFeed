@@ -6,4 +6,3 @@
  */
 export * from './exam-repository.js';
 export * from './exam-submission-repository.js';
-export * from './progress-repository.js';

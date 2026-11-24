@@ -1,5 +1,5 @@
-import type { AnswerSource, ReviewGrade } from '@epicfeed/core';
-import { recordAnswer } from '@epicfeed/core';
+import type { AnswerSource, ReviewGrade } from '@epicfeed/review';
+import { recordAnswer } from '@epicfeed/review';
 import { systemClock } from '@epicfeed/shared';
 import { notifyProgress, progressStore } from './progress-store';
 

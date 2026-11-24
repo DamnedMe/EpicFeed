@@ -1,9 +1,11 @@
 import type { PGlite } from '@electric-sql/pglite';
 import type { UserId } from '@epicfeed/shared';
+import { DrizzleProgressRepository } from './progress-repository.js';
+import { setupTestDatabase as setup, TEST_USERS } from '@epicfeed/db/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Database } from '@epicfeed/db';
-import { DrizzleProgressRepository } from '../src/progress-repository.js';
-import { anna, bruno, setup } from './setup.js';
+
+const { anna, bruno } = TEST_USERS;
 
 let pg: PGlite;
 let db: Database;

@@ -1,8 +1,8 @@
 import type { LessonFeedDraft } from '../domain/feed.js';
 import type { LessonPartId } from '@epicfeed/shared';
+import { MAX_SLIDE_PAGES, lessonPartContentSchema } from '@epicfeed/catalog';
 import { FEED_LIMITS } from '../domain/feed.js';
 import { MAX_PRESENTATIONS_PER_LESSON } from '../domain/slides.js';
-import { MAX_SLIDE_PAGES, lessonPartContentSchema } from '@epicfeed/catalog';
 import * as z from 'zod';
 import {
   bilingual,

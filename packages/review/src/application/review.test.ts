@@ -163,3 +163,37 @@ describe('summarizeReview', () => {
     ]);
   });
 });
+
+describe('ordine a parità', () => {
+  it('a pari scadenza o ricordo decide l’id del concetto, così il piano è ripetibile', () => {
+    const stack = applyReview(undefined, id('stack'), 'again', later(-1));
+    const queue = applyReview(undefined, id('queue'), 'again', later(-1));
+    const due = planReviewSession(concepts, questions, [stack, queue], NOW);
+    expect(due.map((item) => item.conceptId)).toEqual([id('queue'), id('stack')]);
+
+    const early = planReviewSession(
+      concepts,
+      questions,
+      [
+        applyReview(undefined, id('stack'), 'good', NOW),
+        applyReview(undefined, id('queue'), 'good', NOW),
+      ],
+      NOW,
+    );
+    expect(early.map((item) => item.conceptId)).toEqual([id('queue'), id('stack')]);
+  });
+
+  it('tra i concetti deboli con gli stessi errori viene prima il ripasso più recente, poi l’id', () => {
+    const older = applyReview(undefined, id('stack'), 'again', later(-2));
+    const newer = applyReview(undefined, id('queue'), 'again', later(-1));
+    const twin = applyReview(undefined, id('tree'), 'again', later(-1));
+    const never = { ...applyReview(undefined, id('lonely'), 'again', later(-1)), lastReview: null };
+    const summary = summarizeReview(concepts, [older, newer, twin, never], NOW);
+    expect(summary.weak.map((state) => state.conceptId)).toEqual([
+      id('queue'),
+      id('tree'),
+      id('stack'),
+      id('lonely'),
+    ]);
+  });
+});

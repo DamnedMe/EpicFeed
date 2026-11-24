@@ -1,6 +1,6 @@
-import type { ReviewConcept, ReviewQuestion } from '@epicfeed/core';
+import type { ReviewConcept, ReviewQuestion } from '@epicfeed/review';
 import type { StudyLanguage, TextRange } from '@epicfeed/feed';
-import { conceptId } from '@epicfeed/core';
+import { conceptId } from '@epicfeed/review';
 import { pickBlank } from '@epicfeed/feed';
 import type { QuizEntry, SubjectFeed } from '../feed/model';
 import { entryKey } from '../feed/model';

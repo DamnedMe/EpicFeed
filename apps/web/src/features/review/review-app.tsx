@@ -1,13 +1,13 @@
 'use client';
 
-import type { PlannedReview } from '@epicfeed/core';
+import type { PlannedReview } from '@epicfeed/review';
 import {
   completeReviewSession,
   currentDayStreak,
   localDay,
   planReviewSession,
   summarizeReview,
-} from '@epicfeed/core';
+} from '@epicfeed/review';
 import { systemClock } from '@epicfeed/shared';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';

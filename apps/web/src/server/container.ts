@@ -1,10 +1,7 @@
 import 'server-only';
 import { DrizzleCatalogRepository, MyLessonsQuery } from '@epicfeed/catalog/infrastructure';
-import {
-  DrizzleExamPackRepository,
-  DrizzleExamSubmissionRepository,
-  DrizzleProgressRepository,
-} from '@epicfeed/adapters';
+import { DrizzleExamPackRepository, DrizzleExamSubmissionRepository } from '@epicfeed/adapters';
+import { DrizzleProgressRepository } from '@epicfeed/review/infrastructure';
 import {
   DrizzleGenerationRepository,
   DrizzleStudyFeedRepository,

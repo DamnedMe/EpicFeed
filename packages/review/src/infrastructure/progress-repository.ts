@@ -1,5 +1,5 @@
 import { and, eq, sql } from 'drizzle-orm';
-import type { EncryptedProgressRepository, StoredProgress } from '@epicfeed/core';
+import type { EncryptedProgressRepository, StoredProgress } from '../application/progress-sync.js';
 import type { UserId } from '@epicfeed/shared';
 import { progressSnapshots } from '@epicfeed/db';
 import type { Database } from '@epicfeed/db';

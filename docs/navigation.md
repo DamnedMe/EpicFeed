@@ -11,7 +11,7 @@ Mappa "funzione → file". La repo sta passando a un pacchetto per funzione ([AD
 | `ingest` | import delle lezioni dall'estensione | `/extension` | `packages/ingest` |
 | `access` | token di estensione e Claude Desktop, limiti di frequenza | `/extension`, `/claude-desktop` | `packages/access` |
 | `feed` | schede a battute, domande, generazione via MCP, slide | `/` | `packages/feed` |
-| `review` | ripasso FSRS e sincronizzazione cifrata | `/review` | ancora in `core`, `contracts`, `adapters` |
+| `review` | ripasso FSRS e sincronizzazione cifrata | `/review` | `packages/review` (gli archivi del browser in `apps/web/src/features/review` e `sync`) |
 | `exam` | quiz di modulo, esercizi, correzione di Claude, colloquio | `/review#esame` | ancora in `core`, `contracts`, `adapters` |
 
 Pagine fuori dalle funzioni: `/login` (accesso), `/profile` e `/profile/saved` (preferenze e schede salvate).
@@ -31,7 +31,7 @@ L'infrastruttura si importa da `@epicfeed/<funzione>/infrastructure`. I test sta
 
 ## Le funzioni non ancora spostate
 
-Per `review` ed `exam` si cercano i file con il loro nome in queste cartelle:
+Per `exam` si cercano i file con il loro nome in queste cartelle:
 
 | Livello | Cartella | Esempio per `exam` |
 | --- | --- | --- |

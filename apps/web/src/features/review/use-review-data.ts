@@ -1,7 +1,7 @@
 'use client';
 
-import type { ConceptReviewState, DayStreak } from '@epicfeed/core';
-import { EMPTY_DAY_STREAK } from '@epicfeed/core';
+import type { ConceptReviewState, DayStreak } from '@epicfeed/review';
+import { EMPTY_DAY_STREAK } from '@epicfeed/review';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { loadFeed, preferredSubjectId, readCachedFeed } from '../feed/feed-client';
 import type { SubjectFeed } from '../feed/model';

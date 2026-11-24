@@ -41,7 +41,8 @@ epicfeed/
 │  ├─ ingest/     import delle lezioni dall'estensione           → technical/import.md
 │  ├─ access/     token delle app esterne e limiti di frequenza
 │  ├─ feed/       feed di studio, generazione via MCP, slide    → technical/generation.md
-│  ├─ core/       ripasso ed esame (in uscita, ADR 0019)
+│  ├─ review/     ripasso FSRS e sincronizzazione cifrata
+│  ├─ core/       esame (in uscita, ADR 0019)
 │  ├─ contracts/  schemi zod condivisi tra API ed estensione   → technical/import.md
 │  ├─ adapters/   implementazioni Drizzle delle porte del core
 │  ├─ ui/         token del design system (CSS + TypeScript)  → technical/design-tokens.md
