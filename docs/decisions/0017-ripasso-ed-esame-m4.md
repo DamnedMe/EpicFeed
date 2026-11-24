@@ -32,7 +32,7 @@ M4 chiude l'MVP: ripasso giornaliero dei concetti deboli e sezione Esame in ingl
 - Una risposta appena sbagliata torna dopo i passi di apprendimento FSRS (1 e 10 minuti), non subito.
 
 ### Sincronizzazione (PR 2)
-I progressi escono dal dispositivo solo cifrati: la chiave si ricava dalla password al momento dell'accesso e resta sul dispositivo; il server conserva dati che non può leggere, con permessi per utente. Se la password cambia, la copia sul server si rifà dal primo dispositivo che si apre (i dati locali restano). Dettagli e protocollo nel documento tecnico della PR 2.
+I progressi escono dal dispositivo solo cifrati: la chiave si ricava dalla password al momento dell'accesso e resta sul dispositivo; il server conserva dati che non può leggere, con permessi per utente. Se la password cambia, la copia sul server si rifà dal primo dispositivo che si apre (i dati locali restano). Dettagli e protocollo nell'[ADR 0018](0018-sincronizzazione-cifrata-progressi.md).
 
 ## Alternative scartate
 - **Esame come quinta voce della barra o dentro *Io***: proposte, Damian ha preferito tenerlo dentro Ripasso.

@@ -1,6 +1,6 @@
 # ADR 0003: Risultati personali sul dispositivo
 
-- Stato: accettata
+- Stato: accettata, modificata dall'[ADR 0018](0018-sincronizzazione-cifrata-progressi.md) per i progressi di studio (copia cifrata sul dispositivo nell'area privata del server)
 - Data: 14/11/2026
 - Decisa da: Damian
 

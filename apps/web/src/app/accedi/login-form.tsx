@@ -1,6 +1,7 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { startTransition, useActionState, useEffect, useState } from 'react';
+import { forgetPasswordKey, rememberPasswordKey } from '@/features/sync/engine';
 import { sendCode, signInWithPassword, verifyCode, type AuthFormState } from './actions';
 
 const initial: AuthFormState = { step: 'email', email: '', message: null, error: false };
@@ -23,10 +24,35 @@ export function LoginForm() {
     initial,
   );
   const [pwdState, pwdAction, pwdPending] = useActionState(signInWithPassword, initial);
+  const [preparing, setPreparing] = useState(false);
+
+  // Accesso non riuscito: la chiave ricavata da una password sbagliata non serve.
+  useEffect(() => {
+    if (pwdState.error) void forgetPasswordKey();
+  }, [pwdState]);
+
+  /**
+   * Prima di entrare ricava dalla password la chiave che cifra i progressi
+   * sincronizzati (ADR 0018): è l'unico momento in cui il browser ha la
+   * password, che non viene salvata.
+   */
+  const submitPassword = async (form: FormData) => {
+    const email = form.get('email');
+    const password = form.get('password');
+    setPreparing(true);
+    if (typeof email === 'string' && typeof password === 'string' && password) {
+      await rememberPasswordKey(email, password);
+    }
+    setPreparing(false);
+    startTransition(() => {
+      pwdAction(form);
+    });
+  };
 
   if (mode === 'password') {
+    const busy = pwdPending || preparing;
     return (
-      <form action={pwdAction} className="glass flex flex-col gap-4 rounded-card p-5">
+      <form action={submitPassword} className="glass flex flex-col gap-4 rounded-card p-5">
         <label className="flex flex-col gap-1.5 text-sm">
           Email
           <input name="email" type="email" autoComplete="email" required className={input} />
@@ -46,8 +72,8 @@ export function LoginForm() {
             {pwdState.message}
           </p>
         )}
-        <button type="submit" disabled={pwdPending} className={primary}>
-          {pwdPending ? 'Accesso…' : 'Entra'}
+        <button type="submit" disabled={busy} className={primary}>
+          {busy ? 'Accesso…' : 'Entra'}
         </button>
         <button
           type="button"

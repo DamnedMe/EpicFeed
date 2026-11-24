@@ -33,4 +33,4 @@ window.fetch = (input: RequestInfo | URL) => {
 };
 
 const root = document.getElementById('root');
-if (root) createRoot(root).render(<FeedApp />);
+if (root) createRoot(root).render(<FeedApp account="0a0a0a0a-0000-4000-8000-00000000000a" />);

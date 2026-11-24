@@ -10,6 +10,6 @@ export const dynamic = 'force-dynamic';
  * la materia arriva dall'API del feed e resta sul dispositivo.
  */
 export default async function FeedPage() {
-  await requireUser();
-  return <FeedApp />;
+  const user = await requireUser();
+  return <FeedApp account={user.id} />;
 }

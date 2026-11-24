@@ -2,6 +2,7 @@ import 'server-only';
 import {
   DrizzleCatalogRepository,
   DrizzleGenerationRepository,
+  DrizzleProgressRepository,
   DrizzleStudyFeedRepository,
   GenerateTokenService,
   GenerationRateLimiter,
@@ -47,6 +48,8 @@ export interface Services {
   readonly listStudySubjects: ListStudySubjects;
   readonly readSubjectFeed: ReadSubjectFeed;
   readonly realignLessonFeeds: RealignLessonFeeds;
+  /** Copie cifrate dei progressi (ADR 0018). */
+  readonly progress: DrizzleProgressRepository;
 }
 
 let services: Services | undefined;
@@ -96,6 +99,7 @@ export function getServices(): Services {
     listStudySubjects: new ListStudySubjects(studyFeed),
     readSubjectFeed: new ReadSubjectFeed(studyFeed),
     realignLessonFeeds: new RealignLessonFeeds(generation, studyFeed),
+    progress: new DrizzleProgressRepository(db),
   };
   return services;
 }

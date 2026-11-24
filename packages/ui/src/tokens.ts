@@ -1,5 +1,5 @@
 /**
- * Token del design system "Inchiostro" (approvato da Damian il 14/11/2026).
+ * Token del design system "Inchiostro".
  *
  * È l'unica fonte dei valori: da qui si generano `tokens.css` (variabili CSS
  * usate dalla web app e dall'estensione) e i tipi TypeScript. Le specifiche

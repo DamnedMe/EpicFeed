@@ -8,9 +8,9 @@ export const dynamic = 'force-dynamic';
 /**
  * Tab *Ripasso* (M4, ADR 0017): ripasso giornaliero dei concetti e sezione
  * Esame. La pagina verifica solo la sessione; materia e progressi sono sul
- * dispositivo.
+ * dispositivo, con una copia cifrata nel browser sul server (ADR 0018).
  */
 export default async function ReviewPage() {
-  await requireUser();
-  return <ReviewApp />;
+  const user = await requireUser();
+  return <ReviewApp account={user.id} />;
 }

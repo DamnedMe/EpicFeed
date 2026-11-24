@@ -366,3 +366,14 @@ test('Ripasso ed Esame stanno nello stesso tab', async ({ page }) => {
   await expect(page).toHaveURL(/#esame$/);
   await expect(page.locator('.ef-nav .on')).toHaveText('Ripasso');
 });
+
+test('senza chiave il Ripasso chiede la password per sincronizzare', async ({ page }) => {
+  await page.goto(`${ORIGIN}/ripasso`);
+  await expect(page.getByRole('heading', { name: 'Sincronizza telefono e PC' })).toBeVisible();
+  const password = page.getByLabel('Password');
+  await expect(page.getByRole('button', { name: 'Sblocca' })).toBeDisabled();
+  await password.fill('password sbagliata');
+  await page.getByRole('button', { name: 'Sblocca' }).click();
+  // Nel banco di prova il server non c'è: la password risulta sempre errata.
+  await expect(page.getByRole('alert')).toHaveText('Password non corretta.');
+});

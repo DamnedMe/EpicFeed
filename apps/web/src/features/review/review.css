@@ -136,3 +136,27 @@
   line-height: 1.45;
   color: var(--sf-text-muted);
 }
+
+/* Sincronizzazione dei progressi (ADR 0018). */
+.ef-rv-unlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ef-rv-unlock input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--sf-border);
+  border-radius: 12px;
+  background: var(--sf-surface);
+  color: var(--sf-text);
+  font: 400 16px/1.3 var(--sf-font-body);
+}
+.ef-rv-unlock input:focus-visible {
+  outline: 2px solid var(--sf-accent-fill);
+  outline-offset: 1px;
+}
+.ef-rv-sync {
+  text-align: center;
+  font-size: 12px;
+}

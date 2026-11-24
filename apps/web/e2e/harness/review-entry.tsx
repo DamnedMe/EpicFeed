@@ -25,4 +25,4 @@ window.fetch = (input: RequestInfo | URL) => {
 };
 
 const root = document.getElementById('root');
-if (root) createRoot(root).render(<ReviewApp />);
+if (root) createRoot(root).render(<ReviewApp account="0a0a0a0a-0000-4000-8000-00000000000a" />);
