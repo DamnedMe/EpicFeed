@@ -3,12 +3,12 @@ import type {
   ExamBankDraft,
   ExamPackDocument,
   ExamPackDraft,
-  LessonFeedDocument,
-  LessonId,
-  UserId,
-} from '../domain/index.js';
-import { DomainError, FeedValidationError, checkExamBank, checkExamPack } from '../domain/index.js';
-import type { Clock } from './ports.js';
+} from '../domain/exam.js';
+import type { LessonFeedDocument } from '../domain/feed.js';
+import type { LessonId, UserId, Clock } from '@epicfeed/shared';
+import { DomainError } from '@epicfeed/shared';
+import { FeedValidationError } from '../domain/feed.js';
+import { checkExamBank, checkExamPack } from '../domain/exam.js';
 
 /**
  * Casi d'uso della generazione dei pacchetti d'esame (M4, ADR 0014 e ADR

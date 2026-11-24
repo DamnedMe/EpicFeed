@@ -1,17 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type {
   ContentVersion,
-  ContentVersionId,
   Entitlement,
-  LessonId,
-  LessonPartId,
   SlidesPartContent,
-  UserId,
-} from '../domain/index.js';
-import { DomainError } from '../domain/index.js';
+  CatalogRepository,
+  CatalogTransaction,
+  LessonPartInput,
+} from '@epicfeed/catalog';
+import type { ContentVersionId, LessonId, LessonPartId, UserId } from '@epicfeed/shared';
+import { DomainError } from '@epicfeed/shared';
+import { PossessionProofVerifier } from '@epicfeed/catalog';
 import type { LessonSources } from './generation.js';
-import type { CatalogRepository, CatalogTransaction, LessonPartInput } from './ports.js';
-import { PossessionProofVerifier } from './possession-proof-verifier.js';
 import { ImportLessonSlides, SLIDES_POSITION_BASE } from './slides.js';
 
 const anna = '0a0a0a0a-0000-4000-8000-00000000000a' as UserId;

@@ -6,12 +6,12 @@ import type {
   StudyFeedRepository,
   StudyFeedSubjectRows,
   StudySubject,
-  UserId,
 } from '@epicfeed/core';
-import { parseId } from '@epicfeed/core';
+import type { UserId } from '@epicfeed/shared';
+import { parseId } from '@epicfeed/shared';
 import { chapters, editions, lessonFeeds, lessonParts, lessons, subjects } from '@epicfeed/db';
-import type { Database } from './database.js';
-import { withUserRls } from './database.js';
+import type { Database } from '@epicfeed/db';
+import { withUserRls } from '@epicfeed/db';
 
 /**
  * Persistenza del feed di studio su Postgres (porta `StudyFeedRepository` del

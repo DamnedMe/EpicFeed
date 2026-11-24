@@ -14,7 +14,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@epicfeed/contracts": "workspace:*",
+    "@epicfeed/ingest": "workspace:*",
+    "@epicfeed/shared": "workspace:*",
     "zod": "4.6.6"
   },
   "devDependencies": {

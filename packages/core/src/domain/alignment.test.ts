@@ -9,7 +9,7 @@ import {
 } from './alignment.js';
 import type { ConceptKey, FeedCard } from './feed.js';
 import type { LessonPartId } from '@epicfeed/shared';
-import type { SubtitleCue, SubtitleTrack } from './subtitles.js';
+import type { SubtitleCue, SubtitleTrack } from '@epicfeed/catalog';
 
 /** Righe di 5 secondi l'una, a partire da 0. */
 function cuesOf(lines: readonly string[]): SubtitleCue[] {

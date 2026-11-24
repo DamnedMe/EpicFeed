@@ -4,11 +4,8 @@
  *
  * @packageDocumentation
  */
-export * from './errors.js';
 export * from './exam.js';
 export * from './exam-correction.js';
-export * from './extension.js';
 export * from './generation.js';
-export * from './import.js';
 export * from './feed.js';
 export * from './progress.js';

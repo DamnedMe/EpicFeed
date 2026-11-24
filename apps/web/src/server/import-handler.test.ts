@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { ImportLessonResult } from '@epicfeed/core';
-import { DomainError } from '@epicfeed/core';
-import { MAX_IMPORT_BODY_BYTES } from '@epicfeed/contracts';
+import type { ImportLessonResult } from '@epicfeed/ingest';
+import { DomainError } from '@epicfeed/shared';
+import { MAX_IMPORT_BODY_BYTES } from '@epicfeed/ingest';
 import { handleImport, type ImportHandlerDeps } from './import-handler';
 
 vi.mock('server-only', () => ({}));

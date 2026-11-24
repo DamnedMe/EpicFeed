@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { ImportLessonRequest } from '@epicfeed/contracts';
+import type { ImportLessonRequest } from '@epicfeed/ingest';
 import { runBatchJob, type BatchJobDeps } from './batch-job';
 import type { BatchPlan, ImportStatus, LessonPreview, ReadActivityResponse } from './messages';
 

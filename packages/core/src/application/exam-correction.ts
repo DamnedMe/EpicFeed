@@ -2,15 +2,11 @@ import type {
   ExamCorrectionDraft,
   ExamSubmissionDraft,
   SubmissionKind,
-  UserId,
-} from '../domain/index.js';
-import {
-  checkCorrection,
-  DomainError,
-  EXAM_CORRECTION_LIMITS,
-  FeedValidationError,
-} from '../domain/index.js';
-import type { Clock } from './ports.js';
+} from '../domain/exam-correction.js';
+import type { UserId, Clock } from '@epicfeed/shared';
+import { DomainError } from '@epicfeed/shared';
+import { checkCorrection, EXAM_CORRECTION_LIMITS } from '../domain/exam-correction.js';
+import { FeedValidationError } from '../domain/feed.js';
 
 /**
  * Casi d'uso della correzione di Claude (M4, ADR 0014 §4): l'app invia le

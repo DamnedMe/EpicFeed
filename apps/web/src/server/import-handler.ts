@@ -1,7 +1,7 @@
-import type { ImportLessonResult, LessonImport, UserId } from '@epicfeed/core';
-import { DomainError, parseId } from '@epicfeed/core';
-import type { ImportLessonResponse } from '@epicfeed/contracts';
-import { MAX_IMPORT_BODY_BYTES, importLessonRequestSchema } from '@epicfeed/contracts';
+import type { ImportLessonResult, LessonImport, ImportLessonResponse } from '@epicfeed/ingest';
+import type { UserId } from '@epicfeed/shared';
+import { DomainError, parseId } from '@epicfeed/shared';
+import { MAX_IMPORT_BODY_BYTES, importLessonRequestSchema } from '@epicfeed/ingest';
 import { apiError, apiOk, bearerToken, readLimited } from './http';
 
 /** Dipendenze di {@link handleImport}: tutte sostituibili nei test. */

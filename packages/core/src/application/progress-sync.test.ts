@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyReview } from '../domain/index.js';
+import { applyReview } from '../domain/review.js';
 import type {
   ProgressSnapshot,
   ProgressVault,

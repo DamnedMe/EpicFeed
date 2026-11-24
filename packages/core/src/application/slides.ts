@@ -1,19 +1,13 @@
+import type { ContentVersionId, LessonId, LessonPartId, UserId, Clock } from '@epicfeed/shared';
 import type {
-  ContentVersionId,
-  LessonId,
-  LessonPartId,
   Sha256,
   SlidesPartContent,
-  UserId,
-} from '../domain/index.js';
-import {
-  DomainError,
-  computeContentHash,
-  normalizeContent,
-  webCryptoSha256,
-} from '../domain/index.js';
+  CatalogRepository,
+  EntitlementVerifier,
+} from '@epicfeed/catalog';
+import { DomainError } from '@epicfeed/shared';
+import { computeContentHash, normalizeContent, webCryptoSha256 } from '@epicfeed/catalog';
 import type { GenerationRepository } from './generation.js';
-import type { CatalogRepository, Clock, EntitlementVerifier } from './ports.js';
 
 /** Massimo di presentazioni per lezione in un import (nel corso DSA: 1–4). */
 export const MAX_PRESENTATIONS_PER_LESSON = 20;

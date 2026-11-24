@@ -1,21 +1,10 @@
-import type {
-  ChapterId,
-  ContentHash,
-  LessonFeedDocument,
-  LessonId,
-  LessonPartId,
-  LessonPartKind,
-  Sha256,
-  StoredFeedCard,
-  UserId,
-} from '../domain/index.js';
-import {
-  ALIGNMENT_VERSION,
-  DomainError,
-  computeLessonSourcesHash,
-  portalContentUrl,
-  webCryptoSha256,
-} from '../domain/index.js';
+import type { ChapterId, LessonId, LessonPartId, UserId } from '@epicfeed/shared';
+import type { ContentHash, LessonPartKind, Sha256 } from '@epicfeed/catalog';
+import { DomainError } from '@epicfeed/shared';
+import { portalContentUrl, webCryptoSha256 } from '@epicfeed/catalog';
+import type { LessonFeedDocument, StoredFeedCard } from '../domain/feed.js';
+import { ALIGNMENT_VERSION } from '../domain/alignment.js';
+import { computeLessonSourcesHash } from '../domain/feed.js';
 import type { GenerationRepository } from './generation.js';
 import { alignFeedCards } from './generation.js';
 

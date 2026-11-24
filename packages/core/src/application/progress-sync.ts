@@ -1,5 +1,6 @@
-import type { ConceptReviewState, DayStreak, UserId } from '../domain/index.js';
-import { applyReview, EMPTY_DAY_STREAK, extendDayStreak } from '../domain/index.js';
+import type { ConceptReviewState, DayStreak } from '../domain/review.js';
+import type { UserId } from '@epicfeed/shared';
+import { applyReview, EMPTY_DAY_STREAK, extendDayStreak } from '../domain/review.js';
 import type { AnswerRecord } from './review.js';
 
 /**

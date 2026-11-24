@@ -122,7 +122,7 @@ Autenticazione `Authorization: Bearer sfi_…`. Corpo: `importLessonRequestSchem
 Risposta 200: id della lezione e, per ogni parte, id di parte e versione, `newVersion`, `newEntitlement`, stato di generazione e le tracce di sottotitoli (`newTrack`). Tutte le risposte hanno `Cache-Control: no-store`.
 
 ## Caso d'uso `ImportLesson`
-In `packages/core/src/application/import-lesson.ts` ([core.md](core.md#import-di-una-lezione)):
+In `packages/ingest/src/application/import-lesson.ts` ([core.md](core.md#import-di-una-lezione)):
 1. normalizza la lezione (titoli, posizioni, contenuti e tracce in forma canonica);
 2. calcola **sul server** le impronte di ogni contenuto e di ogni traccia, prima di aprire la transazione (meno tempo con i lock);
 3. in una transazione: crea o aggiorna il percorso del catalogo e la parte, trova o crea la versione con quell'impronta, verifica la prova di possesso (`PossessionProofVerifier`) e salva il permesso; per le tracce, trova o crea la traccia e salva l'accesso.

@@ -10,15 +10,15 @@ import type {
   SaveExamPackInput,
   SaveExamPackResult,
   LessonForGeneration,
-  LessonId,
   LessonsToGenerateResult,
   OwnedLessonSummary,
   SlidesPresentationInput,
   SaveLessonFeedInput,
   SaveLessonFeedResult,
-  UserId,
 } from '@epicfeed/core';
-import { DomainError, FeedValidationError, parseId } from '@epicfeed/core';
+import type { LessonId, UserId } from '@epicfeed/shared';
+import { DomainError, parseId } from '@epicfeed/shared';
+import { FeedValidationError } from '@epicfeed/core';
 import type {
   ImportSlidesResponse,
   LessonForExamResponse,

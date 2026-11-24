@@ -14,6 +14,7 @@ import type {
 } from './schema.js';
 
 export * from './schema.js';
+export * from './database.js';
 
 /** Riga della tabella `lessons`. */
 export type LessonRow = InferSelectModel<typeof lessons>;

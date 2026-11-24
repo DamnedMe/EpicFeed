@@ -1,4 +1,4 @@
-import type { ConceptReviewState, DayStreak, ReviewGrade } from '../domain/index.js';
+import type { ConceptReviewState, DayStreak, ReviewGrade } from '../domain/review.js';
 import {
   applyReview,
   conceptId,
@@ -7,8 +7,8 @@ import {
   isStable,
   localDay,
   recallProbability,
-} from '../domain/index.js';
-import type { Clock } from './ports.js';
+} from '../domain/review.js';
+import type { Clock } from '@epicfeed/shared';
 
 /**
  * Casi d'uso del ripasso (M4, ADR 0017): registrare le risposte, preparare la

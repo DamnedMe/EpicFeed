@@ -36,8 +36,11 @@ epicfeed/
 │  └─ extension/  estensione Chrome (WXT) che importa le lezioni → technical/import.md
 ├─ packages/
 │  ├─ config/     tsconfig, ESLint e confini dei pacchetti (boundaries.js)
-│  ├─ shared/     nucleo condiviso: errori, id, testo
-│  ├─ core/       dominio e casi d'uso, TypeScript puro       → technical/core.md
+│  ├─ shared/     nucleo condiviso: errori, id, testo, orologio
+│  ├─ catalog/    catalogo, contenuti, permessi, sottotitoli    → technical/core.md
+│  ├─ ingest/     import delle lezioni dall'estensione           → technical/import.md
+│  ├─ access/     token delle app esterne e limiti di frequenza
+│  ├─ core/       feed, ripasso ed esame (in uscita, ADR 0019)
 │  ├─ contracts/  schemi zod condivisi tra API ed estensione   → technical/import.md
 │  ├─ adapters/   implementazioni Drizzle delle porte del core
 │  ├─ ui/         token del design system (CSS + TypeScript)  → technical/design-tokens.md
@@ -53,7 +56,7 @@ Ogni pacchetto ha gli stessi script (`build`, `lint`, `typecheck`, `test`) e Tur
 - **TypeScript strict** con `noUncheckedIndexedAccess` ed `exactOptionalPropertyTypes`; moduli ESM.
 - **TSDoc obbligatoria** su funzioni, classi, metodi, interfacce e tipi esportati: la regola `jsdoc/require-jsdoc` fa fallire il lint se manca.
 - Identificatori in inglese, commenti e documentazione in italiano. I commenti interni spiegano il *perché*, non il *cosa*.
-- Regola delle dipendenze: `core` importa solo `@epicfeed/shared`, mai framework, ORM né moduli `node:*` (ESLint, `packages/core/eslint.config.js`).
+- Regola delle dipendenze: `core` importa solo `@epicfeed/shared` e `@epicfeed/catalog`, mai framework, ORM né moduli `node:*` (ESLint, `packages/core/eslint.config.js`).
 - Pacchetti di funzione ([ADR 0019](../decisions/0019-feature-packages.md)): l'`eslint.config.js` di ognuno usa `featureBoundaries({ dependsOn })` di `@epicfeed/config/boundaries`, che vieta i pacchetti non dichiarati, gli import dei file interni di un altro pacchetto e, dentro il pacchetto, le dipendenze verso l'esterno (`domain` ← `application`, `contracts` ← `infrastructure`).
 - Versioni delle dipendenze fissate in modo esatto e nel lockfile; pnpm non installa versioni pubblicate da meno di 24 ore (`minimumReleaseAge`) e solo `esbuild` può eseguire script di installazione.
 

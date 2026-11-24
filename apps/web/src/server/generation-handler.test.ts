@@ -1,13 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { ContentVersionId, LessonPartId, LessonId } from '@epicfeed/shared';
 import type {
-  ContentVersionId,
   LessonForGeneration,
-  LessonPartId,
-  LessonId,
   LessonsToGenerateResult,
   SaveLessonFeedResult,
 } from '@epicfeed/core';
-import { DomainError, FeedValidationError } from '@epicfeed/core';
+import { DomainError } from '@epicfeed/shared';
+import { FeedValidationError } from '@epicfeed/core';
 import { MAX_FEED_BODY_BYTES, MAX_SLIDES_BODY_BYTES } from '@epicfeed/contracts';
 import {
   handleImportSlides,

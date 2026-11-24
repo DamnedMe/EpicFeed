@@ -1,5 +1,5 @@
 import * as z from 'zod';
-import { importLessonRequestSchema, importLessonResponseSchema } from '@epicfeed/contracts';
+import { importLessonRequestSchema, importLessonResponseSchema } from '@epicfeed/ingest';
 
 /**
  * Messaggi tra le parti dell'estensione (popup, service worker, script nel

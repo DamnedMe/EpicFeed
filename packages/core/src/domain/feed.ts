@@ -1,8 +1,8 @@
-import type { ContentHash, Sha256 } from './content-hash.js';
-import { hashCanonical, webCryptoSha256 } from './content-hash.js';
-import type { VideoAlignment } from './alignment.js';
+import type { ContentHash, Sha256 } from '@epicfeed/catalog';
+import { hashCanonical, webCryptoSha256 } from '@epicfeed/catalog';
 import { DomainError } from '@epicfeed/shared';
 import type { Brand, LessonId, LessonPartId } from '@epicfeed/shared';
+import type { VideoAlignment } from './alignment.js';
 
 /**
  * Feed di una lezione: schede, quiz, concetti e voci di glossario generati da

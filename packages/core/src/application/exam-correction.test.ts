@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { ExamCorrectionDraft, ExamSubmissionDraft, UserId } from '../domain/index.js';
-import { DomainError, FeedValidationError } from '../domain/index.js';
+import type { ExamCorrectionDraft, ExamSubmissionDraft } from '../domain/exam-correction.js';
+import type { UserId } from '@epicfeed/shared';
+import { DomainError } from '@epicfeed/shared';
+import { FeedValidationError } from '../domain/feed.js';
 import type { ExamSubmissionRepository, StoredSubmission } from './exam-correction.js';
 import {
   DeleteSubmission,

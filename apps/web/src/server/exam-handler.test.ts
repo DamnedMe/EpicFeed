@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { ContentHash, ExamContent } from '@epicfeed/core';
-import { DomainError } from '@epicfeed/core';
+import type { ContentHash } from '@epicfeed/catalog';
+import type { ExamContent } from '@epicfeed/core';
+import { DomainError } from '@epicfeed/shared';
 import { examContentResponseSchema } from '@epicfeed/contracts';
 import type { ExamHandlerDeps } from './exam-handler';
 import {

@@ -1,4 +1,4 @@
-import type { ApiErrorCode } from '@epicfeed/contracts';
+import type { ApiErrorCode } from '@epicfeed/shared';
 
 const STATUS: Record<ApiErrorCode, number> = {
   UNAUTHORIZED: 401,

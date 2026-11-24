@@ -5,6 +5,8 @@
  *
  * @packageDocumentation
  */
+export * from './clock.js';
 export * from './errors.js';
 export * from './ids.js';
 export * from './text.js';
+export * from './contracts/api-error.js';

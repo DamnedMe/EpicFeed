@@ -1,9 +1,9 @@
+import { apiErrorSchema } from '@epicfeed/shared';
 import {
-  apiErrorSchema,
   importLessonResponseSchema,
   type ImportLessonRequest,
   type ImportLessonResponse,
-} from '@epicfeed/contracts';
+} from '@epicfeed/ingest';
 
 /** Errore dell'API già tradotto in un messaggio per l'utente. */
 export class ApiCallError extends Error {

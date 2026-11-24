@@ -1,5 +1,6 @@
-import type { EncryptedProgressRepository, UserId } from '@epicfeed/core';
-import { parseId } from '@epicfeed/core';
+import type { EncryptedProgressRepository } from '@epicfeed/core';
+import type { UserId } from '@epicfeed/shared';
+import { parseId } from '@epicfeed/shared';
 import type { ProgressPutResponse, ProgressResponse } from '@epicfeed/contracts';
 import { progressPutSchema } from '@epicfeed/contracts';
 import { apiError, apiOk, isSameOrigin, readLimited } from './http';

@@ -86,8 +86,16 @@ export function featureBoundaries({ dependsOn = [], flat = false } = {}) {
   };
   const noZod = { group: ['zod', 'zod/*'], message: 'zod si usa solo in contracts/.' };
 
+  // I test possono montare l'infrastruttura di qualunque pacchetto (es. un
+  // import reale per riempire il catalogo) ma restano codice senza framework.
+  const tests = { files: ['src/**/*.test.ts'], rules: restrict([]) };
+
   if (flat) {
-    return [{ files: ['src/**/*.ts'], rules: restrict([packages, DEEP_IMPORTS, pure, noZod]) }];
+    return [
+      { files: ['src/**/*.ts'], rules: restrict([packages, DEEP_IMPORTS, pure, noZod]) },
+      { files: ['src/contracts/**/*.ts'], rules: restrict([packages, DEEP_IMPORTS, pure]) },
+      tests,
+    ];
   }
   return [
     { files: ['src/*.ts'], rules: restrict([packages, DEEP_IMPORTS, pure]) },
@@ -126,5 +134,6 @@ export function featureBoundaries({ dependsOn = [], flat = false } = {}) {
         },
       ]),
     },
+    tests,
   ];
 }

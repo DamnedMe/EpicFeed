@@ -70,7 +70,7 @@ Le letture del catalogo passano da `withUserRls`: la query gira con il ruolo `au
 - Header fissi (`next.config.ts`): HSTS, `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY`, `Permissions-Policy`.
 - Le API che usano la sessione accettano solo richieste della stessa origine (`isSameOrigin`), contro il CSRF.
 - Nessuna chiave privilegiata nel client: il browser riceve solo URL e chiave pubblicabile di Supabase.
-- Errori verso il client con codici stabili (`packages/contracts/src/errors.ts`) e messaggi in italiano, senza dettagli interni.
+- Errori verso il client con codici stabili (`packages/shared/src/contracts/api-error.ts`) e messaggi in italiano, senza dettagli interni.
 
 ## Feed di studio (M3)
 Decisioni in [ADR 0015](../decisions/0015-study-feed-m3.md).

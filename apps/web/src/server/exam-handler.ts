@@ -1,5 +1,6 @@
-import type { ExamContent, ExamSubmissionDraft, StoredSubmission, UserId } from '@epicfeed/core';
-import { DomainError, parseId } from '@epicfeed/core';
+import type { ExamContent, ExamSubmissionDraft, StoredSubmission } from '@epicfeed/core';
+import type { UserId } from '@epicfeed/shared';
+import { DomainError, parseId } from '@epicfeed/shared';
 import { examSubmissionRequestSchema, MAX_SUBMISSION_BODY_BYTES } from '@epicfeed/contracts';
 import * as z from 'zod';
 import { apiError, apiOk, isSameOrigin, matchesEtag, readLimited } from './http';

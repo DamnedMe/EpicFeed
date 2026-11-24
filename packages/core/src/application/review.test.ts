@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { ConceptReviewState, DayStreak } from '../domain/index.js';
-import { applyReview, conceptId, EMPTY_DAY_STREAK } from '../domain/index.js';
+import type { ConceptReviewState, DayStreak } from '../domain/review.js';
+import { applyReview, conceptId, EMPTY_DAY_STREAK } from '../domain/review.js';
 import type { AnswerRecord, ProgressStore, ReviewConcept, ReviewQuestion } from './review.js';
 import {
   completeReviewSession,

@@ -1,6 +1,5 @@
 import type { SubjectFeedResponse } from '@epicfeed/contracts';
-import type { SequenceItem } from '@epicfeed/core';
-import type { QuizBatchPosition } from '@epicfeed/core';
+import type { SequenceItem, QuizBatchPosition } from '@epicfeed/core';
 import { buildStudySequence } from '@epicfeed/core';
 
 /**

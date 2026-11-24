@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { ContentHash } from './content-hash.js';
+import type { ContentHash } from '@epicfeed/catalog';
+import type { LessonPartId } from '@epicfeed/shared';
 import type { ConceptKey, FeedCard, LessonFeedDraft, QuizItem } from './feed.js';
 import { checkLessonFeed, computeLessonSourcesHash, glossaryKey } from './feed.js';
-import type { LessonPartId } from '@epicfeed/shared';
 
 const PART = '11111111-1111-4111-8111-111111111111' as LessonPartId;
 const OTHER_PART = '22222222-2222-4222-8222-222222222222' as LessonPartId;

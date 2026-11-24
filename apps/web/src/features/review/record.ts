@@ -1,5 +1,6 @@
 import type { AnswerSource, ReviewGrade } from '@epicfeed/core';
-import { recordAnswer, systemClock } from '@epicfeed/core';
+import { recordAnswer } from '@epicfeed/core';
+import { systemClock } from '@epicfeed/shared';
 import { notifyProgress, progressStore } from './progress-store';
 
 /** Risposta da portare nel ripasso. */

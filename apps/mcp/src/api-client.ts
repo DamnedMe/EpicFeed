@@ -16,8 +16,8 @@ import type {
   OwnedLessonsResponse,
   SaveLessonFeedResponse,
 } from '@epicfeed/contracts';
+import { apiErrorSchema } from '@epicfeed/shared';
 import {
-  apiErrorSchema,
   importSlidesResponseSchema,
   lessonForExamResponseSchema,
   lessonsForExamResponseSchema,

@@ -5,11 +5,11 @@ import type {
   ExamSubmissionRepository,
   StoredSubmission,
   SubmissionKind,
-  UserId,
 } from '@epicfeed/core';
+import type { UserId } from '@epicfeed/shared';
 import { examSubmissions, subjects } from '@epicfeed/db';
-import type { Database } from './database.js';
-import { withUserRls } from './database.js';
+import type { Database } from '@epicfeed/db';
+import { withUserRls } from '@epicfeed/db';
 
 /**
  * Risposte inviate a Claude per la correzione, su Postgres (porta

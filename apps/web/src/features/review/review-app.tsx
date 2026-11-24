@@ -7,8 +7,8 @@ import {
   localDay,
   planReviewSession,
   summarizeReview,
-  systemClock,
 } from '@epicfeed/core';
+import { systemClock } from '@epicfeed/shared';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BottomNav } from '@/components/bottom-nav';

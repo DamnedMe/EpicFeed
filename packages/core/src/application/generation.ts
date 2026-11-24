@@ -1,32 +1,24 @@
 import type {
   ContentHash,
-  ContentVersionId,
-  FeedCard,
   GenerationStatus,
+  LessonPartContent,
+  LessonPartKind,
+  Sha256,
+  SubtitleTrack,
+} from '@epicfeed/catalog';
+import type { ContentVersionId, LessonId, LessonPartId, UserId, Clock } from '@epicfeed/shared';
+import { DomainError } from '@epicfeed/shared';
+import { canTransition, webCryptoSha256 } from '@epicfeed/catalog';
+import type {
+  FeedCard,
   GlossaryEntry,
   LessonFeedDocument,
   LessonFeedDraft,
-  LessonId,
-  LessonPartContent,
-  LessonPartId,
-  LessonPartKind,
   LessonSource,
-  Sha256,
   StoredFeedCard,
-  SubtitleTrack,
-  UserId,
-} from '../domain/index.js';
-import {
-  ALIGNMENT_VERSION,
-  DomainError,
-  FeedValidationError,
-  alignCardToLesson,
-  canTransition,
-  checkLessonFeed,
-  computeLessonSourcesHash,
-  webCryptoSha256,
-} from '../domain/index.js';
-import type { Clock } from './ports.js';
+} from '../domain/feed.js';
+import { ALIGNMENT_VERSION, alignCardToLesson } from '../domain/alignment.js';
+import { FeedValidationError, checkLessonFeed, computeLessonSourcesHash } from '../domain/feed.js';
 
 /**
  * Casi d'uso della generazione (M2, ADR 0007 e ADR 0013). Li chiama l'API

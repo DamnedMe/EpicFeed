@@ -1,12 +1,8 @@
-import type {
-  ContentHash,
-  ExamBankDocument,
-  ExamPackDocument,
-  LessonId,
-  Sha256,
-  UserId,
-} from '../domain/index.js';
-import { DomainError, hashCanonical, webCryptoSha256 } from '../domain/index.js';
+import type { ContentHash, Sha256 } from '@epicfeed/catalog';
+import type { LessonId, UserId } from '@epicfeed/shared';
+import { DomainError } from '@epicfeed/shared';
+import { hashCanonical, webCryptoSha256 } from '@epicfeed/catalog';
+import type { ExamBankDocument, ExamPackDocument } from '../domain/exam.js';
 
 /**
  * Lettura dei contenuti d'esame per la sezione Esame della web app (M4,

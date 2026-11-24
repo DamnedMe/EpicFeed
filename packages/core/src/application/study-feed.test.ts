@@ -1,15 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import type {
-  ChapterId,
-  ContentHash,
-  ContentVersionId,
-  LessonFeedDocument,
-  LessonId,
-  LessonPartId,
-  StoredFeedCard,
-  UserId,
-} from '../domain/index.js';
-import { ALIGNMENT_VERSION, DomainError, computeLessonSourcesHash } from '../domain/index.js';
+import type { ChapterId, ContentVersionId, LessonId, LessonPartId, UserId } from '@epicfeed/shared';
+import type { ContentHash } from '@epicfeed/catalog';
+import { DomainError } from '@epicfeed/shared';
+import type { LessonFeedDocument, StoredFeedCard } from '../domain/feed.js';
+import { ALIGNMENT_VERSION } from '../domain/alignment.js';
+import { computeLessonSourcesHash } from '../domain/feed.js';
 import type { LessonSources } from './generation.js';
 import type { StudyFeedLessonRow, StudyFeedSubjectRows } from './study-feed.js';
 import { ReadSubjectFeed, RealignLessonFeeds, alignmentVersionOf } from './study-feed.js';

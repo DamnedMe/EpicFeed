@@ -1,22 +1,30 @@
-# `@epicfeed/core`: dominio
+# Dominio: catalogo e import
 
-Il core contiene le regole dell'app in TypeScript puro ([ADR 0004](../decisions/0004-clean-architecture-and-quality.md)): nessun framework, nessun accesso a rete o database. Gira uguale nel browser, in Node, nelle funzioni edge e nel server MCP, e si testa senza simulare nulla. Id (`LessonId`…), `DomainError` e regole sul testo stanno in `@epicfeed/shared` ([ADR 0019](../decisions/0019-feature-packages.md)) e il core li riesporta.
+Il core contiene le regole dell'app in TypeScript puro ([ADR 0004](../decisions/0004-clean-architecture-and-quality.md)): nessun framework, nessun accesso a rete o database. Gira uguale nel browser, in Node, nelle funzioni edge e nel server MCP, e si testa senza simulare nulla. 
+
+Questa pagina descrive le regole del catalogo e dell'import. Con la riorganizzazione per funzione ([ADR 0019](../decisions/0019-feature-packages.md)) stanno in tre pacchetti:
 
 ```
-packages/core/src/
+packages/shared/src/              errori, id "marchiati", testo, orologio, formato degli errori API
+packages/catalog/src/
 ├─ domain/
-│  ├─ catalog.ts          Source, Lesson, LessonPart
+│  ├─ catalog.ts          Source, Lesson, LessonPart, percorso nel catalogo
 │  ├─ content.ts          contenuto di una parte e forma canonica
 │  ├─ content-hash.ts     impronta SHA-256 del contenuto
 │  ├─ content-version.ts  ContentVersion e stati di generazione
 │  ├─ entitlement.ts      Entitlement e prova di possesso
-│  ├─ subtitles.ts        tracce di sottotitoli, forma canonica e impronta
-│  └─ import.ts           lezione importata: percorso nel catalogo, parti, validazione
-└─ application/
-   ├─ ports.ts                     porte: Clock, IdGenerator, CatalogRepository, EntitlementVerifier
-   ├─ possession-proof-verifier.ts verifica per prova di possesso
-   └─ import-lesson.ts             caso d'uso ImportLesson
+│  └─ subtitles.ts        tracce di sottotitoli, forma canonica e impronta
+├─ application/
+│  ├─ ports.ts                     porte: CatalogRepository, EntitlementVerifier
+│  └─ possession-proof-verifier.ts verifica per prova di possesso
+└─ infrastructure/        repository Drizzle e query di "Le mie lezioni"
+packages/ingest/src/
+├─ domain/import.ts                lezione importata: parti, validazione
+├─ application/import-lesson.ts    caso d'uso ImportLesson
+└─ contracts/                      import.ts (POST /api/import), extension.ts (collegamento)
 ```
+
+Il resto del dominio (feed, ripasso, esame) è ancora in `packages/core` e passa ai suoi pacchetti nelle PR successive.
 
 ## Entità
 | Entità | Cosa rappresenta |

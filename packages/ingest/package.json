@@ -1,0 +1,38 @@
+{
+  "name": "@epicfeed/ingest",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Import delle lezioni dall'estensione: regole, caso d'uso e contratti.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@epicfeed/catalog": "workspace:*",
+    "@epicfeed/shared": "workspace:*",
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.16",
+    "@epicfeed/config": "workspace:*",
+    "@epicfeed/db": "workspace:*",
+    "@types/node": "26.6.6",
+    "@vitest/coverage-v8": "5.1.0",
+    "eslint": "10.15.0",
+    "typescript": "6.0.3",
+    "vitest": "5.1.0"
+  }
+}

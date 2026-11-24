@@ -1,31 +1,29 @@
 import 'server-only';
+import { DrizzleCatalogRepository, MyLessonsQuery } from '@epicfeed/catalog/infrastructure';
 import {
-  DrizzleCatalogRepository,
   DrizzleExamPackRepository,
   DrizzleExamSubmissionRepository,
   DrizzleGenerationRepository,
   DrizzleProgressRepository,
   DrizzleStudyFeedRepository,
+} from '@epicfeed/adapters';
+import {
   GenerateTokenService,
   GenerationRateLimiter,
   ImportRateLimiter,
   ImportTokenService,
-  MyLessonsQuery,
-  type Database,
-} from '@epicfeed/adapters';
+} from '@epicfeed/access/infrastructure';
 import {
   DeleteSubmission,
   ListSubmissions,
   SaveCorrection,
   SubmitForCorrection,
-  ImportLesson,
   ImportLessonSlides,
   ListLessonsForExam,
   ListLessonsToGenerate,
   ListSubjectsForExam,
   ListOwnedLessons,
   ListStudySubjects,
-  PossessionProofVerifier,
   ReadLessonForExam,
   ReadLessonForGeneration,
   ReadExamContent,
@@ -34,9 +32,12 @@ import {
   SaveExamBank,
   SaveExamPack,
   SaveLessonFeed,
-  systemClock,
 } from '@epicfeed/core';
+import { ImportLesson } from '@epicfeed/ingest';
+import { PossessionProofVerifier } from '@epicfeed/catalog';
+import { systemClock } from '@epicfeed/shared';
 import * as schema from '@epicfeed/db';
+import type { Database } from '@epicfeed/db';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { serverEnv } from './env';

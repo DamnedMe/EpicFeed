@@ -10,10 +10,9 @@ import type {
   ExamPackDocument,
   ExamPackRepository,
   LessonFeedDocument,
-  LessonId,
-  UserId,
 } from '@epicfeed/core';
-import { parseId } from '@epicfeed/core';
+import type { LessonId, UserId } from '@epicfeed/shared';
+import { parseId } from '@epicfeed/shared';
 import {
   chapters,
   lessonExamPacks,
@@ -22,8 +21,8 @@ import {
   subjectExamBanks,
   subjects,
 } from '@epicfeed/db';
-import type { Database, DatabaseTransaction } from './database.js';
-import { withUserRls } from './database.js';
+import type { Database, DatabaseTransaction } from '@epicfeed/db';
+import { withUserRls } from '@epicfeed/db';
 
 /**
  * Persistenza dei pacchetti d'esame e delle banche degli esercizi su Postgres

@@ -1,6 +1,6 @@
 import type { Bilingual, FeedCard, StudyLanguage } from './feed.js';
 import type { LessonPartId } from '@epicfeed/shared';
-import type { SubtitleCue, SubtitleTrack } from './subtitles.js';
+import type { SubtitleCue, SubtitleTrack } from '@epicfeed/catalog';
 
 /**
  * Allineamento di una scheda al tratto di video in cui se ne parla, per aprire

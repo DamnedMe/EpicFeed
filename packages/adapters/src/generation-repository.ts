@@ -1,20 +1,22 @@
 import { and, asc, desc, eq, inArray } from 'drizzle-orm';
+import type { ContentVersionId, LessonId, UserId } from '@epicfeed/shared';
 import type {
-  ContentVersionId,
   GenerationRepository,
-  GenerationStatus,
   GlossaryEntry,
-  LessonId,
-  LessonPartContent,
   LessonSourcePart,
   LessonSources,
   NewLessonFeed,
   OwnedLesson,
+} from '@epicfeed/core';
+import type {
+  GenerationStatus,
+  LessonPartContent,
   SubtitleCue,
   SubtitleTrack,
-  UserId,
-} from '@epicfeed/core';
-import { glossaryKey, parseContentHash, parseId } from '@epicfeed/core';
+} from '@epicfeed/catalog';
+import { glossaryKey } from '@epicfeed/core';
+import { parseContentHash } from '@epicfeed/catalog';
+import { parseId } from '@epicfeed/shared';
 import {
   chapters,
   contentVersions,
@@ -26,8 +28,8 @@ import {
   subjects,
   subtitleTracks,
 } from '@epicfeed/db';
-import type { Database, DatabaseTransaction } from './database.js';
-import { withUserRls } from './database.js';
+import type { Database, DatabaseTransaction } from '@epicfeed/db';
+import { withUserRls } from '@epicfeed/db';
 
 /**
  * Persistenza della generazione su Postgres (porta `GenerationRepository` del

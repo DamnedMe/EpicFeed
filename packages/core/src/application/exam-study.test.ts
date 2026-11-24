@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { ExamBankDocument, ExamPackDocument, LessonId, UserId } from '../domain/index.js';
-import { DomainError } from '../domain/index.js';
+import type { ExamBankDocument, ExamPackDocument } from '../domain/exam.js';
+import type { LessonId, UserId } from '@epicfeed/shared';
+import { DomainError } from '@epicfeed/shared';
 import type { ExamContentRepository, ExamContentRows } from './exam-study.js';
 import { ReadExamContent } from './exam-study.js';
 

@@ -1,8 +1,9 @@
 import { and, eq, sql } from 'drizzle-orm';
-import type { EncryptedProgressRepository, StoredProgress, UserId } from '@epicfeed/core';
+import type { EncryptedProgressRepository, StoredProgress } from '@epicfeed/core';
+import type { UserId } from '@epicfeed/shared';
 import { progressSnapshots } from '@epicfeed/db';
-import type { Database } from './database.js';
-import { withUserRls } from './database.js';
+import type { Database } from '@epicfeed/db';
+import { withUserRls } from '@epicfeed/db';
 
 /**
  * Copie cifrate dei progressi su Postgres (porta `EncryptedProgressRepository`

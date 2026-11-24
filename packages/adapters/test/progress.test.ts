@@ -1,7 +1,7 @@
 import type { PGlite } from '@electric-sql/pglite';
-import type { UserId } from '@epicfeed/core';
+import type { UserId } from '@epicfeed/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { Database } from '../src/database.js';
+import type { Database } from '@epicfeed/db';
 import { DrizzleProgressRepository } from '../src/progress-repository.js';
 import { anna, bruno, setup } from './setup.js';
 

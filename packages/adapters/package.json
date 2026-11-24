@@ -21,8 +21,10 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@epicfeed/catalog": "workspace:*",
     "@epicfeed/core": "workspace:*",
     "@epicfeed/db": "workspace:*",
+    "@epicfeed/ingest": "workspace:*",
     "@epicfeed/shared": "workspace:*",
     "drizzle-orm": "0.45.4"
   },

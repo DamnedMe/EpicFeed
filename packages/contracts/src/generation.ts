@@ -1,7 +1,9 @@
-import type { LessonFeedDraft, LessonPartId } from '@epicfeed/core';
-import { FEED_LIMITS, MAX_PRESENTATIONS_PER_LESSON, MAX_SLIDE_PAGES } from '@epicfeed/core';
+import type { LessonFeedDraft } from '@epicfeed/core';
+import type { LessonPartId } from '@epicfeed/shared';
+import { FEED_LIMITS, MAX_PRESENTATIONS_PER_LESSON } from '@epicfeed/core';
+import { MAX_SLIDE_PAGES } from '@epicfeed/catalog';
+import { lessonPartContentSchema } from '@epicfeed/ingest';
 import * as z from 'zod';
-import { lessonPartContentSchema } from './import.js';
 import {
   bilingual,
   conceptKeySchema,

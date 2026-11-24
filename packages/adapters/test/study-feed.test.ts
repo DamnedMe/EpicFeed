@@ -1,18 +1,20 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { LessonFeedDraft, LessonImport, UserId } from '@epicfeed/core';
+import type { LessonFeedDraft } from '@epicfeed/core';
+import type { LessonImport } from '@epicfeed/ingest';
+import type { UserId } from '@epicfeed/shared';
 import {
   ALIGNMENT_VERSION,
-  ImportLesson,
   ListStudySubjects,
-  PossessionProofVerifier,
   ReadLessonForGeneration,
   ReadSubjectFeed,
   RealignLessonFeeds,
   SaveLessonFeed,
 } from '@epicfeed/core';
-import { DrizzleCatalogRepository } from '../src/catalog-repository.js';
-import type { Database } from '../src/database.js';
+import { ImportLesson } from '@epicfeed/ingest';
+import { PossessionProofVerifier } from '@epicfeed/catalog';
+import { DrizzleCatalogRepository } from '@epicfeed/catalog/infrastructure';
+import type { Database } from '@epicfeed/db';
 import { DrizzleGenerationRepository } from '../src/generation-repository.js';
 import { DrizzleStudyFeedRepository } from '../src/study-feed-repository.js';
 import { anna, bruno, setup } from './setup.js';

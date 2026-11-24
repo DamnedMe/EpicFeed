@@ -12,10 +12,11 @@
     "test": "vitest run --coverage"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.32.2",
-    "@napi-rs/canvas": "1.1.0",
     "@epicfeed/contracts": "workspace:*",
     "@epicfeed/core": "workspace:*",
+    "@epicfeed/shared": "workspace:*",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "@napi-rs/canvas": "1.1.0",
     "pdfjs-dist": "6.5.438",
     "yauzl": "3.4.0",
     "zod": "4.6.6"
