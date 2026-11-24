@@ -101,6 +101,7 @@ Regole pure del feed sul telefono ([ADR 0015](../decisions/0015-feed-di-studio-m
 - `rubricScore(griglia, punti)`: punteggio dell'autovalutazione tra 0 e 1 (ogni voce limitata ai punti del criterio), da passare a `gradeFromScore`.
 - `testPassed(esito)`: un test del codice passa se non dà errore e il `repr()` coincide con quello atteso.
 - `EXERCISE_TIMER_MINUTES`: durate proposte per il timer facoltativo.
+- `domain/exam-correction.ts` (PR 5): invio (`ExamSubmissionDraft`) e correzione (`ExamCorrectionDraft`: punti per criterio, commento, `CodeSuggestion` su righe della risposta, riepilogo); `checkCorrection` lega la correzione all'invio, `suggestionDiff` produce le righe del diff (contesto, tolte, aggiunte con i numeri giusti); limiti in `EXAM_CORRECTION_LIMITS`. Casi d'uso in `application/exam-correction.ts`: `SubmitForCorrection` (materia visibile, al massimo 20 in attesa), `ListSubmissions` (toglie prima gli scaduti), `SaveCorrection` (una volta sola), `DeleteSubmission`.
 - Porta `ExamContentRepository` e caso d'uso `ReadExamContent`: pacchetti dei feed correnti di una materia e banca dello studente, con un'impronta (`version`) degli id, usata come ETag.
 
 ## Sincronizzazione dei progressi

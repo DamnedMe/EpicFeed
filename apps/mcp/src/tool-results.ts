@@ -29,13 +29,18 @@ export function issuesResult(
   tool = 'salva_feed_lezione',
 ): CallToolResult {
   const list = issues.map((issue) => `- ${issue.path}: ${issue.message}`).join('\n');
-  const what = tool === 'salva_feed_lezione' ? 'Il feed' : 'Il pacchetto';
+  const what =
+    tool === 'salva_feed_lezione'
+      ? 'Il feed'
+      : tool === 'salva_correzione'
+        ? 'La correzione'
+        : 'Il pacchetto';
   return {
     isError: true,
     content: [
       {
         type: 'text',
-        text: `${what} non è stato salvato: ${String(issues.length)} problemi da correggere.\n${list}\nCorreggi solo questi punti e chiama di nuovo ${tool}.`,
+        text: `${what} non è stat${what === 'La correzione' ? 'a salvata' : 'o salvato'}: ${String(issues.length)} problemi da correggere.\n${list}\nCorreggi solo questi punti e chiama di nuovo ${tool}.`,
       },
     ],
   };

@@ -424,6 +424,64 @@ test('esercizio di codice: suggerimento, test con Python nel browser e griglia',
   await expect(page.getByRole('button', { name: /Reverse a list/ })).toContainText('80%');
 });
 
+test('Claude corregge l’esercizio con suggerimenti stile revisione del codice', async ({
+  page,
+}) => {
+  await page.goto(`${ORIGIN}/ripasso#esame`);
+  await page.getByRole('button', { name: /Reverse a list/ }).click();
+  const editor = page.getByRole('textbox', { name: 'Your code' });
+  await editor.click();
+  await page.keyboard.press('ControlOrMeta+End');
+  await page.keyboard.type('return items[::-1]');
+  await page.getByRole('button', { name: 'Fai correggere a Claude' }).click();
+  await expect(page.getByText(/^Inviata\./)).toBeVisible();
+  await expect(page.getByText(/In correzione\./)).toBeVisible();
+  await page.getByRole('button', { name: '← Esame' }).click();
+  await expect(page.getByRole('button', { name: /Reverse a list/ })).toContainText('In correzione');
+
+  // Claude Desktop corregge; alla riapertura la correzione arriva.
+  await page.evaluate(() => {
+    (window as unknown as { efCorrectAll: () => void }).efCorrectAll();
+  });
+  await page.reload();
+  await page.getByRole('heading', { name: 'Correzioni di Claude' }).waitFor();
+  await page
+    .getByRole('button', { name: /Reverse a list|Write reverse/ })
+    .first()
+    .click();
+  const card = page.getByRole('region', { name: 'Suggestion: Reverse in place' });
+  await expect(card).toBeVisible();
+  await expect(card.locator('tr.removed')).toContainText('return items[::-1]');
+  await expect(card.locator('tr.added')).toHaveCount(2);
+  await expect(card.locator('tr.added').first()).toContainText('items.reverse()');
+  await expect(page.getByText('Slicing copies the list: O(n) extra space.')).toBeVisible();
+  await expect(page.getByText('Solid answer; mind the edge cases.')).toBeVisible();
+  // Il server non conserva più la risposta.
+  const left = await page.evaluate(() => sessionStorage.getItem('fake-submissions'));
+  expect(left).toBe('[]');
+});
+
+test('simulazione del colloquio in chat con approfondimento', async ({ page }) => {
+  await page.goto(`${ORIGIN}/ripasso#esame`);
+  await page.getByRole('button', { name: /Simulazione del colloquio/ }).click();
+  await page.getByRole('button', { name: 'Inizia il colloquio' }).click();
+  await expect(page.getByRole('timer')).toContainText(/^(20:00|19:5\d)$/);
+  const box = page.getByRole('textbox', { name: 'Your answer' });
+  await box.fill('My first answer.');
+  await page.getByRole('button', { name: 'Rispondi' }).click();
+  await expect(page.locator('.ef-iv-chat li.me')).toHaveText(['My first answer.']);
+  await expect(page.locator('.ef-iv-chat li.them')).toHaveCount(2);
+  await box.fill('Follow-up answer.');
+  await page.getByRole('button', { name: 'Rispondi' }).click();
+  await page.getByRole('button', { name: 'Termina qui' }).click();
+  await expect(page.getByRole('heading', { name: 'Colloquio finito' })).toBeVisible();
+  await expect(page.getByText('Soluzione modello')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Fai correggere a Claude' }).click();
+  await expect(page.getByText(/^Inviata\./)).toBeVisible();
+  await page.getByRole('button', { name: 'Salva l’autovalutazione' }).click();
+  await expect(page.getByText(/Autovalutazione salvata/)).toBeVisible();
+});
+
 test('un ciclo infinito si interrompe dopo 5 secondi per test', async ({ page }) => {
   test.setTimeout(90_000);
   await page.goto(`${ORIGIN}/ripasso#esame`);

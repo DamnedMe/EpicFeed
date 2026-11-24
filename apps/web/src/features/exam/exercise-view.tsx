@@ -9,6 +9,15 @@ import { recordStudyAnswer } from '../review/record';
 import { z } from 'zod';
 import type { ExamExerciseItem } from './catalog';
 import { CodeEditor } from './code-editor';
+import { CorrectionView } from './correction-view';
+import type { SubmitOutcome } from './corrections';
+import {
+  examCorrections,
+  latestFor,
+  MAX_ANSWER_CHARS,
+  submissionItemFor,
+  submitForCorrection,
+} from './corrections';
 import { examPrefs, examScores } from './exam-state';
 import { ExerciseTimer } from './exercise-timer';
 import type { PythonRunner, RunResult } from './python-runner';
@@ -67,6 +76,9 @@ export function ExerciseView({
   const [revealed, setRevealed] = useState(false);
   const [awarded, setAwarded] = useState<readonly number[]>(() => exercise.rubric.map(() => 0));
   const [saved, setSaved] = useState<number | null>(null);
+  const [sending, setSending] = useState<SubmitOutcome | 'sending' | null>(null);
+  const corrections = useLocalValue(examCorrections);
+  const latest = latestFor(corrections, exercise.key);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   // La bozza si salva poco dopo l'ultima modifica: si può uscire e riprendere.
@@ -86,6 +98,21 @@ export function ExerciseView({
   const runTests = async () => {
     setRun('running');
     setRun(await runner.run(answer, exercise.tests));
+  };
+
+  /** Invia la risposta a Claude, con l'esito dei test se sono stati eseguiti. */
+  const sendToClaude = async () => {
+    setSending('sending');
+    const tests =
+      run && run !== 'running' && run.status === 'done'
+        ? { passed: run.outcomes.filter(testPassed).length, total: run.outcomes.length }
+        : null;
+    const outcome = await submitForCorrection((input, init) => fetch(input, init), {
+      subjectId,
+      kind: 'exercise',
+      items: [submissionItemFor(exercise, answer, { tests: tests?.total ? tests : null })],
+    });
+    setSending(outcome);
   };
 
   const score = rubricScore(exercise.rubric, awarded);
@@ -221,6 +248,19 @@ export function ExerciseView({
         ) : null}
       </div>
 
+      <div className="ef-section">
+        <h2>Correzione di Claude</h2>
+        <SendToClaude
+          sending={sending}
+          disabled={!answer.trim() || answer.length > MAX_ANSWER_CHARS}
+          tooLong={answer.length > MAX_ANSWER_CHARS}
+          onSend={() => {
+            void sendToClaude();
+          }}
+        />
+        {latest ? <CorrectionView entry={latest} /> : null}
+      </div>
+
       {revealed ? (
         <div className="ef-section">
           <h2>Soluzione modello</h2>
@@ -285,6 +325,66 @@ export function ExerciseView({
         </button>
       )}
     </section>
+  );
+}
+
+/**
+ * Pulsante *Fai correggere a Claude* con l'esito dell'invio.
+ *
+ * @param props.sending - Stato dell'invio.
+ * @param props.disabled - Niente da inviare.
+ * @param props.tooLong - Risposta oltre il massimo.
+ * @param props.onSend - Invia.
+ */
+export function SendToClaude({
+  sending,
+  disabled,
+  tooLong,
+  onSend,
+}: {
+  sending: SubmitOutcome | 'sending' | null;
+  disabled: boolean;
+  tooLong: boolean;
+  onSend: () => void;
+}) {
+  if (sending !== null && sending !== 'sending' && sending.status === 'sent') {
+    return (
+      <p className="ef-rv-note" role="status">
+        Inviata. In Claude Desktop chiedi «correggi le mie risposte di EpicFeed»: la correzione
+        arriva qui alla prossima apertura della sezione Esame.
+      </p>
+    );
+  }
+  return (
+    <>
+      <p className="ef-rv-note">
+        Claude corregge in inglese con la griglia e suggerisce le modifiche riga per riga, come in
+        una revisione del codice. La risposta resta sul server solo finché la correzione non arriva
+        qui.
+      </p>
+      <button
+        type="button"
+        className="ef-cta"
+        disabled={disabled || sending === 'sending'}
+        onClick={onSend}
+      >
+        {sending === 'sending' ? 'Invio…' : 'Fai correggere a Claude'}
+      </button>
+      {tooLong ? (
+        <p className="ef-fb" role="status">
+          La risposta è troppo lunga per l’invio (massimo {MAX_ANSWER_CHARS} caratteri).
+        </p>
+      ) : null}
+      {sending !== null && sending !== 'sending' ? (
+        <p className="ef-fb" role="status">
+          {sending.status === 'limit'
+            ? sending.message
+            : sending.status === 'unauthorized'
+              ? 'Accedi di nuovo a EpicFeed per inviare la risposta.'
+              : 'Invio non riuscito. Riprova quando c’è la connessione.'}
+        </p>
+      ) : null}
+    </>
   );
 }
 

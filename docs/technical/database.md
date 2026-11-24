@@ -34,6 +34,7 @@ subjects ─< glossary_terms
 | `lesson_feeds` | Feed di una lezione (schede, quiz, concetti IT+EN) generato da Claude Desktop | (`lesson_id`, `sources_hash`) univoci, `source_version_ids` (1–40 versioni da cui è nato), `prompt_version` datata, ≤ 1 MB |
 | `subject_exam_banks` | Banca degli esercizi d'esame di una materia, privata di chi l'ha generata (M4) | (`subject_id`, `generated_by`) univoci, `prompt_version` datata, ≤ 1 MB |
 | `lesson_exam_packs` | Pacchetto d'esame di un feed (domande a scelta multipla e aperte in inglese, M4) | `lesson_feed_id` univoco con cancellazione a cascata, `prompt_version` datata, ≤ 512 KB |
+| `exam_submissions` | Risposte inviate con *Fai correggere a Claude* (esercizio o colloquio) e correzione di Claude ([ADR 0014](../decisions/0014-preparazione-esame.md) §4, M4) | `kind` (`exercise`, `interview`), `submission` e `correction` JSON ≤ 128 KB ciascuno, `expires_at` = creazione + 30 giorni; l'app la cancella appena scarica la correzione |
 | `glossary_terms` | Glossario bilingue della materia | (`subject_id`, `term_key`) univoci; termine inglese, traduzione, definizione `{ it, en }` |
 | `generation_events` | Registro delle chiamate del server MCP | utente, azione (`read`, `save`, `slides`), lezione, data: serve al limite di frequenza (120/ora) |
 | `progress_snapshots` | Copia **cifrata nel browser** dei progressi di studio ([ADR 0018](../decisions/0018-sincronizzazione-cifrata-progressi.md)) | PK `user_id`; `revision` ≥ 1 per la concorrenza ottimistica; `kdf`, `salt` (16 byte) e `iv` (12 byte) in base64; `ciphertext` base64 ≤ 4 milioni di caratteri. Il server non ha la chiave |
@@ -47,12 +48,13 @@ Vincoli `CHECK` replicano nel database le regole del core (titoli 1–300 caratt
   - `entitlements`: solo i propri permessi;
   - `content_versions` e `lesson_parts`: solo se esiste un proprio permesso su quella versione o parte;
   - `subtitle_tracks`: solo se esiste un proprio `subtitle_access`; `subtitle_access`, `api_tokens` e `import_events`: solo le proprie righe;
+  - `exam_submissions`: solo i propri invii (`user_id = auth.uid()`); scrittura, correzione e cancellazione solo dall'API, sempre filtrate per utente;
   - `subject_exam_banks`: solo la propria banca (`generated_by = auth.uid()`) e per una materia che lo studente vede;
   - `lesson_exam_packs`: solo se lo studente vede il feed a cui appartiene (la sottoquery su `lesson_feeds` passa dalla sua RLS);
   - `lesson_feeds`: solo se lo studente possiede **tutte** le versioni elencate in `source_version_ids`. Le versioni stanno nella riga e non in una tabella collegata, perché la policy deve vederle tutte: una tabella con la sua RLS mostrerebbe alla policy solo quelle dello studente, e il controllo passerebbe sempre;
   - `glossary_terms`: se lo studente vede la materia; `generation_events` e `progress_snapshots`: solo le proprie righe;
   - `lessons` → `chapters` → `subjects` → `editions` → `study_programs`: visibili se è visibile almeno un elemento del livello sotto. Ogni policy guarda un solo livello e si appoggia alla RLS di quel livello, così la regola resta semplice da leggere e la visibilità risale da `entitlements` fino al corso.
-- Nessuna policy di scrittura, e in più le migrazioni `0001_harden_grants`, `0004_harden_grants_import`, `0006_harden_grants_generation`, `0009_harden_grants_progress`, `0011_harden_grants_exam` e `0013_harden_grants_exam_banks` tolgono a `authenticated` i privilegi di insert/update/delete e ad `anon` ogni privilegio. Le scritture (import, generazione) le fa solo l'API sul server, dopo validazione e prova di possesso.
+- Nessuna policy di scrittura, e in più le migrazioni `0001_harden_grants`, `0004_harden_grants_import`, `0006_harden_grants_generation`, `0009_harden_grants_progress`, `0011_harden_grants_exam`, `0013_harden_grants_exam_banks` e `0015_harden_grants_exam_submissions` tolgono a `authenticated` i privilegi di insert/update/delete e ad `anon` ogni privilegio. Le scritture (import, generazione) le fa solo l'API sul server, dopo validazione e prova di possesso.
 - Le policy usano `(select auth.uid())`, che Postgres valuta una volta per query invece che per riga (raccomandazione di Supabase per la latenza).
 
 ### Come è testato
@@ -90,6 +92,7 @@ Progetto: **EpicFeed** (`https://nxuysaeevxcncchqjtep.supabase.co`), creato il 1
 - M4 (PR 2, sincronizzazione): migrazioni `0008_progress_snapshots` (tabella `progress_snapshots`) e `0009_harden_grants_progress` (permessi), solo aggiunte; applicate il 24/11/2026.
 - M4 (PR 3, pacchetti d'esame): migrazioni `0010_exam_packs` (tabella `lesson_exam_packs`) e `0011_harden_grants_exam` (permessi), solo aggiunte; applicate il 24/11/2026.
 - M4 (PR 3, banca degli esercizi): migrazioni `0012_exam_banks` (tabella `subject_exam_banks`) e `0013_harden_grants_exam_banks` (permessi), solo aggiunte; applicate il 24/11/2026.
+- M4 (PR 5, correzione di Claude): migrazioni `0014_exam_submissions` (tabella `exam_submissions`) e `0015_harden_grants_exam_submissions` (permessi), solo aggiunte: da applicare con il connettore dopo il merge.
 
 ### Applicare le migrazioni con Claude (connettore Supabase)
 Con il connettore Supabase collegato, Claude può applicare le migrazioni nuove con `apply_migration`, aggiungendo nella stessa migrazione la riga in `drizzle.__drizzle_migrations` (hash SHA-256 del file `.sql` e campo `when` del journal). Non serve la password del database.

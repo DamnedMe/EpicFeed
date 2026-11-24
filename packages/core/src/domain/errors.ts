@@ -12,7 +12,9 @@ export type DomainErrorCode =
   | 'ENTITLEMENT_MISMATCH'
   | 'NOT_FOUND'
   | 'SOURCES_CHANGED'
-  | 'INVALID_FEED';
+  | 'INVALID_FEED'
+  | 'LIMIT_REACHED'
+  | 'ALREADY_DONE';
 
 /**
  * Violazione di una regola del dominio (dato non valido o operazione non

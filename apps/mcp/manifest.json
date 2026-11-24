@@ -4,7 +4,7 @@
   "display_name": "EpicFeed",
   "version": "0.0.0",
   "description": "Genera schede, quiz e concetti in italiano e in inglese delle lezioni Epicode importate in EpicFeed.",
-  "long_description": "Collega Claude Desktop a EpicFeed: chiedi \"genera le lezioni nuove di EpicFeed\" e Claude legge le lezioni che hai importato, crea il feed di schede, quiz e concetti nelle due lingue e lo salva nell'app. Il server gira sul tuo PC e parla solo con EpicFeed, con un token che permette solo la generazione. Con \"genera le domande d'esame di EpicFeed\" aggiunge a ogni lezione domande d'esame in inglese: 10 a scelta multipla e 1-2 aperte con soluzione e griglia. Dal materiale \"Exam Prep\" dello zip delle slide crea anche la banca degli esercizi d'esame, con due varianti per esercizio. Puoi anche indicare lo zip delle slide scaricato dal portale (Course downloads › Download all PDFs): i PDF restano sul PC, a EpicFeed arriva solo il testo.",
+  "long_description": "Collega Claude Desktop a EpicFeed: chiedi \"genera le lezioni nuove di EpicFeed\" e Claude legge le lezioni che hai importato, crea il feed di schede, quiz e concetti nelle due lingue e lo salva nell'app. Il server gira sul tuo PC e parla solo con EpicFeed, con un token che permette solo la generazione. Con \"genera le domande d'esame di EpicFeed\" aggiunge a ogni lezione domande d'esame in inglese: 10 a scelta multipla e 1-2 aperte con soluzione e griglia. Dal materiale \"Exam Prep\" dello zip delle slide crea anche la banca degli esercizi d'esame, con due varianti per esercizio. Con \"correggi le mie risposte di EpicFeed\" corregge in inglese gli esercizi e i colloqui simulati che invii dall'app, con punti per criterio e suggerimenti sulle righe del codice. Puoi anche indicare lo zip delle slide scaricato dal portale (Course downloads › Download all PDFs): i PDF restano sul PC, a EpicFeed arriva solo il testo.",
   "author": {
     "name": "Damian"
   },
@@ -61,6 +61,14 @@
     {
       "name": "salva_esercizi_esame",
       "description": "Controlla e salva la banca degli esercizi d'esame di una materia."
+    },
+    {
+      "name": "risposte_da_correggere",
+      "description": "Risposte d'esame inviate dall'app per la correzione."
+    },
+    {
+      "name": "salva_correzione",
+      "description": "Controlla e salva la correzione di un invio, con suggerimenti sulle righe."
     }
   ],
   "prompts": [
@@ -73,6 +81,11 @@
       "name": "genera_domande_esame",
       "description": "Scrive le domande d'esame in inglese per tutte le lezioni con il feed.",
       "text": "Scrivi le domande d'esame di tutte le lezioni EpicFeed che non le hanno ancora, una lezione alla volta, con gli strumenti di EpicFeed."
+    },
+    {
+      "name": "correggi_risposte",
+      "description": "Corregge in inglese le risposte d'esame inviate dall'app.",
+      "text": "Correggi le mie risposte d'esame di EpicFeed in attesa, un invio alla volta, con gli strumenti di EpicFeed."
     }
   ],
   "user_config": {

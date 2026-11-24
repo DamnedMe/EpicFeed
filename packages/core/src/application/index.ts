@@ -3,6 +3,7 @@
  *
  * @packageDocumentation
  */
+export * from './exam-correction.js';
 export * from './exam-generation.js';
 export * from './exam-study.js';
 export * from './generation.js';

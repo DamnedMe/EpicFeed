@@ -18,8 +18,10 @@ import {
   handleReadLesson,
   handleReadLessonForExam,
   handleSaveExamBank,
+  handleSaveCorrection,
   handleSaveExamPack,
   handleSaveFeed,
+  handleListSubmissionsToCorrect,
   type GenerationHandlerDeps,
 } from './generation-handler';
 
@@ -182,6 +184,8 @@ function deps(overrides: Partial<GenerationHandlerDeps> = {}): GenerationHandler
       Promise.resolve([{ subjectId: lessonId, subjectTitle: 'DSA', concepts: [], hasBank: false }]),
     saveExamBank: () =>
       Promise.resolve({ bankId: feedId, created: true, officials: 1, variants: 2 }),
+    listSubmissionsToCorrect: () => Promise.resolve([]),
+    saveCorrection: () => Promise.resolve(),
     logError,
     ...overrides,
   };
@@ -555,5 +559,66 @@ describe("banche d'esame", () => {
       deps({ saveExamBank: () => Promise.reject(new DomainError('NOT_FOUND', 'x')) }),
     );
     expect(missing.status).toBe(404);
+  });
+});
+
+describe('correzione di Claude', () => {
+  const submissionId = '50000000-0000-4000-8000-000000000001';
+  const url = `/api/generation/exam/submissions/${submissionId}/correction`;
+  const correction = {
+    summary: 'Good.',
+    items: [
+      {
+        key: 'bank:dfs',
+        scores: [2, 1],
+        comment: 'Use a set.',
+        suggestions: [
+          {
+            title: 'Use a set',
+            explanation: 'O(1) lookups.',
+            fromLine: 2,
+            toLine: 2,
+            replacement: '    seen = set()',
+          },
+        ],
+      },
+    ],
+  };
+  const postCorrection = (payload: unknown, id = submissionId) =>
+    handleSaveCorrection(
+      request(url, { method: 'POST', body: JSON.stringify(payload) }),
+      id,
+      deps(),
+    );
+
+  it('elenca le risposte da correggere', async () => {
+    const response = await handleListSubmissionsToCorrect(
+      request('/api/generation/exam/submissions'),
+      deps(),
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ submissions: [] });
+    expect(record).toHaveBeenCalledWith(user, 'read', null);
+  });
+
+  it('salva la correzione e rifiuta forma e id non validi', async () => {
+    expect((await postCorrection({ correction })).status).toBe(201);
+    expect((await postCorrection({ correction: { items: [] } })).status).toBe(422);
+    expect((await postCorrection({ correction }, 'x')).status).toBe(404);
+  });
+
+  it('409 se è già corretta, 422 con i problemi trovati dal dominio', async () => {
+    const save = (error: Error) =>
+      handleSaveCorrection(
+        request(url, { method: 'POST', body: JSON.stringify({ correction }) }),
+        submissionId,
+        deps({ saveCorrection: () => Promise.reject(error) }),
+      );
+    expect((await save(new DomainError('ALREADY_DONE', 'x'))).status).toBe(409);
+    const invalid = await save(
+      new FeedValidationError([{ path: 'items[0].scores', message: 'x' }], 'La correzione'),
+    );
+    expect(invalid.status).toBe(422);
+    expect((await errorOf(invalid)).issues?.[0]?.path).toBe('items[0].scores');
   });
 });
