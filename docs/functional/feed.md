@@ -8,7 +8,7 @@ Una schermata spiega i quattro gesti con piccole animazioni e si chiude con **Ho
 ## Cosa si vede
 - In alto: il **capitolo e la lezione** (un tocco apre l'elenco per saltare altrove), i **punti** della sessione, la **serie** di risposte giuste (si accende da 2 in su), l'**anello dei 5 minuti** e il pulsante **IT/EN** della scheda.
 - Sotto, la **barra delle battute**: un trattino per ogni battuta della scheda, come nelle storie dei social.
-- In basso, la barra **Feed · Ripasso · Libri · Io** (Libri è *in arrivo*; Ripasso contiene anche l'Esame, vedi [review.md](review.md)).
+- In basso, la barra **Feed · Ripasso · Libri · Io**, solo con icone (i nomi restano per i lettori di schermo; Libri è *in arrivo* e spento; Ripasso contiene anche l'Esame, vedi [review.md](review.md)).
 
 ## Le schede a battute
 | Tipo | Battute |
