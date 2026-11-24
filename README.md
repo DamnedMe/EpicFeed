@@ -49,7 +49,7 @@ Portale Epicode ──▶ Estensione (sul PC) ──▶ Catalogo su Supabase ─
                     lo studente già vede     prova di possesso        bilingui                   risultati sul dispositivo
 ```
 
-Dettagli in [architettura](docs/architecture.md): clean architecture (dominio puro + adattatori), RLS su ogni tabella, funzioni Vercel a Dublino accanto al database.
+Dettagli in [architettura](docs/architecture.md): clean architecture con un pacchetto per funzione (`catalog`, `ingest`, `access`, `feed`, `review`, `exam`), RLS su ogni tabella, funzioni Vercel a Dublino accanto al database. Per trovare i file: [come orientarsi nel codice](docs/navigation.md).
 
 ## 🛡️ Paletti
 
@@ -74,6 +74,7 @@ Requisiti e comandi in [docs/technical/setup.md](docs/technical/setup.md).
 
 | | |
 |---|---|
+| [Come orientarsi](docs/navigation.md) | Dove sta ogni funzione: pacchetti, API, schermate, server MCP |
 | [Piano di sviluppo](docs/development-plan.md) | Perimetro dell'MVP, milestone, stack |
 | [Architettura](docs/architecture.md) | Componenti, modello dati, sicurezza, performance |
 | [Decisioni (ADR)](docs/decisions/) | Una decisione per file, con contesto e alternative |

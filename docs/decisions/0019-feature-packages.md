@@ -1,6 +1,6 @@
 # ADR 0019: Un pacchetto per funzione e nomi in inglese
 
-- Stato: accettata
+- Stato: accettata e realizzata (24/11/2026)
 - Data: 24/11/2026
 - Completa: [ADR 0004](0004-clean-architecture-and-quality.md) (stesse regole di dipendenza, organizzate per funzione)
 
