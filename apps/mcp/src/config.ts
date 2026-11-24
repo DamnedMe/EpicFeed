@@ -54,5 +54,7 @@ function missingTokenApi(): GenerationApi {
     saveExamPack: fail,
     listExamSubjects: fail,
     saveExamBank: fail,
+    listSubmissionsToCorrect: fail,
+    saveCorrection: fail,
   };
 }

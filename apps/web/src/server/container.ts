@@ -2,6 +2,7 @@ import 'server-only';
 import {
   DrizzleCatalogRepository,
   DrizzleExamPackRepository,
+  DrizzleExamSubmissionRepository,
   DrizzleGenerationRepository,
   DrizzleProgressRepository,
   DrizzleStudyFeedRepository,
@@ -13,6 +14,10 @@ import {
   type Database,
 } from '@study-feed/adapters';
 import {
+  DeleteSubmission,
+  ListSubmissions,
+  SaveCorrection,
+  SubmitForCorrection,
   ImportLesson,
   ImportLessonSlides,
   ListLessonsForExam,
@@ -63,6 +68,10 @@ export interface Services {
   readonly listSubjectsForExam: ListSubjectsForExam;
   readonly saveExamBank: SaveExamBank;
   readonly readExamContent: ReadExamContent;
+  readonly submitForCorrection: SubmitForCorrection;
+  readonly listSubmissions: ListSubmissions;
+  readonly saveCorrection: SaveCorrection;
+  readonly deleteSubmission: DeleteSubmission;
 }
 
 let services: Services | undefined;
@@ -92,6 +101,7 @@ export function getServices(): Services {
   const catalog = new DrizzleCatalogRepository(db);
   const studyFeed = new DrizzleStudyFeedRepository(db);
   const exams = new DrizzleExamPackRepository(db);
+  const submissions = new DrizzleExamSubmissionRepository(db);
   const verifier = new PossessionProofVerifier(systemClock);
   services = {
     importLesson: new ImportLesson({ catalog, verifier, clock: systemClock }),
@@ -120,6 +130,10 @@ export function getServices(): Services {
     listSubjectsForExam: new ListSubjectsForExam(exams),
     saveExamBank: new SaveExamBank({ repository: exams, clock: systemClock }),
     readExamContent: new ReadExamContent(exams),
+    submitForCorrection: new SubmitForCorrection(submissions),
+    listSubmissions: new ListSubmissions(submissions, systemClock),
+    saveCorrection: new SaveCorrection(submissions, systemClock),
+    deleteSubmission: new DeleteSubmission(submissions),
   };
   return services;
 }

@@ -6,6 +6,9 @@ import { checkLessonFeed } from '@study-feed/core';
 import { z } from 'zod';
 import type { EpicFeedApi } from './api-client.js';
 import { ApiRequestError } from './api-client.js';
+import { CORRECTION_SERVER_INSTRUCTIONS } from './correction-prompt.js';
+import type { CorrectionApi } from './correction-tools.js';
+import { registerCorrectionTools } from './correction-tools.js';
 import { EXAM_SERVER_INSTRUCTIONS } from './exam-prompt.js';
 import type { ExamBankApi } from './exam-bank-tools.js';
 import { registerExamBankTools } from './exam-bank-tools.js';
@@ -26,14 +29,16 @@ export type GenerationApi = Pick<
   'listLessons' | 'readLesson' | 'saveFeed' | 'listCatalog' | 'importSlides'
 > &
   ExamApi &
-  ExamBankApi;
+  ExamBankApi &
+  CorrectionApi;
 
 /**
  * Crea il server MCP di EpicFeed con gli strumenti di generazione (M2):
  * `lezioni_da_generare`, `leggi_lezione`, `salva_feed_lezione`,
  * `stato_generazione`, `importa_slide` e il prompt `genera_lezioni`; più
  * quelli dei pacchetti d'esame e della banca degli esercizi (M4,
- * {@link registerExamTools}, {@link registerExamBankTools}).
+ * {@link registerExamTools}, {@link registerExamBankTools}) e della
+ * correzione delle risposte ({@link registerCorrectionTools}).
  *
  * Il server non tiene segreti oltre al token (dentro `api`) e ricorda solo,
  * in memoria, le parti delle lezioni lette, per controllare il feed prima di
@@ -49,7 +54,9 @@ export function createEpicFeedServer(
 ): McpServer {
   const server = new McpServer(
     { name: 'epicfeed', title: 'EpicFeed', version: SERVER_VERSION },
-    { instructions: `${SERVER_INSTRUCTIONS}\n\n${EXAM_SERVER_INSTRUCTIONS}` },
+    {
+      instructions: `${SERVER_INSTRUCTIONS}\n\n${EXAM_SERVER_INSTRUCTIONS}\n${CORRECTION_SERVER_INSTRUCTIONS}`,
+    },
   );
   // Parti di ogni lezione letta in questa sessione: servono al controllo locale.
   const partsByLesson = new Map<string, ReadonlySet<string>>();
@@ -265,6 +272,7 @@ export function createEpicFeedServer(
 
   registerExamTools(server, api);
   registerExamBankTools(server, api, slides);
+  registerCorrectionTools(server, api);
   return server;
 }
 

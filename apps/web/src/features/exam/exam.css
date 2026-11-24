@@ -169,3 +169,173 @@
 .ef-fb p:last-child {
   margin: 0;
 }
+
+/*
+ * Correzione di Claude (PR 5): suggerimenti come in una revisione del codice.
+ * Rosso e verde del diff sono colori di significato (tolto/aggiunto), non
+ * dell'interfaccia: restano gli stessi con ogni accento e tema, su sfondi
+ * trasparenti che funzionano in chiaro e in scuro.
+ */
+.ef-cr {
+  --ef-diff-removed: #e5534b;
+  --ef-diff-added: #3fb950;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ef-cr-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+}
+.ef-cr-q {
+  margin: 0;
+  font: 600 15px/1.4 var(--sf-font-body);
+  white-space: pre-wrap;
+}
+.ef-cr-score {
+  margin: 0;
+  font-size: 18px;
+}
+.ef-cr-rubric {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ef-cr-rubric li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+}
+.ef-cr-rubric .mono {
+  font: 400 13px var(--sf-font-mono);
+  color: var(--sf-text-muted);
+}
+.ef-cr-card {
+  border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-md);
+  overflow: hidden;
+}
+.ef-cr-card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 12px 0;
+}
+.ef-cr-card p {
+  margin: 4px 12px 10px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.ef-cr-diff {
+  width: 100%;
+  border-collapse: collapse;
+  font: 400 12.5px/1.6 var(--sf-font-mono);
+  border-top: 1px solid var(--sf-border);
+  display: block;
+  overflow-x: auto;
+}
+.ef-cr-diff td {
+  padding: 0 6px;
+  vertical-align: top;
+}
+.ef-cr-diff td.n {
+  width: 1%;
+  min-width: 28px;
+  text-align: right;
+  color: var(--sf-text-muted);
+  user-select: none;
+}
+.ef-cr-diff td.s {
+  width: 1%;
+  user-select: none;
+}
+.ef-cr-diff td.t {
+  width: 100%;
+  white-space: pre;
+}
+.ef-cr-diff code {
+  font: inherit;
+}
+.ef-cr-diff tr.removed {
+  background: color-mix(in srgb, var(--ef-diff-removed) 16%, transparent);
+}
+.ef-cr-diff tr.removed td.s {
+  color: var(--ef-diff-removed);
+}
+.ef-cr-diff tr.added {
+  background: color-mix(in srgb, var(--ef-diff-added) 16%, transparent);
+}
+.ef-cr-diff tr.added td.s {
+  color: var(--ef-diff-added);
+}
+.ef-cr-comment,
+.ef-cr-summary {
+  margin: 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.ef-cr-summary {
+  padding: 12px 14px;
+}
+.ef-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Simulazione del colloquio in chat (ADR 0017). */
+.ef-iv-chat {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ef-iv-chat li {
+  max-width: 88%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.ef-iv-chat li.them {
+  align-self: flex-start;
+  background: var(--sf-surface);
+  border: 1px solid var(--sf-border);
+  border-bottom-left-radius: 6px;
+}
+.ef-iv-chat li.me {
+  align-self: flex-end;
+  background: var(--sf-accent-fill);
+  color: var(--sf-accent-on-fill);
+  border-bottom-right-radius: 6px;
+}
+.ef-iv-chat li.me.code,
+.ef-iv-chat pre {
+  font: 400 13px/1.5 var(--sf-font-mono);
+  white-space: pre;
+  overflow-x: auto;
+}
+.ef-iv-chat pre {
+  margin: 8px 0 0;
+}
+.ef-iv-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ef-iv-compose .ef-ex-text {
+  min-height: 120px;
+}

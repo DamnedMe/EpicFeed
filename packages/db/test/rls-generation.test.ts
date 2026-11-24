@@ -163,6 +163,50 @@ describe("RLS delle banche d'esame", () => {
   });
 });
 
+describe('RLS delle risposte da correggere', () => {
+  beforeAll(async () => {
+    for (const user of [anna, carla]) {
+      await db.query(
+        `insert into exam_submissions (user_id, subject_id, kind, submission) values ($1, $2, 'exercise', '{}')`,
+        [user, subject],
+      );
+    }
+  });
+
+  it('ognuno vede solo le proprie risposte', async () => {
+    const own = async (user: string) =>
+      asUser(db, user, (q) => q(`select user_id from exam_submissions`));
+    expect(await own(anna)).toEqual([{ user_id: anna }]);
+    expect(await own(bruno)).toEqual([]);
+    await expect(asUser(db, null, (q) => q(`select * from exam_submissions`))).rejects.toThrow(
+      /permission denied/,
+    );
+  });
+
+  it.each([
+    `update exam_submissions set correction = '{}'`,
+    `delete from exam_submissions`,
+    `insert into exam_submissions (user_id, subject_id, kind, submission) values ('${anna}', (select id from subjects limit 1), 'exercise', '{}')`,
+  ])('scrittura negata dal client: %s', async (statement) => {
+    await expect(asUser(db, anna, (q) => q(statement))).rejects.toThrow(/permission denied/);
+  });
+
+  it('scadono dopo 30 giorni e accettano solo i due tipi', async () => {
+    const [row] = (
+      await db.query<{ days: number }>(
+        `select extract(day from expires_at - created_at)::int as days from exam_submissions limit 1`,
+      )
+    ).rows;
+    expect(row?.days).toBe(30);
+    await expect(
+      db.query(
+        `insert into exam_submissions (user_id, subject_id, kind, submission) values ($1, $2, 'other', '{}')`,
+        [anna, subject],
+      ),
+    ).rejects.toThrow(/exam_submissions_kind_check/);
+  });
+});
+
 describe('Integrità delle tabelle di M2', () => {
   it('accetta un solo feed per lezione e impronta delle fonti', async () => {
     await expect(

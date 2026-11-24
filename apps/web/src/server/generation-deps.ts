@@ -26,6 +26,9 @@ export function generationDeps(): GenerationHandlerDeps {
     saveExamPack: (userId, input) => services.saveExamPack.execute(userId, input),
     listExamSubjects: (userId) => services.listSubjectsForExam.execute(userId),
     saveExamBank: (userId, input) => services.saveExamBank.execute(userId, input),
+    listSubmissionsToCorrect: (userId) => services.listSubmissions.execute(userId, 'pending'),
+    saveCorrection: (userId, id, correction) =>
+      services.saveCorrection.execute(userId, id, correction),
     logError: (error) => {
       console.error('Generazione fallita', error instanceof Error ? error.message : typeof error);
     },

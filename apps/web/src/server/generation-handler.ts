@@ -1,4 +1,6 @@
 import type {
+  ExamCorrectionDraft,
+  StoredSubmission,
   ImportedSlidesResult,
   LessonExamMaterial,
   LessonsForExamResult,
@@ -30,6 +32,8 @@ import type {
   SaveLessonFeedResponse,
 } from '@study-feed/contracts';
 import {
+  MAX_CORRECTION_BODY_BYTES,
+  saveCorrectionRequestSchema,
   MAX_EXAM_BANK_BODY_BYTES,
   MAX_EXAM_BODY_BYTES,
   MAX_FEED_BODY_BYTES,
@@ -75,6 +79,9 @@ export interface GenerationHandlerDeps {
   saveExamPack(userId: UserId, input: SaveExamPackInput): Promise<SaveExamPackResult>;
   listExamSubjects(userId: UserId): Promise<SubjectForExam[]>;
   saveExamBank(userId: UserId, input: SaveExamBankInput): Promise<SaveExamBankResult>;
+  /** Risposte dello studente ancora da correggere. */
+  listSubmissionsToCorrect(userId: UserId): Promise<StoredSubmission[]>;
+  saveCorrection(userId: UserId, id: string, correction: ExamCorrectionDraft): Promise<void>;
   /** Registra un errore inatteso (senza contenuti). */
   logError(error: unknown): void;
 }
@@ -127,7 +134,9 @@ function domainErrorResponse(
   }
   if (error instanceof DomainError) {
     if (error.code === 'NOT_FOUND') return apiError('NOT_FOUND', notFound);
-    if (error.code === 'SOURCES_CHANGED') return apiError('CONFLICT', error.message);
+    if (error.code === 'SOURCES_CHANGED' || error.code === 'ALREADY_DONE') {
+      return apiError('CONFLICT', error.message);
+    }
     return apiError('INVALID_CONTENT', error.message);
   }
   deps.logError(error);
@@ -564,5 +573,75 @@ export async function handleSaveExamBank(
     return apiOk(response, result.created ? 201 : 200);
   } catch (error) {
     return domainErrorResponse(error, deps, EXAM_BANK, NO_SUBJECT);
+  }
+}
+
+const CORRECTION = 'La correzione';
+const NO_SUBMISSION = 'Risposta da correggere non trovata (forse già corretta o scaduta).';
+
+/**
+ * `GET /api/generation/exam/submissions`: risposte dello studente ancora da
+ * correggere, con consegna, soluzione modello e griglia.
+ *
+ * @param request - Richiesta HTTP.
+ * @param deps - Servizi.
+ * @returns La risposta HTTP.
+ */
+export async function handleListSubmissionsToCorrect(
+  request: Request,
+  deps: GenerationHandlerDeps,
+): Promise<Response> {
+  const auth = await authorize(request, deps);
+  if ('response' in auth) return auth.response;
+  await deps.record(auth.userId, 'read', null);
+  try {
+    const submissions = await deps.listSubmissionsToCorrect(auth.userId);
+    // Forma di `submissionsResponseSchema` (tipi del dominio verificati nei contratti).
+    return apiOk({ submissions });
+  } catch (error) {
+    return domainErrorResponse(error, deps, CORRECTION, NO_SUBMISSION);
+  }
+}
+
+/**
+ * `POST /api/generation/exam/submissions/:id/correction`: salva la correzione
+ * di Claude (punti per criterio, commento e suggerimenti sulle righe).
+ *
+ * @param request - Richiesta HTTP (corpo: `saveCorrectionRequestSchema`).
+ * @param rawId - Id dell'invio dal percorso.
+ * @param deps - Servizi.
+ * @returns La risposta HTTP.
+ */
+export async function handleSaveCorrection(
+  request: Request,
+  rawId: string,
+  deps: GenerationHandlerDeps,
+): Promise<Response> {
+  const auth = await authorize(request, deps);
+  if ('response' in auth) return auth.response;
+  const id = z.uuid().safeParse(rawId);
+  if (!id.success) return apiError('NOT_FOUND', NO_SUBMISSION);
+
+  await deps.record(auth.userId, 'save', null);
+  const body = await readJsonBody(
+    request,
+    MAX_CORRECTION_BODY_BYTES,
+    `${CORRECTION} è troppo grande.`,
+  );
+  if (body instanceof Response) return body;
+  const parsed = saveCorrectionRequestSchema.safeParse(body.json);
+  if (!parsed.success) {
+    return apiError(
+      'INVALID_FEED',
+      `${CORRECTION} non ha la forma attesa.`,
+      {},
+      zodIssues(parsed.error),
+    );
+  }
+  try {
+    await deps.saveCorrection(auth.userId, id.data.toLowerCase(), parsed.data.correction);
+    return apiOk({ saved: true }, 201);
+  } catch (error) {
+    return domainErrorResponse(error, deps, CORRECTION, NO_SUBMISSION);
   }
 }

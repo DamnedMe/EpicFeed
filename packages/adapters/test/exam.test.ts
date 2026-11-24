@@ -13,7 +13,11 @@ import {
   ListLessonsForExam,
   ListSubjectsForExam,
   PossessionProofVerifier,
+  ListSubmissions,
   ReadExamContent,
+  SaveCorrection,
+  SubmitForCorrection,
+  DeleteSubmission,
   ReadLessonForExam,
   ReadLessonForGeneration,
   SaveExamBank,
@@ -23,6 +27,7 @@ import {
 import { DrizzleCatalogRepository } from '../src/catalog-repository.js';
 import type { Database } from '../src/database.js';
 import { DrizzleExamPackRepository } from '../src/exam-repository.js';
+import { DrizzleExamSubmissionRepository } from '../src/exam-submission-repository.js';
 import { DrizzleGenerationRepository } from '../src/generation-repository.js';
 import { anna, bruno, setup } from './setup.js';
 
@@ -264,5 +269,83 @@ describe('DrizzleExamPackRepository', () => {
     await expect(read.execute(bruno as UserId, subject.subjectId)).rejects.toMatchObject({
       code: 'NOT_FOUND',
     });
+  });
+});
+
+describe('DrizzleExamSubmissionRepository', () => {
+  it('invio, correzione e cancellazione restano dello studente; gli scaduti spariscono', async () => {
+    const [subject] = await new ListSubjectsForExam(exams).execute(anna as UserId);
+    if (!subject) throw new Error('fixture');
+    let now = new Date('2026-11-24T10:00:00Z');
+    const repository = new DrizzleExamSubmissionRepository(db, () => now);
+    const draft = {
+      subjectId: subject.subjectId,
+      kind: 'exercise' as const,
+      items: [
+        {
+          key: 'bank:avl',
+          kind: 'code' as const,
+          prompt: 'Write height(node).',
+          code: null,
+          answer: 'def height(node):\n    return 0',
+          followUp: null,
+          followUpAnswer: null,
+          modelAnswer: 'def height(node): ...',
+          rubric: [{ criterion: 'Correct', points: 2 }],
+          conceptKeys: ['avl-tree'],
+          tests: { passed: 0, total: 2 },
+        },
+      ],
+    };
+    const { id } = await new SubmitForCorrection(repository).execute(anna as UserId, draft);
+    await expect(
+      new SubmitForCorrection(repository).execute(bruno as UserId, draft),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+
+    const list = new ListSubmissions(repository, { now: () => now });
+    expect((await list.execute(anna as UserId, 'pending')).map((row) => row.id)).toEqual([id]);
+    expect(await list.execute(bruno as UserId, 'all')).toEqual([]);
+
+    const correction = {
+      summary: 'Recursion missing.',
+      items: [
+        {
+          key: 'bank:avl',
+          scores: [1],
+          comment: 'Recurse on children.',
+          suggestions: [
+            {
+              title: 'Recurse on both children',
+              explanation: 'Height is one plus the taller subtree.',
+              fromLine: 2,
+              toLine: 2,
+              replacement: '    return 1 + max(height(node.left), height(node.right))',
+            },
+          ],
+        },
+      ],
+    };
+    // Bruno non può correggere le risposte di Anna.
+    await expect(
+      new SaveCorrection(repository, { now: () => now }).execute(bruno as UserId, id, correction),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    await new SaveCorrection(repository, { now: () => now }).execute(
+      anna as UserId,
+      id,
+      correction,
+    );
+    const [stored] = await list.execute(anna as UserId, 'all');
+    expect(stored?.correction?.items[0]?.suggestions[0]?.fromLine).toBe(2);
+    expect(await list.execute(anna as UserId, 'pending')).toEqual([]);
+
+    await new DeleteSubmission(repository).execute(anna as UserId, id);
+    expect(await list.execute(anna as UserId, 'all')).toEqual([]);
+
+    // Un invio mai scaricato scade dopo 30 giorni e si cancella al primo elenco.
+    await new SubmitForCorrection(repository).execute(anna as UserId, draft);
+    now = new Date('2026-12-30T10:00:00Z');
+    expect(await list.execute(anna as UserId, 'all')).toEqual([]);
+    const left = await pg.query<{ n: number }>('select count(*)::int as n from exam_submissions');
+    expect(left.rows[0]?.n).toBe(0);
   });
 });

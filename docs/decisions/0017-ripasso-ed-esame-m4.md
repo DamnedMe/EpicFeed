@@ -52,6 +52,8 @@ Indicazione di Damian del 24/11/2026: la correzione di Claude sul codice scritto
 - **titolo breve** con la correzione (per esempio *Use a set for visited nodes*) e **spiegazione** di una o due frasi, in inglese;
 - **diff delle righe**: la riga sbagliata in rosso con `−` e il numero di riga della risposta, la riga corretta in verde con `+`, qualche riga di contesto attorno;
 - i commenti generali (complessità, stile) senza diff, sotto le schede.
+
+Realizzazione: Claude scrive ogni suggerimento come sostituzione delle righe `fromLine`–`toLine` della risposta; il core controlla le righe (`checkCorrection`) e calcola il diff (`suggestionDiff`). Rosso e verde sono colori di significato, uguali con ogni accento e tema. Il colloquio ha 4 domande su concetti diversi, al massimo un esercizio di codice.
 Per questo `salva_correzione` riceverà, oltre a punteggio per criterio e commento, un elenco di suggerimenti `{ title, explanation, fromLine, toLine, replacement }` riferiti alle righe della risposta inviata, validati nel core (righe esistenti, sostituzione non vuota o rimozione esplicita).
 
 ## Alternative scartate

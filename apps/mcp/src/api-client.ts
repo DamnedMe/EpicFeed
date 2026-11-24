@@ -3,6 +3,8 @@ import type {
   LessonForExamResponse,
   LessonsForExamResponse,
   SaveExamBankRequest,
+  ExamCorrectionDraftRequest,
+  SubmissionsResponse,
   SaveExamBankResponse,
   SubjectsForExamResponse,
   SaveExamPackRequest,
@@ -21,6 +23,8 @@ import {
   lessonsForExamResponseSchema,
   ownedLessonsResponseSchema,
   saveExamBankResponseSchema,
+  saveCorrectionResponseSchema,
+  submissionsResponseSchema,
   saveExamPackResponseSchema,
   subjectsForExamResponseSchema,
   lessonSourcesResponseSchema,
@@ -228,6 +232,33 @@ export class EpicFeedApi {
       `/api/generation/exam/subjects/${encodeURIComponent(body.subjectId)}/bank`,
       { method: 'POST', body: JSON.stringify(body) },
       saveExamBankResponseSchema,
+    );
+  }
+
+  /**
+   * Risposte dello studente in attesa della correzione di Claude.
+   *
+   * @returns La risposta validata.
+   */
+  async listSubmissionsToCorrect(): Promise<SubmissionsResponse> {
+    return this.request(
+      '/api/generation/exam/submissions',
+      { method: 'GET' },
+      submissionsResponseSchema,
+    );
+  }
+
+  /**
+   * Salva la correzione di un invio.
+   *
+   * @param id - Id dell'invio.
+   * @param correction - Correzione già validata.
+   */
+  async saveCorrection(id: string, correction: ExamCorrectionDraftRequest): Promise<void> {
+    await this.request(
+      `/api/generation/exam/submissions/${encodeURIComponent(id)}/correction`,
+      { method: 'POST', body: JSON.stringify({ correction }) },
+      saveCorrectionResponseSchema,
     );
   }
 

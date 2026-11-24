@@ -29,7 +29,7 @@
 > [!TIP]
 > 🏁 Ultimo traguardo: **M3 Feed di studio** unita il 23/11: feed a battute con gesti, domande a gruppi di 3, punti e sessioni da 5 minuti, PWA installabile.
 >
-> 🛠️ Ora: **M4 Ripasso ed esame**: ripasso, sincronizzazione cifrata, domande d'esame e banca degli esercizi uniti; in revisione la sezione Esame nell'app (PR 4 di 6).
+> 🛠️ Ora: **M4 Ripasso ed esame**: ripasso, sincronizzazione cifrata, contenuti d'esame e sezione Esame uniti; in revisione la correzione di Claude e il colloquio in chat (PR 5 di 6).
 
 <!-- stato:fine -->
 

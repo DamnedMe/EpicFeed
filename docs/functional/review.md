@@ -40,7 +40,16 @@ L'elenco mostra prima la **banca degli esercizi** (ogni esercizio ufficiale con 
 - **Esegui i test** (esercizi di codice): Python gira nel browser e mostra quali esempi passano, con il risultato atteso e quello ottenuto e l'eventuale `print`. La prima volta scarica circa 10 MB, poi funziona anche offline. Un test che dura più di 5 secondi (per esempio un ciclo infinito) si ferma. I test controllano gli esempi, non la qualità della soluzione.
 - **Mostra soluzione e griglia**: la soluzione modello e i criteri di correzione; per ogni criterio si segnano i punti presi e si salva il punteggio. Sotto il 50% il concetto torna presto nel ripasso, tra il 50% e l'80% è "difficile", sopra è "bene". Dopo il salvataggio compare la domanda di approfondimento, come al colloquio.
 
-La correzione di Claude e la simulazione del colloquio di 20 minuti in chat arrivano con la prossima versione. Sul codice la correzione si leggerà come una revisione: per ogni problema un titolo breve, una spiegazione e le righe da cambiare, quella sbagliata in rosso e quella corretta in verde ([ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md#correzione-del-codice-come-si-mostra-pr-5)).
+### Correzione di Claude
+Con **Fai correggere a Claude** la risposta (con l'esito dei test, se li hai eseguiti) va a Claude Desktop: lì si chiede **"correggi le mie risposte di EpicFeed"**. Alla prossima apertura della sezione Esame la correzione arriva nell'esercizio e nell'elenco *Correzioni di Claude*; finché non arriva, l'esercizio è segnato *In correzione*. Si legge come una revisione del codice ([ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md#correzione-del-codice-come-si-mostra-pr-5)):
+- i punti di ogni criterio della griglia e il punteggio;
+- una scheda per ogni suggerimento, con un titolo breve, la spiegazione e le righe da cambiare: quella sbagliata in rosso con `−`, quella corretta in verde con `+`, i numeri di riga e qualche riga attorno;
+- sotto, il commento generale (complessità, chiarezza) e un riepilogo.
+
+I punti di Claude entrano nel ripasso dei concetti come l'autovalutazione. Sul server la risposta resta solo finché la correzione non arriva sul dispositivo (al massimo 30 giorni); si possono avere fino a 20 risposte in attesa.
+
+### Simulazione del colloquio
+Come il colloquio finale: **20 minuti**, **4 domande** in inglese su concetti diversi (spiegazioni, analisi di codice e al massimo un breve esercizio di codice), in una **chat** dove domande e risposte restano una sotto l'altra. Dopo ogni risposta arriva una domanda di approfondimento. Niente suggerimenti, si risponde scrivendo. Allo scadere del tempo il colloquio si chiude con quanto hai scritto; puoi anche terminare prima. Alla fine vedi le soluzioni modello, ti autovaluti con la griglia (va nel ripasso) e puoi far correggere tutto il colloquio a Claude, che aggiunge un riepilogo dei concetti deboli.
 
 ### Preparare le domande d'esame
 Le domande della sezione si preparano con Claude Desktop, come il feed: dopo aver generato le lezioni si chiede **"genera le domande d'esame di EpicFeed"**. Per ogni lezione Claude aggiunge, in inglese, **10 domande a scelta multipla** nuove (non ripete quelle del feed) e **1 o 2 domande aperte** come al colloquio: scrivere una funzione Python con i suoi test, spiegare un concetto o analizzare un codice, ognuna con suggerimenti in italiano e in inglese, soluzione modello, griglia di correzione e una domanda di approfondimento. Le schede e le domande del feed restano come sono. Se una lezione viene rigenerata, le sue domande d'esame vanno rifatte.

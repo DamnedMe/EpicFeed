@@ -110,8 +110,10 @@ Strumenti (nomi in italiano, perché Claude li mostra allo studente):
 | `salva_domande_esame { lessonId, feedId, pack }` | Controlla il pacchetto con `checkExamPack` e lo invia con `EXAM_PROMPT_VERSION`. |
 | `leggi_materiale_esame { percorso, materia? }` | Legge sul PC i PDF *Exam Prep* dello zip: testo e immagini delle pagine, materia con i concetti e istruzioni della banca (sezione *Banca degli esercizi*). |
 | `salva_esercizi_esame { subjectId, bank }` | Controlla la banca con `checkExamBank` e la invia con `EXAM_BANK_PROMPT_VERSION`. |
+| `risposte_da_correggere` | Invii in attesa di correzione (fino a 5 per volta): consegna, risposta con le righe numerate, test, approfondimento, soluzione modello e griglia, più le istruzioni (sezione *Correzione delle risposte*). |
+| `salva_correzione { id, correction }` | Controlla la correzione con `checkCorrection` e la invia. |
 
-Il prompt MCP `genera_lezioni` avvia la generazione di tutte le lezioni nuove; `genera_domande_esame` quella dei pacchetti d'esame. Le istruzioni del server (`SERVER_INSTRUCTIONS`) dicono a Claude l'ordine degli strumenti e di non chiedere conferma lezione per lezione. Un `409 CONFLICT` suggerisce di rileggere la lezione; un `401` di creare un nuovo token. Gli errori inattesi non mostrano dettagli.
+Il prompt MCP `genera_lezioni` avvia la generazione di tutte le lezioni nuove; `genera_domande_esame` quella dei pacchetti d'esame; `correggi_risposte` la correzione delle risposte inviate dall'app. Le istruzioni del server (`SERVER_INSTRUCTIONS`) dicono a Claude l'ordine degli strumenti e di non chiedere conferma lezione per lezione. Un `409 CONFLICT` suggerisce di rileggere la lezione; un `401` di creare un nuovo token. Gli errori inattesi non mostrano dettagli.
 
 ### Slide dallo zip (`importa_slide`, ADR 0012)
 Tutto avviene sul PC; a EpicFeed arriva solo il testo.
@@ -180,6 +182,23 @@ Claude Desktop ──▶ server MCP (legge lo zip sul PC) ──▶ API EpicFeed
 - **Controlli** (`checkExamBank`): 1–30 ufficiali e al massimo 90 esercizi; esattamente 2 varianti per ufficiale, riferite a un ufficiale esistente; id unici; pagina 1–200; regole delle domande aperte; concetti esistenti nei feed della materia. Corpo ≤ 1 MB.
 
 Uso: in Claude Desktop, "crea la banca degli esercizi d'esame di EpicFeed dallo zip delle slide" indicando lo zip.
+
+## Correzione delle risposte (M4)
+Decisioni: [ADR 0014](../decisions/0014-preparazione-esame.md) §4 e [ADR 0017](../decisions/0017-ripasso-ed-esame-m4.md#correzione-del-codice-come-si-mostra-pr-5). Dalla sezione Esame lo studente invia un esercizio o un colloquio simulato con *Fai correggere a Claude*; Claude Desktop lo corregge in inglese.
+
+```
+App ── POST /api/exam/submissions (sessione) ──▶ exam_submissions
+Claude Desktop ──▶ server MCP ──▶ API EpicFeed
+   │  risposte_da_correggere   GET  /api/generation/exam/submissions
+   └─ salva_correzione         POST /api/generation/exam/submissions/:id/correction   checkCorrection → salva
+App ── GET /api/exam/submissions ──▶ conserva la correzione ──▶ DELETE /api/exam/submissions/:id
+```
+
+- **Correzione**: per ogni domanda i punti di ogni criterio della griglia, un commento e fino a 8 **suggerimenti di revisione** (`fromLine`–`toLine` della risposta, testo sostitutivo, titolo all'imperativo e spiegazione); in più un riepilogo. L'app li mostra come un diff (`suggestionDiff` del core).
+- **Controlli** (`checkCorrection`, nel server MCP e nell'API): una correzione per ogni domanda, punti interi entro quelli del criterio, righe esistenti, nessuna sovrapposizione, nessuna sostituzione identica. Una correzione già salvata non si sovrascrive (`409`).
+- **Privacy** (eccezione limitata all'[ADR 0003](../decisions/0003-risultati-sul-dispositivo.md)): sul server resta solo l'invio, finché l'app non scarica la correzione e lo cancella; al massimo 30 giorni. Al massimo 20 invii in attesa per studente. Punteggi e storico restano sul dispositivo.
+
+Uso: in Claude Desktop, "correggi le mie risposte di EpicFeed" (o il prompt `correggi_risposte`).
 
 ## Prossimi passi
 - Prova su 2–3 lezioni DSA reali, valutata da Damian; taratura di soglia e tetto delle figure.

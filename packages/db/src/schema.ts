@@ -616,6 +616,50 @@ export const subjectExamBanks = pgTable(
 ).enableRLS();
 
 /**
+ * Risposte inviate a Claude per la correzione (M4, ADR 0014 punto confermato
+ * 1): l'unica eccezione all'ADR 0003 per lo studio. Ci sono solo le risposte
+ * mandate con *Fai correggere a Claude*; l'app scarica la correzione e cancella
+ * la riga, e quelle mai scaricate scadono dopo 30 giorni. Lo studente le vede
+ * solo con la RLS; scrive solo l'API sul server.
+ */
+export const examSubmissions = pgTable(
+  'exam_submissions',
+  {
+    id: id(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => authUsers.id, { onDelete: 'cascade' }),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subjects.id, { onDelete: 'cascade' }),
+    kind: text('kind').notNull(),
+    /** Domande, risposte e griglie inviate (validate con i contratti). */
+    submission: jsonb('submission').notNull(),
+    /** Correzione di Claude, `null` finché non arriva. */
+    correction: jsonb('correction'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    correctedAt: timestamp('corrected_at', { withTimezone: true }),
+    expiresAt: timestamp('expires_at', { withTimezone: true })
+      .notNull()
+      .default(sql`now() + interval '30 days'`),
+  },
+  (t) => [
+    check('exam_submissions_kind_check', sql`kind in ('exercise', 'interview')`),
+    check('exam_submissions_size_check', sql`pg_column_size(submission) <= 131072`),
+    check(
+      'exam_submissions_correction_size_check',
+      sql`correction is null or pg_column_size(correction) <= 131072`,
+    ),
+    index('exam_submissions_user_idx').on(t.userId, t.createdAt),
+    pgPolicy('exam_submissions_select_own', {
+      for: 'select',
+      to: authenticatedRole,
+      using: sql`${t.userId} = ${authUid}`,
+    }),
+  ],
+).enableRLS();
+
+/**
  * Registro delle chiamate del server MCP (lettura delle fonti, salvataggio):
  * serve al limite di frequenza (120 all'ora, ADR 0013). Non contiene contenuti.
  */
