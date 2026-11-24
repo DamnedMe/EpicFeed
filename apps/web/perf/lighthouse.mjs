@@ -56,13 +56,24 @@ const TYPES = {
 };
 const PAGES = { '/': 'index.html', '/ripasso': 'ripasso.html', '/io': 'io.html' };
 
+/**
+ * File della pagina per un indirizzo, come la sceglierebbe il server dai
+ * cookie del dispositivo: senza copia della materia il feed ha l'anteprima,
+ * senza chiave il Ripasso chiede la password.
+ */
+function pageFile(path, cookie) {
+  const has = (name) => new RegExp(`(^|; )${name}=1`).test(cookie);
+  if (path === '/' && has('ef-feed-copy')) return 'index-copy.html';
+  if (path === '/ripasso' && has('ef-sync-key')) return 'ripasso-key.html';
+  return PAGES[path] ?? path;
+}
+
 const PAGES_TO_MEASURE = [
   { name: 'Accedi (server di produzione)', url: `http://localhost:${NEXT_PORT}/accedi` },
-  // Prima apertura in assoluto (cache vuota): il feed si disegna nel browser
-  // dopo circa 200 KB di script. Qui il budget blocca i peggioramenti; la
-  // prima scheda disegnata dal server è prevista nella rifinitura (M8).
-  { name: 'Feed, prima apertura', url: `http://localhost:${HARNESS_PORT}/`, lcp: 3500 },
-  { name: 'Ripasso, prima apertura', url: `http://localhost:${HARNESS_PORT}/ripasso`, lcp: 3500 },
+  // Prima apertura in assoluto (cache vuota): la prima schermata arriva già
+  // disegnata dal server, gli script la idratano dopo.
+  { name: 'Feed, prima apertura', url: `http://localhost:${HARNESS_PORT}/` },
+  { name: 'Ripasso, prima apertura', url: `http://localhost:${HARNESS_PORT}/ripasso` },
   { name: 'Feed, visita di ritorno', url: `http://localhost:${HARNESS_PORT}/`, warm: true },
   {
     name: 'Ripasso, visita di ritorno',
@@ -95,7 +106,7 @@ async function waitFor(url) {
 function serveHarness() {
   const server = createServer((request, response) => {
     const path = new URL(request.url ?? '/', 'http://x').pathname;
-    const file = normalize(join(harness, PAGES[path] ?? path));
+    const file = normalize(join(harness, pageFile(path, request.headers.cookie ?? '')));
     if (!file.startsWith(harness) || !existsSync(file)) {
       response.writeHead(404).end();
       return;
@@ -123,29 +134,57 @@ function median(values) {
   return sorted[Math.floor(sorted.length / 2)];
 }
 
+/**
+ * Esegue `task` con un Chrome nuovo, chiuso alla fine. Lighthouse svuota cache
+ * e dati del sito ma non i cookie: per una vera prima apertura serve un
+ * profilo pulito.
+ */
+async function withChrome(task) {
+  const chrome = await chromeLauncher.launch({
+    chromePath: process.env.CHROME_PATH ?? chromium.executablePath(),
+    chromeFlags: ['--headless=new', '--no-sandbox', '--disable-gpu'],
+  });
+  try {
+    return await task(chrome.port);
+  } finally {
+    await chrome.kill();
+  }
+}
+
+/** Una misura di Lighthouse con il Chrome sulla porta indicata. */
+async function lighthouseRun(url, port, warm) {
+  const result = await lighthouse(url, {
+    port,
+    disableStorageReset: warm,
+    output: 'json',
+    logLevel: 'error',
+    onlyCategories: ['performance'],
+    throttlingMethod: 'devtools',
+  });
+  if (!result) throw new Error(`Lighthouse non ha misurato ${url}`);
+  const { audits, categories, runtimeError } = result.lhr;
+  if (runtimeError) throw new Error(`${url}: ${runtimeError.message}`);
+  return {
+    score: categories.performance.score ?? 0,
+    lcp: audits['largest-contentful-paint'].numericValue ?? Infinity,
+    tbt: audits['total-blocking-time'].numericValue ?? Infinity,
+    cls: audits['cumulative-layout-shift'].numericValue ?? Infinity,
+  };
+}
+
 /** Misura una pagina più volte e restituisce le mediane. */
-async function measure(url, port, warm) {
+async function measure(url, warm) {
   const runs = [];
-  // Visita di ritorno: una prima apertura riempie cache e dati sul dispositivo.
-  if (warm) await lighthouse(url, { port, logLevel: 'error', onlyCategories: ['performance'] });
-  for (let i = 0; i < RUNS; i += 1) {
-    const result = await lighthouse(url, {
-      port,
-      disableStorageReset: warm,
-      output: 'json',
-      logLevel: 'error',
-      onlyCategories: ['performance'],
-      throttlingMethod: 'devtools',
+  if (warm) {
+    // Visita di ritorno: una prima apertura riempie cache e dati sul dispositivo.
+    await withChrome(async (port) => {
+      await lighthouseRun(url, port, false);
+      for (let i = 0; i < RUNS; i += 1) runs.push(await lighthouseRun(url, port, true));
     });
-    if (!result) throw new Error(`Lighthouse non ha misurato ${url}`);
-    const { audits, categories, runtimeError } = result.lhr;
-    if (runtimeError) throw new Error(`${url}: ${runtimeError.message}`);
-    runs.push({
-      score: categories.performance.score ?? 0,
-      lcp: audits['largest-contentful-paint'].numericValue ?? Infinity,
-      tbt: audits['total-blocking-time'].numericValue ?? Infinity,
-      cls: audits['cumulative-layout-shift'].numericValue ?? Infinity,
-    });
+  } else {
+    for (let i = 0; i < RUNS; i += 1) {
+      runs.push(await withChrome((port) => lighthouseRun(url, port, false)));
+    }
   }
   return {
     score: median(runs.map((r) => r.score)),
@@ -178,31 +217,25 @@ const next = run('pnpm', ['exec', 'next', 'start', '-p', String(NEXT_PORT)], {
   },
 });
 const static_ = await serveHarness();
-const chrome = await chromeLauncher.launch({
-  chromePath: process.env.CHROME_PATH ?? chromium.executablePath(),
-  chromeFlags: ['--headless=new', '--no-sandbox', '--disable-gpu'],
-});
 
 let failed = false;
 const summary = [];
 try {
   await waitFor(`http://localhost:${NEXT_PORT}/accedi`);
   for (const page of PAGES_TO_MEASURE) {
-    const m = await measure(page.url, chrome.port, page.warm === true);
-    const lcpBudget = page.lcp ?? BUDGET.lcp;
+    const m = await measure(page.url, page.warm === true);
     const over = [
-      m.lcp > lcpBudget && `LCP ${Math.round(m.lcp)} ms > ${lcpBudget}`,
+      m.lcp > BUDGET.lcp && `LCP ${Math.round(m.lcp)} ms > ${BUDGET.lcp}`,
       m.tbt > BUDGET.tbt && `TBT ${Math.round(m.tbt)} ms > ${BUDGET.tbt}`,
       m.cls > BUDGET.cls && `CLS ${m.cls.toFixed(3)} > ${BUDGET.cls}`,
     ].filter(Boolean);
     failed ||= over.length > 0;
-    summary.push({ page: page.name, ...m, budget: { ...BUDGET, lcp: lcpBudget }, over });
+    summary.push({ page: page.name, ...m, budget: BUDGET, over });
     console.log(
       `${over.length ? '✗' : '✓'} ${page.name}: punteggio ${Math.round(m.score * 100)}, LCP ${Math.round(m.lcp)} ms, TBT ${Math.round(m.tbt)} ms, CLS ${m.cls.toFixed(3)}${over.length ? ` — fuori budget: ${over.join(', ')}` : ''}`,
     );
   }
 } finally {
-  await chrome.kill();
   static_.close();
   next.kill();
 }

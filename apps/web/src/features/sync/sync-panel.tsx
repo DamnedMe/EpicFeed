@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { confirmPassword } from './actions';
+import type { SyncStatus } from './engine';
 import { rememberPasswordKey, syncNow, useSyncStatus } from './engine';
 
 /**
@@ -11,9 +12,20 @@ import { rememberPasswordKey, syncNow, useSyncStatus } from './engine';
  * lascia mai il dispositivo.
  *
  * @param props.account - Utente della sessione.
+ * @param props.keyExpected - `false` se il server sa che il dispositivo non ha
+ *   la chiave: la richiesta della password si mostra subito, senza aspettare
+ *   il controllo sul dispositivo.
  */
-export function SyncPanel({ account }: { account: string }) {
-  const status = useSyncStatus();
+export function SyncPanel({
+  account,
+  keyExpected = true,
+}: {
+  account: string;
+  keyExpected?: boolean;
+}) {
+  const live = useSyncStatus();
+  const pending = live.state === 'idle' || live.state === 'syncing';
+  const status: SyncStatus = !keyExpected && pending ? { state: 'nokey' } : live;
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

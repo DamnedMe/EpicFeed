@@ -43,7 +43,7 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
 | M5 | Segnala errore | Correzioni salvate nell'area privata e riapplicate alle nuove versioni | S |
 | M6 | Assistente di studio MCP | Strumenti di studio per Claude Desktop: cerca lezione, concetti deboli, quiz al volo, segnala errore | M |
 | M7 | Libri | Libreria, import PDF/EPUB via MCP, modalità Studiare/Solo leggere | L |
-| M8 | Rifinitura | Accedi con Google, prima scheda del feed disegnata dal server (LCP sotto 2,5 s anche alla prima apertura), audit di sicurezza, termini d'uso, prova con un altro studente | M |
+| M8 | Rifinitura | Accedi con Google, audit di sicurezza, termini d'uso, prova con un altro studente | M |
 | M9 | Modalità desktop | Aperta da un PC, l'app passa da sola a un layout per schermi grandi (rilevato da larghezza e tipo di puntatore, non dal browser): feed centrato con pannelli laterali per lezione e ripasso, scorciatoie da tastiera al posto dei gesti, scelta manuale sempre possibile in Io | M |
 
 ### Dettaglio M0–M4
@@ -91,7 +91,7 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
   - test del codice Python nel browser con Pyodide in un Web Worker;
   - simulazione scritta del colloquio finale (20 minuti, domande una alla volta, correzione a fine sessione) e quiz di modulo da 50 domande come l'autovalutazione ufficiale;
   - 1–2 domande aperte stile esame nel feed di ogni lezione (campo facoltativo `examQuestions`, dopo la chiusura di M2).
-- Budget Lighthouse in CI: LCP < 2,5 s sul telefono per *Accedi* e per Feed e Ripasso alle visite di ritorno; 3,5 s alla primissima apertura di Feed e Ripasso, da portare sotto 2,5 s in M8.
+- Budget Lighthouse in CI: LCP < 2,5 s sul telefono per *Accedi* e per Feed e Ripasso, sia alla prima apertura sia alle visite di ritorno (prima schermata disegnata dal server).
 
 ## 3. Struttura della repo
 

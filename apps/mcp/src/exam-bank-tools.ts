@@ -3,7 +3,7 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import type { SubjectsForExamResponse } from '@study-feed/contracts';
 import { examBankDraftSchema } from '@study-feed/contracts';
 import { checkExamBank } from '@study-feed/core';
-import { z } from 'zod';
+import * as z from 'zod';
 import type { EpicFeedApi } from './api-client.js';
 import { EXAM_BANK_INSTRUCTIONS, EXAM_BANK_PROMPT_VERSION } from './exam-prompt.js';
 import type { SlideFile } from './slides/archive.js';

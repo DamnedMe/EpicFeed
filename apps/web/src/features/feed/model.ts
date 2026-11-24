@@ -204,3 +204,32 @@ export function formatMinute(ms: number): string {
     ? `${hours}:${String(minutes).padStart(2, '0')}:${seconds}`
     : `${minutes}:${seconds}`;
 }
+
+/** Prefisso della versione di un'anteprima: non coincide mai con una materia vera. */
+export const PREVIEW_VERSION_PREFIX = 'anteprima:';
+
+/**
+ * Anteprima della materia per la prima schermata disegnata sul server: tutti
+ * i capitoli e i titoli delle lezioni, ma il feed solo della prima lezione
+ * che ne ha uno (pochi KB invece della materia intera). Il client la
+ * sostituisce con la materia completa appena arriva.
+ *
+ * @param feed - Materia completa.
+ * @returns L'anteprima, oppure `null` se nessuna lezione ha ancora il feed.
+ */
+export function feedPreview(feed: SubjectFeed): SubjectFeed | null {
+  const first = feed.chapters
+    .flatMap((chapter) => chapter.lessons)
+    .find((lesson) => lesson.feed !== null);
+  if (!first) return null;
+  return {
+    ...feed,
+    version: `${PREVIEW_VERSION_PREFIX}${feed.version}`,
+    chapters: feed.chapters.map((chapter) => ({
+      ...chapter,
+      lessons: chapter.lessons.map((lesson) =>
+        lesson === first ? lesson : { ...lesson, feed: null },
+      ),
+    })),
+  };
+}

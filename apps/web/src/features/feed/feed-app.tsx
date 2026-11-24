@@ -12,7 +12,7 @@ import {
 } from '@study-feed/core';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { z } from 'zod';
+import * as z from 'zod';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { BottomNav } from '@/components/bottom-nav';
 import { recordStudyAnswer } from '@/features/review/record';
@@ -20,7 +20,7 @@ import type { CardState } from './card-slide';
 import { CardSlide } from './card-slide';
 import { SPEECH_LANG } from './copy';
 import type { FeedLoad } from './feed-client';
-import { loadFeed, preferredSubjectId, readCachedFeed } from './feed-client';
+import { loadFeed, preferredSubjectId, readCachedFeed, rememberFeedCopy } from './feed-client';
 import type { Gesture } from './gestures';
 import { Icon, SavedMark } from './icons';
 import { preferences, savedCards, stats, useLocalValue } from './local-state';
@@ -84,13 +84,25 @@ function prefersReducedMotion(): boolean {
  * i progressi del ripasso si sincronizzano cifrati (ADR 0018).
  *
  * @param props.account - Utente della sessione (per la sincronizzazione).
+ * @param props.preview - Prima lezione disegnata sul server alla prima
+ * apertura su questo dispositivo (`feedPreview`), finché non arriva la materia.
  */
-export function FeedApp({ account }: { account: string }) {
+export function FeedApp({
+  account,
+  preview = null,
+}: {
+  account: string;
+  preview?: SubjectFeed | null;
+}) {
   useProgressSync(account);
   const router = useRouter();
   const prefs = useLocalValue(preferences);
   const saved = useLocalValue(savedCards);
-  const [load, setLoad] = useState<LoadState>({ status: 'loading' });
+  const [load, setLoad] = useState<LoadState>(() =>
+    preview
+      ? { status: 'ready', subjects: [], feed: preview, offline: false }
+      : { status: 'loading' },
+  );
   const [current, setCurrent] = useState(0);
   const [cards, setCards] = useState<Record<string, CardState>>({});
   const [answers, setAnswers] = useState<Record<string, QuizAnswer>>({});
@@ -113,6 +125,8 @@ export function FeedApp({ account }: { account: string }) {
   const scrollFrame = useRef(0);
   /** Contatore per riavviare le animazioni di punti e salvataggio. */
   const nextId = useRef(0);
+  /** Anteprima del server: vale solo per il primo caricamento. */
+  const previewRef = useRef(preview);
 
   /**
    * Apre una materia sulla scheda giusta: quella chiesta, altrimenti l'ultima
@@ -146,7 +160,17 @@ export function FeedApp({ account }: { account: string }) {
       if (request.gestures) setForcedIntro(true);
       const subjectId = preferredSubjectId(undefined, request.subject);
       const cached = subjectId ? readCachedFeed(subjectId) : null;
-      if (!cached) return;
+      if (!cached) {
+        // Prima apertura: si studia l'anteprima del server finché arriva la materia intera.
+        const first = previewRef.current;
+        previewRef.current = null;
+        if (first) {
+          shown = first;
+          openFeed(first, request.card);
+        }
+        return;
+      }
+      rememberFeedCopy();
       shown = cached;
       openFeed(cached, request.card);
       setLoad({ status: 'ready', subjects: [], feed: cached, offline: false });

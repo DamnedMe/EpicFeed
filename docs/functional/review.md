@@ -65,7 +65,7 @@ I progressi si **sincronizzano** tra i dispositivi in forma **cifrata sul dispos
 
 - Si sincronizza da solo: all'apertura del feed e del Ripasso, poco dopo le risposte, alla fine di un ripasso e quando l'app va in secondo piano. In fondo alla home del Ripasso una riga dice *Progressi sincronizzati*, *in attesa della rete* o *non riuscita: riprovo più tardi*.
 - Le risposte date su due dispositivi, anche offline, si sommano: nessuna si perde, e il ripasso di ogni concetto si ricalcola da tutte.
-- All'accesso con la password la chiave si prepara da sola. Se manca (per esempio dopo l'accesso con il codice via email), il Ripasso mostra **Sincronizza telefono e PC**: si scrive la password e si tocca **Sblocca**.
+- All'accesso con la password la chiave si prepara da sola. Se manca (per esempio dopo l'accesso con il codice via email), il Ripasso mostra in cima **Sincronizza telefono e PC**: si scrive la password e si tocca **Sblocca**.
 - Se la password cambia su un dispositivo, sugli altri compare **La password è cambiata**: si scrive quella nuova e i progressi si uniscono. Il dispositivo su cui si è cambiata la password rifà la copia sul server con i suoi progressi.
 - Con un altro account sullo stesso browser i progressi del primo spariscono dal dispositivo, invece di mescolarsi.
 - Punti, salvati, posizione nel feed e preferenze restano sul dispositivo, come prima.

@@ -2,7 +2,7 @@
 
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { z } from 'zod';
+import * as z from 'zod';
 import { getCurrentUser, isEmailAllowed } from '@/server/auth';
 import { createSupabaseServerClient } from '@/server/supabase';
 

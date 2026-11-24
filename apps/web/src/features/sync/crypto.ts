@@ -2,7 +2,7 @@ import type { EncryptedProgress } from '@study-feed/contracts';
 import { PROGRESS_KDF } from '@study-feed/contracts';
 import type { ProgressSnapshot } from '@study-feed/core';
 import { PROGRESS_SNAPSHOT_VERSION } from '@study-feed/core';
-import { z } from 'zod';
+import * as z from 'zod';
 import { answerSchema } from '../review/progress-store';
 
 /**

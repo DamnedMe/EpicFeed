@@ -25,6 +25,18 @@ const PAGES: Record<string, string> = {
   '/io': 'io.html',
   '/ripasso': 'ripasso.html',
 };
+
+/**
+ * File della pagina per un indirizzo, come la sceglierebbe il server dai
+ * cookie del dispositivo: senza copia della materia il feed ha l'anteprima,
+ * senza chiave il Ripasso chiede la password.
+ */
+function pageFile(path: string, cookie: string): string {
+  const has = (name: string) => new RegExp(`(^|; )${name}=1`).test(cookie);
+  if (path === '/' && has('ef-feed-copy')) return 'index-copy.html';
+  if (path === '/ripasso' && has('ef-sync-key')) return 'ripasso-key.html';
+  return PAGES[path] ?? path;
+}
 const CSP =
   "default-src 'self'; script-src 'self'; style-src 'self' 'nonce-e2e-nonce'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self'";
 /** CSP del worker dei test Python, come in produzione (`next.config.ts`). */
@@ -40,7 +52,7 @@ test.beforeEach(async ({ page }) => {
   });
   await page.route(`${ORIGIN}/**`, async (route) => {
     const path = new URL(route.request().url()).pathname;
-    const file = normalize(join(ROOT, PAGES[path] ?? path));
+    const file = normalize(join(ROOT, pageFile(path, route.request().headers().cookie ?? '')));
     if (!file.startsWith(ROOT) || !existsSync(file)) return route.fulfill({ status: 404 });
     return route.fulfill({
       status: 200,
@@ -235,6 +247,22 @@ test('si apre subito dalla copia sul telefono, anche con la rete lenta', async (
   await page.goto(`${ORIGIN}/?rete=lenta`);
   await expect(slide(page).getByText('passo passo')).toBeVisible();
   await expect(page.getByText('Sei offline')).toHaveCount(0);
+});
+
+test('alla prima apertura la prima lezione arriva già disegnata dal server', async ({ page }) => {
+  // Niente copia sul telefono e server del feed che non risponde: la prima
+  // lezione c'è comunque.
+  await page.goto(`${ORIGIN}/?rete=lenta`);
+  await page.getByRole('button', { name: 'Ho capito, iniziamo' }).click();
+  await expect(
+    slide(page).getByRole('heading', { name: "Che cos'è una linked list" }),
+  ).toBeVisible();
+  // Il feed intero salvato sul telefono: dalla prossima volta niente anteprima.
+  const hasCopy = async () =>
+    (await page.context().cookies()).some((cookie) => cookie.name === 'ef-feed-copy');
+  expect(await hasCopy()).toBe(false);
+  await page.goto(ORIGIN);
+  await expect.poll(hasCopy).toBe(true);
 });
 
 test('senza rete studia la copia salvata e lo dice', async ({ page }) => {

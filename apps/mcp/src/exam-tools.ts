@@ -3,7 +3,7 @@ import type { LessonForExamResponse } from '@study-feed/contracts';
 import { examPackDraftSchema } from '@study-feed/contracts';
 import type { ExamPackCheckContext } from '@study-feed/core';
 import { checkExamPack } from '@study-feed/core';
-import { z } from 'zod';
+import * as z from 'zod';
 import type { EpicFeedApi } from './api-client.js';
 import { EXAM_INSTRUCTIONS, EXAM_PROMPT_VERSION } from './exam-prompt.js';
 import { issuesResult, text, withErrors } from './tool-results.js';

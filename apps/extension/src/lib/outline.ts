@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod';
 
 /**
  * Indice del corso: unità → capitoli (moduli) → lezioni (attività) → parti.

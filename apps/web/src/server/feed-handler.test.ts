@@ -10,6 +10,7 @@ import type {
 import { DomainError } from '@study-feed/core';
 import { studySubjectsResponseSchema, subjectFeedResponseSchema } from '@study-feed/contracts';
 import { handleListSubjects, handleReadSubjectFeed, type FeedHandlerDeps } from './feed-handler';
+import { loadFeedPreview } from './feed-preview';
 
 vi.mock('server-only', () => ({}));
 
@@ -164,5 +165,26 @@ describe('handleReadSubjectFeed', () => {
     expect(response.status).toBe(500);
     expect(JSON.stringify(await response.json())).not.toContain('db');
     expect(logError).toHaveBeenCalled();
+  });
+});
+
+describe('loadFeedPreview', () => {
+  const userId = user as UserId;
+
+  it('disegna la prima lezione senza id del portale', async () => {
+    const preview = await loadFeedPreview(userId, deps());
+    expect(preview?.version).toBe(`anteprima:${version}`);
+    expect(preview?.chapters[0]?.lessons[0]?.feed?.cards).toHaveLength(1);
+    expect(preview?.chapters[0]?.lessons[0]?.parts[0]).not.toHaveProperty('epicodeId');
+  });
+
+  it('senza materie o con un errore lascia caricare il client', async () => {
+    expect(await loadFeedPreview(userId, deps({ listSubjects: () => Promise.resolve([]) }))).toBe(
+      null,
+    );
+    const logError = vi.fn();
+    const failing = deps({ readSubjectFeed: () => Promise.reject(new Error('db')), logError });
+    expect(await loadFeedPreview(userId, failing)).toBeNull();
+    expect(logError).toHaveBeenCalledOnce();
   });
 });

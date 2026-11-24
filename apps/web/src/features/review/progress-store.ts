@@ -14,7 +14,7 @@ import {
   replayAnswers,
   streakFromDays,
 } from '@study-feed/core';
-import { z } from 'zod';
+import * as z from 'zod';
 
 /**
  * Progressi del ripasso in IndexedDB (M4, ADR 0017): stati FSRS dei concetti,

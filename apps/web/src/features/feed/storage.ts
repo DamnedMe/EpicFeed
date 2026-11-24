@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod';
 
 /**
  * Dati del feed che restano **solo sul dispositivo** (ADR 0003, ADR 0015):

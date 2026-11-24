@@ -1,6 +1,6 @@
 import type { ExamBankDraft, ExamPackDraft } from '@study-feed/core';
 import { EXAM_BANK_LIMITS, EXAM_PACK_LIMITS } from '@study-feed/core';
-import { z } from 'zod';
+import * as z from 'zod';
 import {
   bilingual,
   conceptKeySchema,
