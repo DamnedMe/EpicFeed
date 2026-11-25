@@ -115,4 +115,20 @@ describe('EpicFeedApi', () => {
     expect(await save.client.saveExamPack(body)).toEqual(saved);
     expect(save.fetchMock.mock.calls[0]?.[1]?.method).toBe('POST');
   });
+
+  it('legge e completa le segnalazioni sugli indirizzi giusti', async () => {
+    const list = api(json({ corrections: [] }));
+    expect(await list.client.listPendingReports()).toEqual({ corrections: [] });
+    expect(String(list.fetchMock.mock.calls[0]?.[0])).toBe(
+      'https://app.test/api/generation/corrections',
+    );
+    const id = '60000000-0000-4000-8000-000000000001';
+    const save = api(json({ saved: true }, 201));
+    const completion = { outcome: 'disputed' as const, note: 'Il riassunto dice FIFO.' };
+    await save.client.completeReport(id, completion);
+    const [url, init] = save.fetchMock.mock.calls[0] ?? [];
+    expect(String(url)).toBe(`https://app.test/api/generation/corrections/${id}/completion`);
+    expect(init?.method).toBe('POST');
+    expect(init?.body).toBe(JSON.stringify({ completion }));
+  });
 });

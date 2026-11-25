@@ -123,6 +123,8 @@ async function connect(
     saveExamBank: vi.fn(() => Promise.reject(new Error('non usato'))),
     listSubmissionsToCorrect: vi.fn(() => Promise.reject(new Error('non usato'))),
     saveCorrection: vi.fn(() => Promise.reject(new Error('non usato'))),
+    listPendingReports: vi.fn(() => Promise.reject(new Error('non usato'))),
+    completeReport: vi.fn(() => Promise.reject(new Error('non usato'))),
     ...overrides,
   };
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
@@ -146,6 +148,7 @@ describe('server MCP di EpicFeed', () => {
     const { client } = await connect();
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
+      'completa_segnalazione',
       'importa_slide',
       'leggi_lezione',
       'leggi_lezione_esame',
@@ -157,11 +160,13 @@ describe('server MCP di EpicFeed', () => {
       'salva_domande_esame',
       'salva_esercizi_esame',
       'salva_feed_lezione',
+      'segnalazioni_in_attesa',
       'stato_generazione',
     ]);
     expect(client.getInstructions()).toContain('lezioni_da_generare');
     expect(client.getInstructions()).toContain('lezioni_per_esame');
     expect(client.getInstructions()).toContain('risposte_da_correggere');
+    expect(client.getInstructions()).toContain('segnalazioni_in_attesa');
     const prompt = await client.getPrompt({ name: 'genera_lezioni' });
     const first = prompt.messages[0]?.content as { text: string };
     expect(first.text).toContain(PROMPT_VERSION);

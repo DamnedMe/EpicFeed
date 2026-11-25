@@ -1,4 +1,6 @@
 import type {
+  CorrectionCompletion,
+  StoredCorrection,
   ImportSlidesRequest,
   ImportSlidesResponse,
   LessonSourcesResponse,
@@ -20,6 +22,7 @@ import type {
 } from '@epicfeed/exam';
 import { apiErrorSchema } from '@epicfeed/shared';
 import {
+  correctionsResponseSchema,
   importSlidesResponseSchema,
   ownedLessonsResponseSchema,
   lessonSourcesResponseSchema,
@@ -35,7 +38,10 @@ import {
   saveExamPackResponseSchema,
   subjectsForExamResponseSchema,
 } from '@epicfeed/exam';
-import type { z } from 'zod';
+import * as z from 'zod';
+
+/** Risposta di `POST /api/generation/corrections/:id/completion`. */
+const completionSavedSchema = z.object({ saved: z.literal(true) });
 
 /** Problema puntuale restituito dall'API (feed non valido). */
 export interface ApiIssue {
@@ -263,6 +269,33 @@ export class EpicFeedApi {
       `/api/generation/exam/submissions/${encodeURIComponent(id)}/correction`,
       { method: 'POST', body: JSON.stringify({ correction }) },
       saveCorrectionResponseSchema,
+    );
+  }
+
+  /**
+   * Segnalazioni dello studente in attesa di Claude (M5, ADR 0020).
+   *
+   * @returns La risposta validata.
+   */
+  async listPendingReports(): Promise<{ corrections: StoredCorrection[] }> {
+    return this.request(
+      '/api/generation/corrections',
+      { method: 'GET' },
+      correctionsResponseSchema,
+    );
+  }
+
+  /**
+   * Salva il lavoro di Claude su una segnalazione.
+   *
+   * @param id - Id della segnalazione.
+   * @param completion - Esito già validato.
+   */
+  async completeReport(id: string, completion: CorrectionCompletion): Promise<void> {
+    await this.request(
+      `/api/generation/corrections/${encodeURIComponent(id)}/completion`,
+      { method: 'POST', body: JSON.stringify({ completion }) },
+      completionSavedSchema,
     );
   }
 

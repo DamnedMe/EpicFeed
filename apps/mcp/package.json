@@ -1,6 +1,6 @@
 {
   "name": "@epicfeed/mcp",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "private": true,
   "description": "Server MCP di EpicFeed per Claude Desktop: genera schede, quiz e concetti delle lezioni importate (M2).",
   "type": "module",
