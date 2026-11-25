@@ -1,6 +1,6 @@
 # Feed di studio (M3)
 
-Il feed è la home dell'app: si apre su `/` e porta la materia sul telefono una scheda per schermata. Decisioni e motivi nell'[ADR 0015](../decisions/0015-feed-di-studio-m3.md); come funziona dentro in [web.md](../technical/web.md#feed-di-studio-m3).
+Il feed è la home dell'app: si apre su `/` e porta la materia sul telefono una scheda per schermata. Decisioni e motivi nell'[ADR 0015](../decisions/0015-study-feed-m3.md); come funziona dentro in [web.md](../technical/web.md#feed-di-studio-m3).
 
 ## Primo avvio
 Una schermata spiega i quattro gesti con piccole animazioni e si chiude con **Ho capito, iniziamo**. Si rivede dal foglio delle azioni (*Rivedi i gesti*) o da **Io**.
@@ -62,7 +62,7 @@ Le schede partono nella **lingua di studio** e le domande nella **lingua delle d
 - **Contenuti**: Le mie lezioni, Estensione, Claude Desktop. In fondo, *Esci*.
 
 ## Cosa resta sul telefono
-Punti, serie, schede salvate, posizione nel feed, preferenze e la copia della materia restano **solo su questo dispositivo** ([ADR 0003](../decisions/0003-risultati-sul-dispositivo.md)); tema e accento stanno in un cookie per colorare la pagina già al primo caricamento. Il feed riparte dall'ultima scheda vista (anche quella aperta da *Salvati*), anche dopo essere passati da *Io* o aver chiuso l'app. Si apre subito dalla copia salvata, senza aspettare la rete; intanto controlla se ci sono lezioni nuove o aggiornate e, se ci sono, le aggiunge restando sulla stessa scheda. Se la connessione manca, il feed usa la copia salvata e lo dice in alto.
+Punti, serie, schede salvate, posizione nel feed, preferenze e la copia della materia restano **solo su questo dispositivo** ([ADR 0003](../decisions/0003-results-on-device.md)); tema e accento stanno in un cookie per colorare la pagina già al primo caricamento. Il feed riparte dall'ultima scheda vista (anche quella aperta da *Salvati*), anche dopo essere passati da *Io* o aver chiuso l'app. Si apre subito dalla copia salvata, senza aspettare la rete; intanto controlla se ci sono lezioni nuove o aggiornate e, se ci sono, le aggiunge restando sulla stessa scheda. Se la connessione manca, il feed usa la copia salvata e lo dice in alto.
 
 ## Installare l'app e usarla senza rete
 EpicFeed si installa come un'app: su Android, Chrome propone *Installa app* (o dal menu ⋮ → *Aggiungi a schermata Home*); su iPhone, in Safari, *Condividi → Aggiungi alla schermata Home*. Si apre a schermo intero con la sua icona.

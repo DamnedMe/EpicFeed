@@ -1,4 +1,4 @@
-import type { ImportLessonRequest } from '@study-feed/contracts';
+import type { ImportLessonRequest } from '@epicfeed/ingest';
 import { ApiCallError, sendImport } from './api';
 import type { Connection } from './connection';
 import type { ImportStatus, LessonPreview } from './messages';

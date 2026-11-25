@@ -10,15 +10,23 @@ on:
     branches: [main]
     paths:
       - 'apps/mcp/**'
-      - 'packages/core/**'
-      - 'packages/contracts/**'
+      - 'packages/shared/**'
+      - 'packages/catalog/**'
+      - 'packages/feed/**'
+      - 'packages/exam/**'
+      - 'packages/ingest/**'
+      - 'packages/review/**'
       - 'pnpm-lock.yaml'
       - '.github/workflows/mcp-windows.yml'
   pull_request:
     paths:
       - 'apps/mcp/**'
-      - 'packages/core/**'
-      - 'packages/contracts/**'
+      - 'packages/shared/**'
+      - 'packages/catalog/**'
+      - 'packages/feed/**'
+      - 'packages/exam/**'
+      - 'packages/ingest/**'
+      - 'packages/review/**'
       - 'pnpm-lock.yaml'
       - '.github/workflows/mcp-windows.yml'
 
@@ -55,8 +63,8 @@ jobs:
 
       - name: Compila e impacchetta
         run: |
-          pnpm turbo run build --filter=@study-feed/mcp
-          pnpm --filter @study-feed/mcp run pack
+          pnpm turbo run build --filter=@epicfeed/mcp
+          pnpm --filter @epicfeed/mcp run pack
           node apps/mcp/scripts/smoke/build.mjs
 
       - uses: actions/upload-artifact@v4

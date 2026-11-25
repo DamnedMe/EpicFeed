@@ -49,4 +49,4 @@ jobs:
       - name: Applica le migrazioni
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: pnpm --filter @study-feed/db db:migrate
+        run: pnpm --filter @epicfeed/db db:migrate

@@ -26,7 +26,7 @@ function withSsl(raw: string | undefined): string {
 
 export default defineConfig({
   dialect: 'postgresql',
-  schema: './src/schema.ts',
+  schema: './src/schema/index.ts',
   out: './migrations',
   schemaFilter: ['public'],
   // I ruoli di Supabase (anon, authenticated, service_role) esistono già:

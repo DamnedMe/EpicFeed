@@ -1,0 +1,62 @@
+/*
+ * Guscio dell'app: contenitore a schermo intero (.ef-app), icone e animazioni
+ * spente. Tutto usa i token del design system (--sf-*), così tema e accento
+ * scelti in Io valgono ovunque senza ricaricare.
+ *
+ * Niente attributi `style` nel markup reso dal server: la CSP li blocca. Le
+ * poche variabili dinamiche le imposta il client dopo il montaggio.
+ */
+.ef-app {
+  --ef-dim: 0.38;
+  --ef-code-bg: color-mix(in srgb, var(--sf-text) 4%, transparent);
+  --ef-glow: color-mix(in srgb, var(--sf-accent-fill) 35%, transparent);
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--sf-background);
+  color: var(--sf-text);
+  font-size: 15px;
+  line-height: 1.5;
+  isolation: isolate;
+}
+@media (min-width: 640px) {
+  /* Su schermi grandi il feed resta alla larghezza di un telefono, centrato. */
+  .ef-app {
+    left: 50%;
+    right: auto;
+    width: 440px;
+    transform: translateX(-50%);
+    border-inline: 1px solid var(--sf-border);
+  }
+}
+[data-theme='light'] .ef-app {
+  --ef-dim: 0.45;
+}
+
+.ef-svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+/* Animazioni spente: da Io oppure da "riduci animazioni" del sistema. */
+.ef-app[data-motion='off'] *,
+.ef-app[data-motion='off'] *::before,
+.ef-app[data-motion='off'] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ef-app *,
+  .ef-app *::before,
+  .ef-app *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

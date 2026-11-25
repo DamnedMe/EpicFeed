@@ -1,6 +1,6 @@
 # Database: schema, RLS e migrazioni
 
-Pacchetto `packages/db`. Postgres su Supabase (regione UE, Francoforte), schema definito con Drizzle in `src/schema.ts`, migrazioni SQL in `migrations/`.
+Pacchetto `packages/db`. Postgres su Supabase (regione UE, Francoforte), schema definito con Drizzle in `src/schema/`, un file per funzione (`catalog.ts`, `access.ts`, `feed.ts`, `exam.ts`, `review.ts`, colonne comuni in `columns.ts`), migrazioni SQL in `migrations/`.
 
 ## Tabelle
 ```
@@ -34,13 +34,13 @@ subjects ─< glossary_terms
 | `lesson_feeds` | Feed di una lezione (schede, quiz, concetti IT+EN) generato da Claude Desktop | (`lesson_id`, `sources_hash`) univoci, `source_version_ids` (1–40 versioni da cui è nato), `prompt_version` datata, ≤ 1 MB |
 | `subject_exam_banks` | Banca degli esercizi d'esame di una materia, privata di chi l'ha generata (M4) | (`subject_id`, `generated_by`) univoci, `prompt_version` datata, ≤ 1 MB |
 | `lesson_exam_packs` | Pacchetto d'esame di un feed (domande a scelta multipla e aperte in inglese, M4) | `lesson_feed_id` univoco con cancellazione a cascata, `prompt_version` datata, ≤ 512 KB |
-| `exam_submissions` | Risposte inviate con *Fai correggere a Claude* (esercizio o colloquio) e correzione di Claude ([ADR 0014](../decisions/0014-preparazione-esame.md) §4, M4) | `kind` (`exercise`, `interview`), `submission` e `correction` JSON ≤ 128 KB ciascuno, `expires_at` = creazione + 30 giorni; l'app la cancella appena scarica la correzione |
+| `exam_submissions` | Risposte inviate con *Fai correggere a Claude* (esercizio o colloquio) e correzione di Claude ([ADR 0014](../decisions/0014-exam-preparation.md) §4, M4) | `kind` (`exercise`, `interview`), `submission` e `correction` JSON ≤ 128 KB ciascuno, `expires_at` = creazione + 30 giorni; l'app la cancella appena scarica la correzione |
 | `glossary_terms` | Glossario bilingue della materia | (`subject_id`, `term_key`) univoci; termine inglese, traduzione, definizione `{ it, en }` |
 | `generation_events` | Registro delle chiamate del server MCP | utente, azione (`read`, `save`, `slides`), lezione, data: serve al limite di frequenza (120/ora) |
-| `progress_snapshots` | Copia **cifrata nel browser** dei progressi di studio ([ADR 0018](../decisions/0018-sincronizzazione-cifrata-progressi.md)) | PK `user_id`; `revision` ≥ 1 per la concorrenza ottimistica; `kdf`, `salt` (16 byte) e `iv` (12 byte) in base64; `ciphertext` base64 ≤ 4 milioni di caratteri. Il server non ha la chiave |
+| `progress_snapshots` | Copia **cifrata nel browser** dei progressi di studio ([ADR 0018](../decisions/0018-encrypted-progress-sync.md)) | PK `user_id`; `revision` ≥ 1 per la concorrenza ottimistica; `kdf`, `salt` (16 byte) e `iv` (12 byte) in base64; `ciphertext` base64 ≤ 4 milioni di caratteri. Il server non ha la chiave |
 | `import_events` | Registro degli import | utente, lezione, numero di parti, data: serve al limite di frequenza (60/ora) |
 
-Vincoli `CHECK` replicano nel database le regole del core (titoli 1–300 caratteri, posizioni ≥ 0, id Epicode con soli caratteri sicuri), così un dato non valido non entra nemmeno per errore. Un indice parziale su `content_versions` (`pending`, `failed`) rende veloce la ricerca delle versioni da generare; gli indici su `entitlements` servono alle policy RLS e coprono la chiave esterna composta (versione, parte).
+Vincoli `CHECK` replicano nel database le regole del dominio (titoli 1–300 caratteri, posizioni ≥ 0, id Epicode con soli caratteri sicuri), così un dato non valido non entra nemmeno per errore. Un indice parziale su `content_versions` (`pending`, `failed`) rende veloce la ricerca delle versioni da generare; gli indici su `entitlements` servono alle policy RLS e coprono la chiave esterna composta (versione, parte).
 
 ## Sicurezza: RLS e permessi
 - **RLS attiva su ogni tabella.**
@@ -67,14 +67,14 @@ Vincoli `CHECK` replicano nel database le regole del core (titoli 1–300 caratt
 
 `test/rls-import.test.ts` fa lo stesso per le tabelle di M1: tracce visibili solo con il proprio accesso, token e registro degli import solo i propri, nessuna scrittura dal client, vincoli su lingua, hash e `video_id`.
 
-L'ambiente di test (PGlite + shim) è esportato come `@study-feed/db/testing` e lo usano anche i test di `packages/adapters`.
+L'ambiente di test (PGlite + shim) è esportato come `@epicfeed/db/testing` e lo usano anche i test delle cartelle `infrastructure` dei pacchetti di funzione.
 
 `test/rls-generation.test.ts` copre le tabelle di M2: il feed è visibile a chi possiede tutte le fonti e nascosto a chi ne possiede solo una parte, glossario visibile a chi vede la materia, nessuna scrittura dal client, unicità di feed e termini, nuovo ambito di token `generate`.
 
 Ogni nuova tabella deve aggiungere qui la sua policy e un test che verifica che un altro utente non la legga ([piano di sviluppo](../development-plan.md) §5).
 
 ## Migrazioni
-- `pnpm --filter @study-feed/db db:generate` dopo ogni modifica a `src/schema.ts`; per SQL scritto a mano (permessi, funzioni) `pnpm exec drizzle-kit generate --custom --name <nome>`.
+- `pnpm --filter @epicfeed/db db:generate` dopo ogni modifica a `src/schema/`; per SQL scritto a mano (permessi, funzioni) `pnpm exec drizzle-kit generate --custom --name <nome>`.
 - La CI esegue `db:check`: se lo schema cambia senza la migrazione corrispondente, fallisce.
 - Le migrazioni non si modificano dopo essere state applicate: si aggiunge una migrazione nuova.
 
@@ -111,10 +111,10 @@ Se qualcosa va storto, l'errore nel log del workflow dice il motivo e cosa fare 
 Il workflow gira solo su `main`, mai due volte in parallelo, e la stringa di connessione non compare nei log. La connessione verso Supabase è sempre cifrata (`ssl: require`).
 
 ### Applicare le migrazioni dal PC (alternativa)
-Crea `packages/db/.env` (ignorato da git) con `DATABASE_URL=<stringa>` e lancia `pnpm --filter @study-feed/db db:migrate`.
+Crea `packages/db/.env` (ignorato da git) con `DATABASE_URL=<stringa>` e lancia `pnpm --filter @epicfeed/db db:migrate`.
 
 ### Altre impostazioni
-- *Authentication → Providers*: lascia attivo solo Email (codice monouso e password, [ADR 0007](../decisions/0007-generazione-via-mcp-e-login.md)).
+- *Authentication → Providers*: lascia attivo solo Email (codice monouso e password, [ADR 0007](../decisions/0007-generation-via-mcp-and-login.md)).
 - URL del progetto e chiave pubblicabile sono variabili d'ambiente della web app su Vercel ([web.md](web.md#variabili-dambiente)); la web app non usa la chiave `service_role`: scrive con `DATABASE_URL` dal server. Nessun segreto va scritto in chat o nella repo.
 
 ### Verifica del flusso

@@ -1,0 +1,162 @@
+/* Feed di studio (M3, ADR 0015): domande e pulsanti per tastiera. */
+/* Domande. */
+.ef-opts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ef-opt {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+  font: 500 16px var(--sf-font-body);
+  color: var(--sf-text);
+  background: var(--sf-surface);
+  border: 1px solid var(--sf-border);
+  border-radius: 18px;
+  padding: 13px 14px;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.ef-opt:active {
+  transform: scale(0.98);
+}
+.ef-opt:disabled {
+  cursor: default;
+}
+.ef-opt .l {
+  font: 700 13px var(--sf-font-mono);
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: var(--sf-border);
+}
+.ef-opt .r {
+  font-size: 12.5px;
+  color: var(--sf-text-muted);
+  font-weight: 500;
+}
+.ef-opt.ok {
+  border-color: var(--sf-accent-fill);
+  background: color-mix(in srgb, var(--sf-accent-fill) 16%, transparent);
+}
+.ef-opt.ok .l {
+  background: var(--sf-accent-fill);
+  color: var(--sf-accent-on-fill);
+}
+.ef-opt.ok .r {
+  color: var(--sf-accent-text);
+}
+.ef-opt.mine:not(.ok) {
+  border-color: var(--sf-review);
+  animation: ef-shake 0.4s;
+}
+@keyframes ef-shake {
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+.ef-fb {
+  border-radius: 18px;
+  padding: 12px 14px;
+  background: var(--sf-surface);
+  border: 1px solid var(--sf-border);
+  font-size: 14.5px;
+}
+.ef-fb b {
+  font-family: var(--sf-font-display);
+  font-size: 17px;
+  display: block;
+  margin-bottom: 2px;
+}
+.ef-fb.good b {
+  color: var(--sf-accent-text);
+}
+.ef-swipe {
+  position: relative;
+  min-height: 180px;
+  display: flex;
+  touch-action: pan-y;
+}
+.ef-swcard {
+  flex: 1;
+  border-radius: 22px;
+  padding: 18px;
+  background: var(--sf-surface);
+  border: 1px solid var(--sf-border);
+  display: flex;
+  align-items: center;
+  font: 600 18px/1.35 var(--sf-font-body);
+  cursor: grab;
+  transition:
+    transform 0.25s,
+    opacity 0.25s;
+  transform: translateX(var(--ef-dx, 0)) rotate(var(--ef-rot, 0));
+}
+.ef-swcard.dragging {
+  transition: none;
+}
+.ef-swbtns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.ef-swbtns button,
+.ef-cta {
+  font: 700 16px var(--sf-font-display);
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-surface);
+  color: var(--sf-text);
+  cursor: pointer;
+}
+.ef-swbtns button:last-child,
+.ef-cta {
+  background: var(--sf-accent-fill);
+  color: var(--sf-accent-on-fill);
+  border-color: transparent;
+}
+
+/* Pulsanti per tastiera e lettori di schermo: nascosti alla vista finché non hanno il fuoco. */
+.ef-a11y {
+  position: absolute;
+  left: 18px;
+  bottom: 14px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  z-index: 4;
+}
+.ef-a11y button {
+  font: 500 12px var(--sf-font-body);
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-background);
+  color: var(--sf-text);
+}
+.ef-a11y button:not(:focus-visible) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  padding: 0;
+  border: 0;
+}
+.ef-app button:focus-visible,
+.ef-app a:focus-visible {
+  outline: 2px solid var(--sf-accent-text);
+  outline-offset: 2px;
+}

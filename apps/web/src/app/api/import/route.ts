@@ -1,4 +1,4 @@
-import { handleImport } from '@/server/import-handler';
+import { handleImport } from '@/features/ingest/api/import-handler';
 import { getServices } from '@/server/container';
 
 // Ogni import scrive nel database: mai in cache, sempre sul runtime Node.

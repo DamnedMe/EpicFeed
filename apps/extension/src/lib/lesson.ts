@@ -1,4 +1,4 @@
-import type { ImportLessonRequest } from '@study-feed/contracts';
+import type { ImportLessonRequest } from '@epicfeed/ingest';
 import type { Activity, ActivityChild, Course } from './directus';
 import { academicYear } from './portal';
 

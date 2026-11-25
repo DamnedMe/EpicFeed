@@ -1,5 +1,5 @@
-import type { RandomSource } from '@study-feed/core';
-import { drawRandom } from '@study-feed/core';
+import type { RandomSource } from '@epicfeed/exam';
+import { drawRandom } from '@epicfeed/exam';
 import type { ExamExerciseItem } from './catalog';
 
 /**

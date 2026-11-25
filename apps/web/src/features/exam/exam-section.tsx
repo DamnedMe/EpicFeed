@@ -1,6 +1,6 @@
 'use client';
 
-import { MODULE_QUIZ_SIZE } from '@study-feed/core';
+import { MODULE_QUIZ_SIZE } from '@epicfeed/exam';
 import { useEffect, useMemo, useState } from 'react';
 import type { SubjectFeed } from '../feed/model';
 import { useLocalValue } from '../feed/local-state';

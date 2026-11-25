@@ -1,0 +1,33 @@
+{
+  "name": "@epicfeed/shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Nucleo condiviso di EpicFeed: errori di dominio, id, regole sul testo, orologio e formato degli errori delle API.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@epicfeed/config": "workspace:*",
+    "@vitest/coverage-v8": "5.1.0",
+    "eslint": "10.15.0",
+    "typescript": "6.0.3",
+    "vitest": "5.1.0"
+  },
+  "dependencies": {
+    "zod": "4.6.6"
+  }
+}

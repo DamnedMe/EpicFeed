@@ -9,12 +9,12 @@
 // con font propri, script caricati dopo) lo gonfia di circa un secondo.
 //
 // Pagine misurate:
-// - `/accedi` dal vero server di produzione (`next start`, senza Supabase);
+// - `/login` dal vero server di produzione (`next start`, senza Supabase);
 // - il feed e il Ripasso dal banco di prova di Playwright (stesso codice e
 //   stessi CSS della build, dati di prova al posto dell'API), perché le
 //   pagine protette richiedono una sessione.
 //
-// Uso: `pnpm build && pnpm --filter @study-feed/web perf` (costruisce da sé il
+// Uso: `pnpm build && pnpm --filter @epicfeed/web perf` (costruisce da sé il
 // banco di prova). Ogni pagina si misura 3 volte e vale la mediana.
 import { chromium } from '@playwright/test';
 import * as chromeLauncher from 'chrome-launcher';
@@ -54,7 +54,7 @@ const TYPES = {
   '.wasm': 'application/wasm',
   '.json': 'application/json',
 };
-const PAGES = { '/': 'index.html', '/ripasso': 'ripasso.html', '/io': 'io.html' };
+const PAGES = { '/': 'index.html', '/review': 'review.html', '/profile': 'profile.html' };
 
 /**
  * File della pagina per un indirizzo, come la sceglierebbe il server dai
@@ -64,20 +64,20 @@ const PAGES = { '/': 'index.html', '/ripasso': 'ripasso.html', '/io': 'io.html' 
 function pageFile(path, cookie) {
   const has = (name) => new RegExp(`(^|; )${name}=1`).test(cookie);
   if (path === '/' && has('ef-feed-copy')) return 'index-copy.html';
-  if (path === '/ripasso' && has('ef-sync-key')) return 'ripasso-key.html';
+  if (path === '/review' && has('ef-sync-key')) return 'review-key.html';
   return PAGES[path] ?? path;
 }
 
 const PAGES_TO_MEASURE = [
-  { name: 'Accedi (server di produzione)', url: `http://localhost:${NEXT_PORT}/accedi` },
+  { name: 'Accedi (server di produzione)', url: `http://localhost:${NEXT_PORT}/login` },
   // Prima apertura in assoluto (cache vuota): la prima schermata arriva già
   // disegnata dal server, gli script la idratano dopo.
   { name: 'Feed, prima apertura', url: `http://localhost:${HARNESS_PORT}/` },
-  { name: 'Ripasso, prima apertura', url: `http://localhost:${HARNESS_PORT}/ripasso` },
+  { name: 'Ripasso, prima apertura', url: `http://localhost:${HARNESS_PORT}/review` },
   { name: 'Feed, visita di ritorno', url: `http://localhost:${HARNESS_PORT}/`, warm: true },
   {
     name: 'Ripasso, visita di ritorno',
-    url: `http://localhost:${HARNESS_PORT}/ripasso`,
+    url: `http://localhost:${HARNESS_PORT}/review`,
     warm: true,
   },
 ];
@@ -204,7 +204,7 @@ await new Promise((resolve, reject) => {
   );
 });
 
-// Configurazione finta ma valida: `/accedi` non usa il database né Supabase
+// Configurazione finta ma valida: `/login` non usa il database né Supabase
 // finché non si invia il modulo; senza sessione il proxy non chiama la rete.
 const next = run('pnpm', ['exec', 'next', 'start', '-p', String(NEXT_PORT)], {
   env: {
@@ -221,7 +221,7 @@ const static_ = await serveHarness();
 let failed = false;
 const summary = [];
 try {
-  await waitFor(`http://localhost:${NEXT_PORT}/accedi`);
+  await waitFor(`http://localhost:${NEXT_PORT}/login`);
   for (const page of PAGES_TO_MEASURE) {
     const m = await measure(page.url, page.warm === true);
     const over = [

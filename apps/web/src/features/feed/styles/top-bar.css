@@ -1,0 +1,98 @@
+/* Feed di studio (M3, ADR 0015): barra in alto. */
+/* Barra in alto: capitolo, punti, serie, tempo, lingua. */
+.ef-hud {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: max(14px, env(safe-area-inset-top)) 14px 8px;
+}
+.ef-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+  font-size: 12.5px;
+  color: var(--sf-text);
+  background: var(--sf-surface);
+  border: 1px solid var(--sf-border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.ef-chip > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ef-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--sf-surface);
+  border: 1px solid var(--sf-border);
+  font: 700 13px var(--sf-font-mono);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+.ef-stat .ef-svg {
+  width: 14px;
+  height: 14px;
+}
+.ef-stat.hot {
+  background: var(--sf-accent-fill);
+  color: var(--sf-accent-on-fill);
+  border-color: transparent;
+}
+.ef-ring {
+  width: 30px;
+  height: 30px;
+  position: relative;
+  flex-shrink: 0;
+}
+.ef-ring svg {
+  width: 30px;
+  height: 30px;
+  transform: rotate(-90deg);
+}
+.ef-ring circle {
+  fill: none;
+  stroke-width: 3;
+}
+.ef-ring .bg {
+  stroke: var(--sf-border);
+}
+.ef-ring .fg {
+  stroke: var(--sf-accent-fill);
+  stroke-linecap: round;
+  stroke-dasharray: 81.7;
+  stroke-dashoffset: var(--ef-ring, 81.7);
+  transition: stroke-dashoffset 0.5s;
+}
+.ef-ring span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: 500 9px var(--sf-font-mono);
+}
+.ef-lang {
+  flex-shrink: 0;
+  font: 700 12px var(--sf-font-mono);
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: var(--sf-surface);
+  border: 1px solid var(--sf-border);
+  color: var(--sf-text);
+  cursor: pointer;
+}
+.ef-pop {
+  animation: ef-pop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+@keyframes ef-pop {
+  40% {
+    transform: scale(1.35);
+  }
+}

@@ -1,13 +1,16 @@
 /**
- * Strumenti di test condivisi (`@study-feed/db/testing`): un Postgres in
+ * Strumenti di test condivisi (`@epicfeed/db/testing`): un Postgres in
  * memoria (PGlite) con lo strato Supabase simulato e tutte le migrazioni.
- * Li usano i test di `db` (RLS) e di `adapters` (repository Drizzle).
+ * Li usano i test di `db` (RLS) e dei repository Drizzle nelle cartelle `infrastructure` dei pacchetti di funzione.
  * Richiedono `@electric-sql/pglite` tra le dipendenze di sviluppo.
  *
  * @packageDocumentation
  */
 import { readFileSync } from 'node:fs';
 import { PGlite, type Transaction } from '@electric-sql/pglite';
+import { drizzle } from 'drizzle-orm/pglite';
+import type { Database } from './database.js';
+import * as schema from './schema/index.js';
 
 // Valgono sia da `src/` (test) sia da `dist/` (pacchetto compilato).
 const migrationsDir = new URL('../migrations/', import.meta.url);
@@ -69,4 +72,22 @@ export async function asUser<T>(
     await tx.exec(`set local role ${userId === null ? 'anon' : 'authenticated'}`);
     return fn(async <R>(sql: string, params?: unknown[]) => (await tx.query<R>(sql, params)).rows);
   });
+}
+
+/** Id di due studenti di prova, già presenti in `auth.users` con {@link setupTestDatabase}. */
+export const TEST_USERS = {
+  anna: '0a0a0a0a-0000-4000-8000-00000000000a',
+  bruno: '0b0b0b0b-0000-4000-8000-00000000000b',
+} as const;
+
+/**
+ * Postgres in memoria con migrazioni, i due studenti di {@link TEST_USERS} e un
+ * client Drizzle: la base dei test dei repository di ogni pacchetto di funzione.
+ */
+export async function setupTestDatabase(): Promise<{ pg: PGlite; db: Database }> {
+  const pg = await createTestDatabase();
+  await pg.exec(
+    `insert into auth.users (id) values ('${TEST_USERS.anna}'), ('${TEST_USERS.bruno}')`,
+  );
+  return { pg, db: drizzle(pg, { schema }) as unknown as Database };
 }

@@ -1,0 +1,294 @@
+/* Feed di studio (M3, ADR 0015): schede raccontate a battute, una per schermata. */
+/* Feed: scroll verticale con aggancio, una scheda per schermata. */
+.ef-feed {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  touch-action: pan-y;
+}
+.ef-feed::-webkit-scrollbar {
+  display: none;
+}
+.ef-slide {
+  height: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: flex;
+  flex-direction: column;
+  padding: 4px 18px 14px;
+  position: relative;
+  overflow: hidden;
+}
+.ef-beats {
+  display: flex;
+  gap: 4px;
+  padding: 2px 0 10px;
+}
+.ef-beats i {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--sf-border);
+  overflow: hidden;
+  position: relative;
+}
+.ef-beats i::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--sf-accent-fill);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s ease;
+}
+.ef-beats i.done::after {
+  transform: scaleX(1);
+}
+.ef-beats i.now::after {
+  transform: scaleX(1);
+  animation: ef-fill var(--ef-beat-ms, 0s) linear both;
+}
+@keyframes ef-fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+.ef-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.ef-tag {
+  font: 500 11.5px var(--sf-font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sf-accent-text);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.ef-tag .k {
+  background: var(--sf-accent-fill);
+  color: var(--sf-accent-on-fill);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.ef-tag .saved {
+  color: var(--sf-text);
+}
+.ef-big {
+  font-family: var(--sf-font-display);
+  font-weight: 700;
+  font-size: 34px;
+  line-height: 1.05;
+  margin: 0;
+  text-wrap: balance;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+.ef-big.sm {
+  font-size: 22px;
+}
+.ef-key {
+  font-size: 19px;
+  font-weight: 500;
+  line-height: 1.4;
+  margin: 0;
+}
+.ef-blank {
+  display: inline-block;
+  min-width: 4.5ch;
+  padding: 0 8px;
+  border-radius: 8px;
+  background: var(--sf-accent-fill);
+  color: transparent;
+  position: relative;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+.ef-blank::after {
+  content: '?';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--sf-accent-on-fill);
+  font: 700 15px var(--sf-font-mono);
+}
+.ef-blank.open {
+  background: transparent;
+  color: var(--sf-accent-text);
+  box-shadow: inset 0 -3px 0 var(--sf-accent-fill);
+  cursor: default;
+}
+.ef-blank.open::after {
+  content: none;
+}
+.ef-hint {
+  font: 500 12.5px var(--sf-font-mono);
+  color: var(--sf-text-muted);
+}
+.ef-context {
+  font-size: 14.5px;
+  color: var(--sf-text-muted);
+  margin: 0;
+}
+.ef-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ef-lines li {
+  font-size: 17px;
+  line-height: 1.45;
+  transition: opacity 0.3s;
+}
+.ef-lines li.old {
+  opacity: var(--ef-dim);
+  font-size: 15px;
+}
+.ef-term {
+  color: var(--sf-accent-text);
+  font-weight: 600;
+}
+.ef-steps li {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+.ef-steps .n {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 700 14px var(--sf-font-mono);
+  background: var(--sf-accent-fill);
+  color: var(--sf-accent-on-fill);
+}
+.ef-steps li.old .n {
+  background: var(--sf-border);
+  color: var(--sf-text);
+}
+.ef-vs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+.ef-vs .side {
+  border-radius: 18px;
+  padding: 14px 12px;
+  background: var(--sf-surface);
+  border: 1px solid var(--sf-border);
+  font-family: var(--sf-font-display);
+  font-weight: 700;
+  font-size: 19px;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.ef-vs.sm .side {
+  font-size: 15px;
+  padding: 10px;
+}
+.ef-vs .side.l {
+  border-color: var(--sf-accent-fill);
+}
+.ef-vs .x {
+  font: 700 14px var(--sf-font-mono);
+  color: var(--sf-accent-text);
+}
+.ef-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  transition: opacity 0.3s;
+}
+.ef-row .asp {
+  grid-column: 1 / -1;
+  font: 500 11px var(--sf-font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sf-text-muted);
+  text-align: center;
+}
+.ef-row .cell {
+  font-size: 14.5px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--sf-surface);
+  border: 1px solid var(--sf-border);
+}
+.ef-row.old {
+  opacity: var(--ef-dim);
+}
+.ef-note {
+  font-size: 15.5px;
+  margin: 0;
+}
+.ef-code {
+  margin: 0;
+  background: var(--ef-code-bg);
+  border: 1px solid var(--sf-border);
+  border-radius: 14px;
+  padding: 10px 0;
+  overflow: auto;
+  max-height: 46dvh;
+  font: 12px/1.5 var(--sf-font-mono);
+}
+.ef-code .ln {
+  display: block;
+  padding: 0 12px;
+  opacity: 0.4;
+  transition:
+    opacity 0.3s,
+    background 0.3s;
+  white-space: pre;
+  min-height: 1.5em;
+}
+.ef-code.all .ln,
+.ef-code .ln.on {
+  opacity: 1;
+}
+.ef-code .ln.on {
+  background: color-mix(in srgb, var(--sf-accent-fill) 14%, transparent);
+  box-shadow: inset 3px 0 0 var(--sf-accent-fill);
+}
+.ef-explain {
+  font-size: 15.5px;
+  margin: 0;
+}
+.ef-source {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  font: 500 12px var(--sf-font-mono);
+  color: var(--sf-text-muted);
+}
+
+/* Centrato in verticale ma, se il contenuto è più alto dello schermo, scorre dall'inizio (con justify-content: center l'inizio verrebbe tagliato). */
+.ef-stage > :first-child,
+.ef-overlay > :first-child {
+  margin-top: auto;
+}
+.ef-stage > :last-child,
+.ef-overlay > :last-child {
+  margin-bottom: auto;
+}

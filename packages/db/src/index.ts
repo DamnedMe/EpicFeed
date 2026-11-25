@@ -1,5 +1,5 @@
 /**
- * `@study-feed/db`: schema Drizzle, tipi delle righe e migrazioni.
+ * `@epicfeed/db`: schema Drizzle, tipi delle righe e migrazioni.
  *
  * @packageDocumentation
  */
@@ -11,9 +11,10 @@ import type {
   lessonParts,
   lessons,
   subtitleTracks,
-} from './schema.js';
+} from './schema/index.js';
 
-export * from './schema.js';
+export * from './schema/index.js';
+export * from './database.js';
 
 /** Riga della tabella `lessons`. */
 export type LessonRow = InferSelectModel<typeof lessons>;

@@ -1,5 +1,5 @@
 {
-  "name": "@study-feed/mcp",
+  "name": "@epicfeed/mcp",
   "version": "0.1.6",
   "private": true,
   "description": "Server MCP di EpicFeed per Claude Desktop: genera schede, quiz e concetti delle lezioni importate (M2).",
@@ -12,16 +12,17 @@
     "test": "vitest run --coverage"
   },
   "dependencies": {
+    "@epicfeed/exam": "workspace:*",
+    "@epicfeed/feed": "workspace:*",
+    "@epicfeed/shared": "workspace:*",
     "@modelcontextprotocol/sdk": "1.32.2",
     "@napi-rs/canvas": "1.1.0",
-    "@study-feed/contracts": "workspace:*",
-    "@study-feed/core": "workspace:*",
     "pdfjs-dist": "6.5.438",
     "yauzl": "3.4.0",
     "zod": "4.6.6"
   },
   "devDependencies": {
-    "@study-feed/config": "workspace:*",
+    "@epicfeed/config": "workspace:*",
     "@types/node": "26.6.6",
     "@types/yauzl": "3.4.0",
     "@vitest/coverage-v8": "5.1.0",

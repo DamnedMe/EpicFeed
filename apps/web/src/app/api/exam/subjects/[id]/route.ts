@@ -1,5 +1,5 @@
-import { examDeps } from '@/server/exam-deps';
-import { handleReadExamContent } from '@/server/exam-handler';
+import { examDeps } from '@/features/exam/api/exam-deps';
+import { handleReadExamContent } from '@/features/exam/api/exam-handler';
 
 export const dynamic = 'force-dynamic';
 

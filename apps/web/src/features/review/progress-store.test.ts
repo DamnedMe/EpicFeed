@@ -1,5 +1,5 @@
 import { IDBFactory } from 'fake-indexeddb';
-import { applyReview, completeReviewSession, recordAnswer } from '@study-feed/core';
+import { applyReview, completeReviewSession, recordAnswer } from '@epicfeed/review';
 import { describe, expect, it } from 'vitest';
 import { IndexedDbProgressStore, openProgressDb } from './progress-store';
 

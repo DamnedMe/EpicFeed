@@ -1,4 +1,4 @@
-# @study-feed/config
+# @epicfeed/config
 
 Configurazione condivisa del monorepo.
 

@@ -1,5 +1,5 @@
-import { handleReadLesson } from '@/server/generation-handler';
-import { generationDeps } from '@/server/generation-deps';
+import { handleReadLesson } from '@/features/feed/api/generation-handler';
+import { feedGenerationDeps } from '@/features/feed/api/generation-deps';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,5 +8,5 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<Response> {
-  return handleReadLesson(request, (await params).id, generationDeps());
+  return handleReadLesson(request, (await params).id, feedGenerationDeps());
 }

@@ -43,9 +43,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   }
 
   const path = request.nextUrl.pathname;
-  if (!signedIn && !path.startsWith('/accedi')) {
+  if (!signedIn && !path.startsWith('/login')) {
     const login = request.nextUrl.clone();
-    login.pathname = '/accedi';
+    login.pathname = '/login';
     login.search = '';
     response = NextResponse.redirect(login);
   }

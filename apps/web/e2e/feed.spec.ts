@@ -22,8 +22,8 @@ const TYPES: Record<string, string> = {
 /** Pagine dell'app servite dal banco di prova. */
 const PAGES: Record<string, string> = {
   '/': 'index.html',
-  '/io': 'io.html',
-  '/ripasso': 'ripasso.html',
+  '/profile': 'profile.html',
+  '/review': 'review.html',
 };
 
 /**
@@ -34,7 +34,7 @@ const PAGES: Record<string, string> = {
 function pageFile(path: string, cookie: string): string {
   const has = (name: string) => new RegExp(`(^|; )${name}=1`).test(cookie);
   if (path === '/' && has('ef-feed-copy')) return 'index-copy.html';
-  if (path === '/ripasso' && has('ef-sync-key')) return 'ripasso-key.html';
+  if (path === '/review' && has('ef-sync-key')) return 'review-key.html';
   return PAGES[path] ?? path;
 }
 const CSP =
@@ -305,7 +305,7 @@ test('la sessione da 5 minuti si conta quando finisce', async ({ page }) => {
 });
 
 test('Io sul telefono: righe allineate e barra in basso coprente', async ({ page }) => {
-  await page.goto(`${ORIGIN}/io`);
+  await page.goto(`${ORIGIN}/profile`);
   await expect(page.getByRole('heading', { name: 'Io', exact: true })).toBeVisible();
   const width = await page.evaluate(() => window.innerWidth);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(
@@ -332,7 +332,7 @@ test('Io sul telefono: righe allineate e barra in basso coprente', async ({ page
 });
 
 test('una risposta sbagliata nel feed entra nel Ripasso, che si fa a battute', async ({ page }) => {
-  await page.goto(`${ORIGIN}/ripasso`);
+  await page.goto(`${ORIGIN}/review`);
   await expect(page.getByText('Rispondi alle domande del feed')).toBeVisible();
 
   // Nel feed: vero/falso sbagliato (la risposta giusta è Falso).
@@ -367,7 +367,7 @@ test('una risposta sbagliata nel feed entra nel Ripasso, che si fa a battute', a
     )
     .toBe(1);
 
-  await page.goto(`${ORIGIN}/ripasso`);
+  await page.goto(`${ORIGIN}/review`);
   await expect(page.getByRole('heading', { name: 'Concetti deboli' })).toBeVisible();
   await expect(page.locator('.ef-rv-list')).toContainText('Linked list');
   await expect(page.locator('.ef-rv-list')).toContainText('1 errore');
@@ -393,7 +393,7 @@ test('una risposta sbagliata nel feed entra nel Ripasso, che si fa a battute', a
 });
 
 test('Ripasso ed Esame stanno nello stesso tab', async ({ page }) => {
-  await page.goto(`${ORIGIN}/ripasso`);
+  await page.goto(`${ORIGIN}/review`);
   await page.getByRole('tab', { name: 'Esame' }).click();
   await expect(page.getByRole('heading', { name: 'Allenati come all’esame' })).toBeVisible();
   await expect(page).toHaveURL(/#esame$/);
@@ -401,7 +401,7 @@ test('Ripasso ed Esame stanno nello stesso tab', async ({ page }) => {
 });
 
 test('il quiz di modulo mescola feed e domande d’esame, in inglese', async ({ page }) => {
-  await page.goto(`${ORIGIN}/ripasso#esame`);
+  await page.goto(`${ORIGIN}/review#esame`);
   await page.getByRole('button', { name: /1\. Linked lists/ }).click();
   await expect(page.getByText('Questo modulo ha 3 domande')).toBeVisible();
   for (let i = 0; i < 3; i += 1) {
@@ -419,7 +419,7 @@ test('esercizio di codice: suggerimento, test con Python nel browser e griglia',
   page,
 }) => {
   test.setTimeout(90_000);
-  await page.goto(`${ORIGIN}/ripasso#esame`);
+  await page.goto(`${ORIGIN}/review#esame`);
   await page.getByRole('button', { name: /Reverse a list/ }).click();
   await expect(page.getByRole('heading', { name: 'Reverse a list' })).toBeVisible();
 
@@ -455,7 +455,7 @@ test('esercizio di codice: suggerimento, test con Python nel browser e griglia',
 test('Claude corregge l’esercizio con suggerimenti stile revisione del codice', async ({
   page,
 }) => {
-  await page.goto(`${ORIGIN}/ripasso#esame`);
+  await page.goto(`${ORIGIN}/review#esame`);
   await page.getByRole('button', { name: /Reverse a list/ }).click();
   const editor = page.getByRole('textbox', { name: 'Your code' });
   await editor.click();
@@ -490,7 +490,7 @@ test('Claude corregge l’esercizio con suggerimenti stile revisione del codice'
 });
 
 test('simulazione del colloquio in chat con approfondimento', async ({ page }) => {
-  await page.goto(`${ORIGIN}/ripasso#esame`);
+  await page.goto(`${ORIGIN}/review#esame`);
   await page.getByRole('button', { name: /Simulazione del colloquio/ }).click();
   await page.getByRole('button', { name: 'Inizia il colloquio' }).click();
   await expect(page.getByRole('timer')).toContainText(/^(20:00|19:5\d)$/);
@@ -512,7 +512,7 @@ test('simulazione del colloquio in chat con approfondimento', async ({ page }) =
 
 test('un ciclo infinito si interrompe dopo 5 secondi per test', async ({ page }) => {
   test.setTimeout(90_000);
-  await page.goto(`${ORIGIN}/ripasso#esame`);
+  await page.goto(`${ORIGIN}/review#esame`);
   await page.getByRole('button', { name: /Reverse words/ }).click();
   const editor = page.getByRole('textbox', { name: 'Your code' });
   await editor.click();
@@ -523,7 +523,7 @@ test('un ciclo infinito si interrompe dopo 5 secondi per test', async ({ page })
 });
 
 test('senza chiave il Ripasso chiede la password per sincronizzare', async ({ page }) => {
-  await page.goto(`${ORIGIN}/ripasso`);
+  await page.goto(`${ORIGIN}/review`);
   await expect(page.getByRole('heading', { name: 'Sincronizza telefono e PC' })).toBeVisible();
   const password = page.getByLabel('Password');
   await expect(page.getByRole('button', { name: 'Sblocca' })).toBeDisabled();

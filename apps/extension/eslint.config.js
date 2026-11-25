@@ -1,6 +1,6 @@
 // @ts-check
 import globals from 'globals';
-import { createConfig } from '@study-feed/config/eslint';
+import { createConfig } from '@epicfeed/config/eslint';
 
 /** ESLint dell'estensione: regole condivise + globali del browser e di WXT. */
 export default createConfig({

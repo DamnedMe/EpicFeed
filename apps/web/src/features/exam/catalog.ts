@@ -1,5 +1,9 @@
-import type { ExamContentResponse } from '@study-feed/contracts';
-import type { CodeTest, OpenQuestionKind, RubricCriterion } from '@study-feed/core';
+import type {
+  ExamContentResponse,
+  CodeTest,
+  OpenQuestionKind,
+  RubricCriterion,
+} from '@epicfeed/exam';
 import type { SubjectFeed } from '../feed/model';
 import { entryKey } from '../feed/model';
 

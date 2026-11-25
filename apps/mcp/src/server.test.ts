@@ -1,13 +1,14 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import type { LessonSourcesResponse } from '@study-feed/contracts';
+import type { LessonSourcesResponse } from '@epicfeed/feed';
 import { describe, expect, it, vi } from 'vitest';
 import { ApiRequestError } from './api-client.js';
 import type { GenerationApi } from './server.js';
-import { createEpicFeedServer, formatLesson } from './server.js';
-import { PROMPT_VERSION } from './prompt.js';
-import type { SlidesToolkit } from './slides/toolkit.js';
-import { memorySlidesToolkit } from './slides/testing.js';
+import { createEpicFeedServer } from './server.js';
+import { formatLesson } from './feed/tools.js';
+import { PROMPT_VERSION } from './feed/prompt.js';
+import type { SlidesToolkit } from './feed/slides/toolkit.js';
+import { memorySlidesToolkit } from './feed/slides/testing.js';
 
 const lessonId = '10000000-0000-4000-8000-000000000001';
 const partId = '20000000-0000-4000-8000-000000000002';

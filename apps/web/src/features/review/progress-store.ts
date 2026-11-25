@@ -5,7 +5,7 @@ import type {
   ProgressSnapshot,
   ProgressStore,
   SyncableProgressStore,
-} from '@study-feed/core';
+} from '@epicfeed/review';
 import {
   EMPTY_DAY_STREAK,
   MAX_REVIEW_DAYS,
@@ -13,7 +13,7 @@ import {
   mergeSnapshots,
   replayAnswers,
   streakFromDays,
-} from '@study-feed/core';
+} from '@epicfeed/review';
 import * as z from 'zod';
 
 /**

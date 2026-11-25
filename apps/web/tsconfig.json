@@ -1,5 +1,5 @@
 {
-  "extends": "@study-feed/config/tsconfig.base.json",
+  "extends": "@epicfeed/config/tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "module": "ESNext",

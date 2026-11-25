@@ -1,4 +1,4 @@
-import type { CreateImportTokenResponse } from '@study-feed/contracts';
+import type { CreateImportTokenResponse } from '@epicfeed/ingest';
 import { getCurrentUser } from '@/server/auth';
 import { getServices } from '@/server/container';
 import { apiError, apiOk, isSameOrigin } from '@/server/http';

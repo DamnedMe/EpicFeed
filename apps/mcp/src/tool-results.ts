@@ -1,5 +1,5 @@
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import type { FeedIssue } from '@study-feed/core';
+import type { FeedIssue } from '@epicfeed/feed';
 import { ApiRequestError } from './api-client.js';
 
 /**
@@ -20,7 +20,7 @@ export function text(value: string): CallToolResult {
 /**
  * Problemi da correggere prima di salvare di nuovo.
  *
- * @param issues - Problemi trovati dal core o dall'API.
+ * @param issues - Problemi trovati dalle regole del dominio o dall'API.
  * @param tool - Strumento da richiamare dopo la correzione.
  * @returns Il risultato, marcato come errore.
  */

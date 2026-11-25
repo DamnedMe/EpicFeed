@@ -1,34 +1,20 @@
 import 'server-only';
-import type { GenerationHandlerDeps } from './generation-handler';
+import type { GenerationAccessDeps } from './generation-api';
 import { getServices } from './container';
 
 /**
- * Collega gli handler della generazione ai servizi reali. Il log non
- * contiene mai il corpo della richiesta (contenuti Epicode, feed).
+ * Collega token, limite di frequenza e log della generazione ai servizi reali.
+ * Il log non contiene mai il corpo della richiesta (contenuti Epicode, feed).
  *
- * @returns Le dipendenze degli handler.
+ * @returns Le dipendenze comuni degli handler della generazione.
  */
-export function generationDeps(): GenerationHandlerDeps {
+export function generationAccessDeps(): GenerationAccessDeps {
   const services = getServices();
   return {
     verifyToken: (token) => services.generateTokens.verify(token),
     isAllowed: (userId) => services.generationRateLimiter.isAllowed(userId),
     record: (userId, action, lessonId) =>
       services.generationRateLimiter.record(userId, action, lessonId),
-    listLessons: (userId, limit) => services.listLessonsToGenerate.execute(userId, limit),
-    readLesson: (userId, lessonId) => services.readLessonForGeneration.execute(userId, lessonId),
-    saveFeed: (userId, input) => services.saveLessonFeed.execute(userId, input),
-    listOwnedLessons: (userId) => services.listOwnedLessons.execute(userId),
-    importSlides: (userId, lessonId, presentations) =>
-      services.importLessonSlides.execute(userId, lessonId, presentations),
-    listExamLessons: (userId, limit) => services.listLessonsForExam.execute(userId, limit),
-    readLessonForExam: (userId, lessonId) => services.readLessonForExam.execute(userId, lessonId),
-    saveExamPack: (userId, input) => services.saveExamPack.execute(userId, input),
-    listExamSubjects: (userId) => services.listSubjectsForExam.execute(userId),
-    saveExamBank: (userId, input) => services.saveExamBank.execute(userId, input),
-    listSubmissionsToCorrect: (userId) => services.listSubmissions.execute(userId, 'pending'),
-    saveCorrection: (userId, id, correction) =>
-      services.saveCorrection.execute(userId, id, correction),
     logError: (error) => {
       console.error('Generazione fallita', error instanceof Error ? error.message : typeof error);
     },

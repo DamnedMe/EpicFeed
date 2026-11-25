@@ -1,5 +1,5 @@
-import { progressDeps } from '@/server/progress-deps';
-import { handleReadProgress, handleWriteProgress } from '@/server/progress-handler';
+import { progressDeps } from '@/features/review/api/progress-deps';
+import { handleReadProgress, handleWriteProgress } from '@/features/review/api/progress-handler';
 
 export const dynamic = 'force-dynamic';
 

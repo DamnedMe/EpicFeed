@@ -1,5 +1,5 @@
-import { handleSaveCorrection } from '@/server/generation-handler';
-import { generationDeps } from '@/server/generation-deps';
+import { handleSaveCorrection } from '@/features/exam/api/generation-handler';
+import { examGenerationDeps } from '@/features/exam/api/generation-deps';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,5 +9,5 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ): Promise<Response> {
   const { id } = await context.params;
-  return handleSaveCorrection(request, id, generationDeps());
+  return handleSaveCorrection(request, id, examGenerationDeps());
 }

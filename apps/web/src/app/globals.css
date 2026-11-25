@@ -1,6 +1,6 @@
 @import 'tailwindcss';
-@import '@study-feed/ui/tokens.css';
-@import '@study-feed/ui/tailwind.css';
+@import '@epicfeed/ui/tokens.css';
+@import '@epicfeed/ui/tailwind.css';
 
 /* Font self-hosted (next/font) al posto dei nomi di famiglia dei token. */
 .ef-fonts {

@@ -1,16 +1,8 @@
 'use client';
 
-import type { StudyLanguage } from '@study-feed/core';
-import {
-  answerPoints,
-  autoAdvanceMs,
-  beatText,
-  gradeFromAnswer,
-  POINTS,
-  SESSION_MS,
-  storyOf,
-} from '@study-feed/core';
-import Link from 'next/link';
+import type { StudyLanguage } from '@epicfeed/feed';
+import { answerPoints, autoAdvanceMs, beatText, POINTS, SESSION_MS, storyOf } from '@epicfeed/feed';
+import { gradeFromAnswer } from '@epicfeed/review';
 import { useRouter } from 'next/navigation';
 import * as z from 'zod';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -19,10 +11,9 @@ import { recordStudyAnswer } from '@/features/review/record';
 import type { CardState } from './card-slide';
 import { CardSlide } from './card-slide';
 import { SPEECH_LANG } from './copy';
-import type { FeedLoad } from './feed-client';
 import { loadFeed, preferredSubjectId, readCachedFeed, rememberFeedCopy } from './feed-client';
 import type { Gesture } from './gestures';
-import { Icon, SavedMark } from './icons';
+import { SavedMark } from './icons';
 import { preferences, savedCards, stats, useLocalValue } from './local-state';
 import type { CardEntry, FeedEntry, SubjectFeed } from './model';
 import { buildEntries, chapterIndex, resumeIndex } from './model';
@@ -32,34 +23,19 @@ import type { QuizAnswer } from './quiz-slide';
 import { QuizSlide } from './quiz-slide';
 import { ActionSheet, ChapterSheet } from './sheets';
 import { readValue, STORAGE_KEYS, writeValue } from './storage';
-import { useProgressSync } from '../sync/engine';
+import { useProgressSync } from '@/features/review/sync/engine';
+import type { LoadState } from './feed-fallback';
+import { FeedFallback } from './feed-fallback';
+import { FeedHud } from './feed-hud';
+import type { Session } from './session';
+import { newSession } from './session';
+import { useKeyboard } from './use-keyboard';
+import { useSpeech } from './use-speech';
 
 /** Quante schede si disegnano intorno a quella visibile: le altre sono segnaposto vuoti. */
 const WINDOW = 2;
 const RING_LENGTH = 81.7;
 const INITIAL_CARD: CardState = { beat: 0, blank: false };
-
-interface Session {
-  readonly startedAt: number;
-  readonly points: number;
-  readonly streak: number;
-  readonly bestStreak: number;
-  readonly right: number;
-  readonly answered: number;
-  readonly seen: number;
-}
-
-const newSession = (startedAt: number): Session => ({
-  startedAt,
-  points: 0,
-  streak: 0,
-  bestStreak: 0,
-  right: 0,
-  answered: 0,
-  seen: 1,
-});
-
-type LoadState = FeedLoad | { readonly status: 'loading' };
 
 /** Parametri dell'indirizzo: scheda da aprire (da *Salvati*), materia, gesti da rivedere. */
 function readRequest() {
@@ -96,6 +72,7 @@ export function FeedApp({
 }) {
   useProgressSync(account);
   const router = useRouter();
+  const { speaking, speak, stopSpeaking } = useSpeech();
   const prefs = useLocalValue(preferences);
   const saved = useLocalValue(savedCards);
   const [load, setLoad] = useState<LoadState>(() =>
@@ -114,7 +91,6 @@ export function FeedApp({
   const [minutes, setMinutes] = useState(0);
   const [toast, setToast] = useState<{ id: number; label: string } | null>(null);
   const [flash, setFlash] = useState<number | null>(null);
-  const [speaking, setSpeaking] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
   const feedRef = useRef<HTMLDivElement>(null);
@@ -179,7 +155,7 @@ export function FeedApp({
       (result) => {
         if (!alive) return;
         if (result.status === 'unauthorized') {
-          window.location.assign('/accedi');
+          window.location.assign('/login');
           return;
         }
         if (result.status === 'error' && shown) {
@@ -244,15 +220,6 @@ export function FeedApp({
       window.clearInterval(id);
     };
   }, [feed, session.startedAt]);
-
-  const stopSpeaking = useCallback(() => {
-    try {
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    } catch {
-      // Sintesi vocale non disponibile.
-    }
-    setSpeaking(null);
-  }, []);
 
   const scrollToIndex = useCallback(
     (index: number) => {
@@ -385,6 +352,24 @@ export function FeedApp({
     }
   };
 
+  const listen = () => {
+    if (entry?.type !== 'card') return;
+    if (speaking === entry.key) {
+      stopSpeaking();
+      return;
+    }
+    const language = languageOf(entry);
+    const story = storyOf(entry.card, language);
+    speak(
+      entry.key,
+      story.beats
+        .map((beat) => beatText(story, beat))
+        .filter(Boolean)
+        .join('. '),
+      SPEECH_LANG[language],
+    );
+  };
+
   const toggleLanguage = () => {
     if (!entry) return;
     setLanguages((previous) => ({
@@ -394,67 +379,27 @@ export function FeedApp({
     stopSpeaking();
   };
 
-  const listen = () => {
-    if (entry?.type !== 'card') return;
-    if (speaking === entry.key) {
-      stopSpeaking();
-      return;
-    }
-    try {
-      const synth = window.speechSynthesis;
-      synth.cancel();
-      const language = languageOf(entry);
-      const story = storyOf(entry.card, language);
-      const utterance = new SpeechSynthesisUtterance(
-        story.beats
-          .map((beat) => beatText(story, beat))
-          .filter(Boolean)
-          .join('. '),
-      );
-      utterance.lang = SPEECH_LANG[language];
-      utterance.onend = () => {
-        setSpeaking(null);
-      };
-      synth.speak(utterance);
-      setSpeaking(entry.key);
-    } catch {
-      setSpeaking(null);
-    }
-  };
-
   const finishSession = (again: boolean) => {
     setEnded(false);
     setSession(newSession(Date.now()));
-    if (!again) router.push('/io');
+    if (!again) router.push('/profile');
   };
 
   // Tastiera: le stesse azioni dei gesti.
-  const keyHandler = useRef<(event: KeyboardEvent) => void>(() => {});
-  useEffect(() => {
-    keyHandler.current = (event) => {
-      if (sheet || ended || !entry) return;
-      const target = event.target as HTMLElement | null;
-      if (target?.closest('input, textarea, select, button, a')) return;
-      const key = event.key.toLowerCase();
-      if (key === 'arrowright' || key === ' ') advance(current, 1, true);
-      else if (key === 'arrowleft') advance(current, -1, true);
-      else if (key === 'arrowdown' || key === 'pagedown' || key === 'j') scrollToIndex(current + 1);
-      else if (key === 'arrowup' || key === 'pageup' || key === 'k') scrollToIndex(current - 1);
-      else if (key === 's' && entry.type === 'card') save(entry, true);
-      else if (key === 'a') setSheet('actions');
-      else return;
-      event.preventDefault();
-    };
+  useKeyboard((event) => {
+    if (sheet || ended || !entry) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('input, textarea, select, button, a')) return;
+    const key = event.key.toLowerCase();
+    if (key === 'arrowright' || key === ' ') advance(current, 1, true);
+    else if (key === 'arrowleft') advance(current, -1, true);
+    else if (key === 'arrowdown' || key === 'pagedown' || key === 'j') scrollToIndex(current + 1);
+    else if (key === 'arrowup' || key === 'pageup' || key === 'k') scrollToIndex(current - 1);
+    else if (key === 's' && entry.type === 'card') save(entry, true);
+    else if (key === 'a') setSheet('actions');
+    else return;
+    event.preventDefault();
   });
-  useEffect(() => {
-    const listener = (event: KeyboardEvent) => {
-      keyHandler.current(event);
-    };
-    window.addEventListener('keydown', listener);
-    return () => {
-      window.removeEventListener('keydown', listener);
-    };
-  }, []);
 
   // Avanzamento automatico alla velocità di lettura (facoltativo, da Io).
   const autoStory = entry?.type === 'card' ? storyOf(entry.card, languageOf(entry)) : null;
@@ -504,51 +449,19 @@ export function FeedApp({
 
   return (
     <div className="ef-app" data-motion={prefs.animations ? undefined : 'off'}>
-      <header className="ef-hud">
-        <button
-          type="button"
-          className="ef-chip"
-          onClick={() => {
-            setSheet('chapters');
-          }}
-          aria-label="Scegli capitolo o lezione"
-        >
-          <span>{entry ? `${entry.chapterTitle} · ${entry.lessonTitle}` : feed.title}</span>
-          <Icon name="chevron" />
-        </button>
-        {prefs.points ? (
-          <>
-            <span className="ef-stat" aria-label={`${session.points} punti`}>
-              <Icon name="bolt" />
-              <span key={session.points} className={session.points > 0 ? 'ef-pop' : ''}>
-                {session.points}
-              </span>
-            </span>
-            <span
-              className={`ef-stat ${session.streak >= 2 ? 'hot' : ''}`}
-              aria-label={`Serie di ${session.streak}`}
-            >
-              <Icon name="flame" />
-              {session.streak}
-            </span>
-          </>
-        ) : null}
-        <div ref={ringRef} className="ef-ring" aria-label={`${minutes} minuti su 5`} role="img">
-          <svg viewBox="0 0 30 30" aria-hidden="true">
-            <circle className="bg" cx="15" cy="15" r="13" />
-            <circle className="fg" cx="15" cy="15" r="13" />
-          </svg>
-          <span aria-hidden="true">{Math.min(5, minutes)}′</span>
-        </div>
-        <button
-          type="button"
-          className="ef-lang"
-          onClick={toggleLanguage}
-          aria-label="Cambia lingua della scheda"
-        >
-          {languageOf(entry).toUpperCase()}
-        </button>
-      </header>
+      <FeedHud
+        title={entry ? `${entry.chapterTitle} · ${entry.lessonTitle}` : feed.title}
+        showPoints={prefs.points}
+        points={session.points}
+        streak={session.streak}
+        minutes={minutes}
+        ringRef={ringRef}
+        language={languageOf(entry)}
+        onChapters={() => {
+          setSheet('chapters');
+        }}
+        onLanguage={toggleLanguage}
+      />
       {load.offline ? (
         <p className="ef-hint px-4 pb-1">Sei offline: studi la copia salvata.</p>
       ) : null}
@@ -692,53 +605,6 @@ export function FeedApp({
           }}
         />
       ) : null}
-    </div>
-  );
-}
-
-/** Stati senza feed: caricamento, nessuna lezione pronta, errore. */
-function FeedFallback({ load, onRetry }: { load: LoadState; onRetry: () => void }) {
-  if (load.status === 'loading' || load.status === 'unauthorized') {
-    return (
-      <div className="ef-empty" aria-busy="true" aria-label="Caricamento del feed">
-        <div className="ef-skeleton w-2/3" />
-        <div className="ef-skeleton" />
-        <div className="ef-skeleton w-5/6" />
-      </div>
-    );
-  }
-  if (load.status === 'empty') {
-    return (
-      <div className="ef-empty">
-        <h1>Il feed è vuoto, per ora</h1>
-        <p>
-          {load.subjects.length === 0
-            ? 'Importa una lezione dal portale con l’estensione, poi generane schede e quiz con Claude Desktop.'
-            : 'Hai importato delle lezioni ma nessuna ha ancora schede: generale con Claude Desktop.'}
-        </p>
-        <p>
-          <Link className="ef-link" href="/lezioni">
-            Le mie lezioni
-          </Link>{' '}
-          ·{' '}
-          <Link className="ef-link" href="/estensione">
-            Estensione
-          </Link>{' '}
-          ·{' '}
-          <Link className="ef-link" href="/claude-desktop">
-            Claude Desktop
-          </Link>
-        </p>
-      </div>
-    );
-  }
-  return (
-    <div className="ef-empty">
-      <h1>Non riesco a caricare il feed</h1>
-      <p>Controlla la connessione e riprova. Se il problema resta, riprova tra qualche minuto.</p>
-      <button type="button" className="ef-cta" onClick={onRetry}>
-        Riprova
-      </button>
     </div>
   );
 }

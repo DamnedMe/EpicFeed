@@ -1,49 +1,54 @@
 import 'server-only';
+import { DrizzleCatalogRepository, MyLessonsQuery } from '@epicfeed/catalog/infrastructure';
 import {
-  DrizzleCatalogRepository,
   DrizzleExamPackRepository,
   DrizzleExamSubmissionRepository,
+} from '@epicfeed/exam/infrastructure';
+import { DrizzleProgressRepository } from '@epicfeed/review/infrastructure';
+import {
   DrizzleGenerationRepository,
-  DrizzleProgressRepository,
   DrizzleStudyFeedRepository,
+} from '@epicfeed/feed/infrastructure';
+import {
   GenerateTokenService,
   GenerationRateLimiter,
   ImportRateLimiter,
   ImportTokenService,
-  MyLessonsQuery,
-  type Database,
-} from '@study-feed/adapters';
+} from '@epicfeed/access/infrastructure';
 import {
   DeleteSubmission,
   ListSubmissions,
   SaveCorrection,
   SubmitForCorrection,
-  ImportLesson,
-  ImportLessonSlides,
   ListLessonsForExam,
-  ListLessonsToGenerate,
   ListSubjectsForExam,
-  ListOwnedLessons,
-  ListStudySubjects,
-  PossessionProofVerifier,
   ReadLessonForExam,
-  ReadLessonForGeneration,
   ReadExamContent,
-  ReadSubjectFeed,
-  RealignLessonFeeds,
   SaveExamBank,
   SaveExamPack,
+} from '@epicfeed/exam';
+import {
+  ImportLessonSlides,
+  ListLessonsToGenerate,
+  ListOwnedLessons,
+  ListStudySubjects,
+  ReadLessonForGeneration,
+  ReadSubjectFeed,
+  RealignLessonFeeds,
   SaveLessonFeed,
-  systemClock,
-} from '@study-feed/core';
-import * as schema from '@study-feed/db';
+} from '@epicfeed/feed';
+import { ImportLesson } from '@epicfeed/ingest';
+import { PossessionProofVerifier } from '@epicfeed/catalog';
+import { systemClock } from '@epicfeed/shared';
+import * as schema from '@epicfeed/db';
+import type { Database } from '@epicfeed/db';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { serverEnv } from './env';
 
 /**
  * Composizione delle dipendenze (composition root): l'unico punto della web
- * app che conosce le implementazioni concrete delle porte del core.
+ * app che conosce le implementazioni concrete delle porte dei casi d'uso.
  */
 export interface Services {
   readonly importLesson: ImportLesson;

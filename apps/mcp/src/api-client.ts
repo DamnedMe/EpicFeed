@@ -1,5 +1,13 @@
 import type {
   ImportSlidesRequest,
+  ImportSlidesResponse,
+  LessonSourcesResponse,
+  LessonsToGenerateResponse,
+  SaveLessonFeedRequest,
+  OwnedLessonsResponse,
+  SaveLessonFeedResponse,
+} from '@epicfeed/feed';
+import type {
   LessonForExamResponse,
   LessonsForExamResponse,
   SaveExamBankRequest,
@@ -9,28 +17,24 @@ import type {
   SubjectsForExamResponse,
   SaveExamPackRequest,
   SaveExamPackResponse,
-  ImportSlidesResponse,
-  LessonSourcesResponse,
-  LessonsToGenerateResponse,
-  SaveLessonFeedRequest,
-  OwnedLessonsResponse,
-  SaveLessonFeedResponse,
-} from '@study-feed/contracts';
+} from '@epicfeed/exam';
+import { apiErrorSchema } from '@epicfeed/shared';
 import {
-  apiErrorSchema,
   importSlidesResponseSchema,
+  ownedLessonsResponseSchema,
+  lessonSourcesResponseSchema,
+  lessonsToGenerateResponseSchema,
+  saveLessonFeedResponseSchema,
+} from '@epicfeed/feed';
+import {
   lessonForExamResponseSchema,
   lessonsForExamResponseSchema,
-  ownedLessonsResponseSchema,
   saveExamBankResponseSchema,
   saveCorrectionResponseSchema,
   submissionsResponseSchema,
   saveExamPackResponseSchema,
   subjectsForExamResponseSchema,
-  lessonSourcesResponseSchema,
-  lessonsToGenerateResponseSchema,
-  saveLessonFeedResponseSchema,
-} from '@study-feed/contracts';
+} from '@epicfeed/exam';
 import type { z } from 'zod';
 
 /** Problema puntuale restituito dall'API (feed non valido). */
@@ -78,7 +82,7 @@ export interface EpicFeedApiOptions {
  *
  * - Il token viaggia solo nell'header `Authorization`, mai nell'URL, e solo
  *   verso l'origine configurata (HTTPS, o HTTP solo verso localhost).
- * - Ogni risposta è validata con gli schemi di `@study-feed/contracts`: una
+ * - Ogni risposta è validata con gli schemi zod dei pacchetti `@epicfeed/feed` ed `@epicfeed/exam`: una
  *   risposta inattesa diventa un errore chiaro, non dati sbagliati per Claude.
  */
 export class EpicFeedApi {

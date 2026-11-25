@@ -1,7 +1,7 @@
 'use client';
 
-import type { ConceptReviewState, DayStreak } from '@study-feed/core';
-import { EMPTY_DAY_STREAK } from '@study-feed/core';
+import type { ConceptReviewState, DayStreak } from '@epicfeed/review';
+import { EMPTY_DAY_STREAK } from '@epicfeed/review';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { loadFeed, preferredSubjectId, readCachedFeed } from '../feed/feed-client';
 import type { SubjectFeed } from '../feed/model';
@@ -71,7 +71,7 @@ export function useReviewData(): { data: ReviewData; reload: () => void } {
     void loadFeed((input, init) => fetch(input, init)).then((result) => {
       if (!alive) return;
       if (result.status === 'unauthorized') {
-        window.location.assign('/accedi');
+        window.location.assign('/login');
         return;
       }
       if (result.status === 'ready') {

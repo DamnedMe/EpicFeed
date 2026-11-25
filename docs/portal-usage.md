@@ -11,6 +11,6 @@ EpicFeed legge solo il materiale a cui lo studente ha già accesso sul portale, 
 - **Materiale del corso**: resta di Epicode. Non è nella repo, non viene ridistribuito né reso pubblico.
 
 ## Cosa significa per l'architettura
-- Il materiale studiabile è già testuale (riassunti delle parti video in italiano e in inglese, riassunti di capitolo, sottotitoli con i tempi, slide scaricabili dalla pagina ufficiale dei download): **non serve scaricare né tagliare video**. Le schede nascono dai riassunti; i sottotitoli danno i tempi ([ADR 0006](decisions/0006-sottotitoli-come-fonte-secondaria.md)), le slide arrivano dallo zip ufficiale ([ADR 0012](decisions/0012-slide-dallo-zip-ufficiale.md)).
+- Il materiale studiabile è già testuale (riassunti delle parti video in italiano e in inglese, riassunti di capitolo, sottotitoli con i tempi, slide scaricabili dalla pagina ufficiale dei download): **non serve scaricare né tagliare video**. Le schede nascono dai riassunti; i sottotitoli danno i tempi ([ADR 0006](decisions/0006-subtitles-as-secondary-source.md)), le slide arrivano dallo zip ufficiale ([ADR 0012](decisions/0012-slides-from-official-zip.md)).
 - Il player video del portale funziona solo nei domini Epicode: nell'app le clip sono schede testuali con "Guarda sul portale" al minuto giusto.
-- L'import avviene dall'estensione nel browser dello studente ([ADR 0001](decisions/0001-architettura-ibrida.md), [import.md](technical/import.md)).
+- L'import avviene dall'estensione nel browser dello studente ([ADR 0001](decisions/0001-hybrid-architecture.md), [import.md](technical/import.md)).

@@ -71,7 +71,7 @@ const result = await build({
   metafile: true,
   entryPoints: {
     app: join(here, 'entry.tsx'),
-    io: join(here, 'io-entry.tsx'),
+    profile: join(here, 'profile-entry.tsx'),
     review: join(here, 'review-entry.tsx'),
   },
   outdir: out,
@@ -125,8 +125,8 @@ writeFileSync(
   page('app', prerender.html.feed(), previewScript(prerender.preview)),
 );
 writeFileSync(join(out, 'index-copy.html'), page('app', prerender.html.feedWithCopy()));
-writeFileSync(join(out, 'io.html'), page('io', prerender.html.io()));
+writeFileSync(join(out, 'profile.html'), page('profile', prerender.html.profile()));
 // Ripasso senza e con la chiave della sincronizzazione sul dispositivo.
-writeFileSync(join(out, 'ripasso.html'), page('review', prerender.html.review()));
-writeFileSync(join(out, 'ripasso-key.html'), page('review', prerender.html.reviewWithKey()));
+writeFileSync(join(out, 'review.html'), page('review', prerender.html.review()));
+writeFileSync(join(out, 'review-key.html'), page('review', prerender.html.reviewWithKey()));
 console.log(`Banco di prova pronto in ${out}`);

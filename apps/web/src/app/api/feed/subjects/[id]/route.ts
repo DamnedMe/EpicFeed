@@ -1,5 +1,5 @@
-import { feedDeps } from '@/server/feed-deps';
-import { handleReadSubjectFeed } from '@/server/feed-handler';
+import { feedDeps } from '@/features/feed/api/feed-deps';
+import { handleReadSubjectFeed } from '@/features/feed/api/feed-handler';
 
 export const dynamic = 'force-dynamic';
 

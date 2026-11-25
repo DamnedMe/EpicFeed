@@ -1,20 +1,20 @@
 'use client';
 
-import type { PlannedReview } from '@study-feed/core';
+import type { PlannedReview } from '@epicfeed/review';
 import {
   completeReviewSession,
   currentDayStreak,
   localDay,
   planReviewSession,
   summarizeReview,
-  systemClock,
-} from '@study-feed/core';
+} from '@epicfeed/review';
+import { systemClock } from '@epicfeed/shared';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BottomNav } from '@/components/bottom-nav';
 import { Icon } from '../feed/icons';
-import { syncNow, useProgressSync } from '../sync/engine';
-import { SyncPanel } from '../sync/sync-panel';
+import { syncNow, useProgressSync } from '@/features/review/sync/engine';
+import { SyncPanel } from '@/features/review/sync/sync-panel';
 import { preferences, useLocalValue } from '../feed/local-state';
 import type { ReviewCatalog } from './catalog';
 import { notifyProgress, progressStore } from './progress-store';

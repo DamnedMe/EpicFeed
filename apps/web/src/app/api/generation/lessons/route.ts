@@ -1,5 +1,5 @@
-import { handleListLessons } from '@/server/generation-handler';
-import { generationDeps } from '@/server/generation-deps';
+import { handleListLessons } from '@/features/feed/api/generation-handler';
+import { feedGenerationDeps } from '@/features/feed/api/generation-deps';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,5 +9,5 @@ export const dynamic = 'force-dynamic';
  * sito dal browser.
  */
 export async function GET(request: Request): Promise<Response> {
-  return handleListLessons(request, generationDeps());
+  return handleListLessons(request, feedGenerationDeps());
 }

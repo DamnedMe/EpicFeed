@@ -72,7 +72,7 @@ export async function getCurrentUser(
  */
 export async function requireUser(): Promise<CurrentUser> {
   const user = await getCurrentUser();
-  if (!user) redirect('/accedi');
-  if (!user.hasPassword) redirect('/accedi/password');
+  if (!user) redirect('/login');
+  if (!user.hasPassword) redirect('/login/password');
   return user;
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { ExamContentResponse } from '@study-feed/contracts';
+import type { ExamContentResponse } from '@epicfeed/exam';
 import type { SubjectFeed } from '../feed/model';
 import type { ExamCatalog } from './catalog';
 import { buildExamCatalog } from './catalog';
@@ -39,7 +39,7 @@ export function useExamData(feed: SubjectFeed | null): ExamData {
     void loadExamContent((input, init) => fetch(input, init), subjectId).then((result) => {
       if (!alive) return;
       if (result.status === 'unauthorized') {
-        window.location.assign('/accedi');
+        window.location.assign('/login');
         return;
       }
       setLoaded((previous) =>

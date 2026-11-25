@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { signOut } from '@/app/accedi/actions';
+import { signOut } from '@/app/login/actions';
 
 /** Cornice delle pagine riservate: intestazione con navigazione e uscita. */
 export function Shell({ title, children }: { title: string; children: ReactNode }) {
@@ -14,13 +14,13 @@ export function Shell({ title, children }: { title: string; children: ReactNode 
           <Link href="/" className="hover:text-text">
             Feed
           </Link>
-          <Link href="/io" className="hover:text-text">
+          <Link href="/profile" className="hover:text-text">
             Io
           </Link>
-          <Link href="/lezioni" className="hover:text-text">
+          <Link href="/lessons" className="hover:text-text">
             Lezioni
           </Link>
-          <Link href="/estensione" className="hover:text-text">
+          <Link href="/extension" className="hover:text-text">
             Estensione
           </Link>
           <Link href="/claude-desktop" className="hover:text-text">

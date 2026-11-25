@@ -2,6 +2,7 @@
 
 | Documento | Contenuto |
 |---|---|
+| [navigation.md](navigation.md) | Come orientarsi nel codice: dove sta ogni funzione |
 | [status.json](status.json) | Stato dello sviluppo: unica fonte della plancia e del riquadro in cima al README |
 | [development-plan.md](development-plan.md) | Piano di sviluppo: perimetro dell'MVP, milestone, struttura della repo, stack e scelte aperte |
 | [architecture.md](architecture.md) | Architettura tecnica: componenti, clean architecture, modello dati e accessi, sicurezza, performance, qualità |
@@ -11,7 +12,7 @@
 | [functional/review.md](functional/review.md) | Ripasso dei concetti e sezione Esame |
 | [design-system.md](design-system.md) | Colori, temi, accenti, tipografia e mockup |
 | [technical/setup.md](technical/setup.md) | Setup, comandi, struttura del monorepo, convenzioni e CI |
-| [technical/core.md](technical/core.md) | Dominio: entità, forma canonica e impronta del contenuto, sottotitoli, prova di possesso, ImportLesson |
+| [technical/core.md](technical/core.md) | Catalogo e import (`catalog`, `ingest`): entità, forma canonica e impronta del contenuto, sottotitoli, prova di possesso, ImportLesson |
 | [technical/database.md](technical/database.md) | Schema Postgres, RLS, migrazioni e collegamento a Supabase |
 | [technical/generation.md](technical/generation.md) | Generazione di schede e quiz via MCP: feed bilingue, controlli, allineamento al minuto (versione 2 da M3) |
 | [technical/import.md](technical/import.md) | Import delle lezioni: estensione, corrispondenza portale → catalogo, token, API |
