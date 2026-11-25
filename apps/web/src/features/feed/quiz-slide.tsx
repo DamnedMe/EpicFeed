@@ -2,7 +2,7 @@
 
 import type { StudyLanguage } from '@epicfeed/feed';
 import { POINTS } from '@epicfeed/feed';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CARD_COPY } from './copy';
 import { swipeAnswer } from './gestures';
 import type { QuizEntry } from './model';
@@ -18,6 +18,51 @@ interface QuizSlideProps {
   readonly onAnswer: (answer: QuizAnswer, correct: boolean) => void;
   /** Invito dopo la risposta; `null` per nasconderlo (es. nel ripasso, che ha il suo pulsante). */
   readonly continueHint?: string | null;
+  /** Domanda cambiata da una correzione dello studente (segno *Corretta da te*). */
+  readonly corrected?: boolean;
+  /** Tieni premuto: foglio delle azioni (nel feed, per *Segnala errore*). */
+  readonly onActions?: () => void;
+}
+
+/** Durata della pressione che apre le azioni, come nelle schede. */
+const LONG_PRESS_MS = 550;
+
+/**
+ * Tieni premuto senza muovere il dito: apre le azioni. Un movimento (swipe di
+ * vero/falso, scroll del feed) annulla la pressione.
+ *
+ * @param onLongPress - Azione, oppure `undefined` per nessuna.
+ * @returns I gestori dei puntatori da mettere sull'area della domanda.
+ */
+function useLongPress(onLongPress: (() => void) | undefined) {
+  const timer = useRef<number | null>(null);
+  const origin = useRef<{ x: number; y: number } | null>(null);
+  const cancel = () => {
+    if (timer.current !== null) window.clearTimeout(timer.current);
+    timer.current = null;
+    origin.current = null;
+  };
+  useEffect(() => cancel, []);
+  if (!onLongPress) return {};
+  return {
+    onPointerDown: (event: React.PointerEvent) => {
+      if ((event.target as Element).closest('button, a')) return;
+      origin.current = { x: event.clientX, y: event.clientY };
+      timer.current = window.setTimeout(() => {
+        cancel();
+        onLongPress();
+      }, LONG_PRESS_MS);
+    },
+    onPointerMove: (event: React.PointerEvent) => {
+      const from = origin.current;
+      if (from && Math.hypot(event.clientX - from.x, event.clientY - from.y) > 10) cancel();
+    },
+    onPointerUp: cancel,
+    onPointerCancel: cancel,
+    onContextMenu: (event: React.MouseEvent) => {
+      event.preventDefault();
+    },
+  };
 }
 
 /** Spiegazione dopo la risposta. */
@@ -169,8 +214,9 @@ export function QuizSlide(props: QuizSlideProps) {
   const copy = CARD_COPY[props.language];
   const isTrueFalse = props.entry.quiz.kind === 'true_false';
   const batch = props.entry.batch;
+  const press = useLongPress(props.onActions);
   return (
-    <div className="ef-stage">
+    <div className="ef-stage" {...press}>
       <div className="ef-tag">
         <span className="k">{isTrueFalse ? copy.trueFalse : copy.check}</span>
         {batch.size > 1 ? (
@@ -179,6 +225,7 @@ export function QuizSlide(props: QuizSlideProps) {
           </span>
         ) : null}
         {props.showPoints ? <span>+{POINTS.answer}</span> : null}
+        {props.corrected ? <span className="ef-fixed-mark">{copy.corrected}</span> : null}
       </div>
       {isTrueFalse ? null : (
         <h2 className="ef-big sm">{props.entry.quiz.question[props.language]}</h2>
@@ -186,6 +233,13 @@ export function QuizSlide(props: QuizSlideProps) {
       {isTrueFalse ? <TrueFalse {...props} /> : <MultipleChoice {...props} />}
       {props.answer !== undefined && props.continueHint !== null ? (
         <span className="ef-hint">{props.continueHint ?? `${copy.nextCard} ↑`}</span>
+      ) : null}
+      {props.onActions ? (
+        <div className="ef-a11y">
+          <button type="button" onClick={props.onActions}>
+            Altre azioni
+          </button>
+        </div>
       ) : null}
     </div>
   );

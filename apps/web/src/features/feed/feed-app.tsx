@@ -30,6 +30,10 @@ import { FeedHud } from './feed-hud';
 import type { Session } from './session';
 import { newSession } from './session';
 import { useKeyboard } from './use-keyboard';
+import { correctedKey, correctSubject } from './report/apply';
+import type { ReportResult } from './report/report-sheet';
+import { ReportSheet } from './report/report-sheet';
+import { reportCorrection, useCorrections } from './report/use-corrections';
 import { useSpeech } from './use-speech';
 
 /** Quante schede si disegnano intorno a quella visibile: le altre sono segnaposto vuoti. */
@@ -84,7 +88,9 @@ export function FeedApp({
   const [cards, setCards] = useState<Record<string, CardState>>({});
   const [answers, setAnswers] = useState<Record<string, QuizAnswer>>({});
   const [languages, setLanguages] = useState<Record<string, StudyLanguage>>({});
-  const [sheet, setSheet] = useState<'actions' | 'chapters' | null>(null);
+  const [sheet, setSheet] = useState<'actions' | 'chapters' | 'report' | null>(null);
+  const [notice, setNotice] = useState<{ id: number; text: string } | null>(null);
+  const { corrections } = useCorrections();
   const [forcedIntro, setForcedIntro] = useState(false);
   const [session, setSession] = useState<Session>(() => newSession(0));
   const [ended, setEnded] = useState(false);
@@ -185,8 +191,22 @@ export function FeedApp({
   }, [attempt, openFeed]);
 
   const feed = load.status === 'ready' ? load.feed : null;
-  const entries = useMemo(() => (feed ? buildEntries(feed) : []), [feed]);
-  const chapters = useMemo(() => (feed ? chapterIndex(feed, entries) : []), [feed, entries]);
+  // Le correzioni dello studente si applicano qui, sul dispositivo (ADR 0020):
+  // la copia scaricata resta quella condivisa.
+  const corrected = useMemo(
+    () => (feed ? correctSubject(feed, corrections) : null),
+    [feed, corrections],
+  );
+  const shownFeed = corrected?.feed ?? null;
+  const entries = useMemo(() => (shownFeed ? buildEntries(shownFeed) : []), [shownFeed]);
+  const chapters = useMemo(
+    () => (shownFeed ? chapterIndex(shownFeed, entries) : []),
+    [shownFeed, entries],
+  );
+  const isCorrected = (item: FeedEntry) =>
+    corrected?.corrected.has(
+      correctedKey(item.lessonId, item.type === 'card' ? item.card.id : item.quiz.id),
+    ) ?? false;
   const savedKeys = useMemo(() => new Set(saved.map((card) => card.key)), [saved]);
   const entry: FeedEntry | undefined = entries[current];
   const languageOf = useCallback(
@@ -220,6 +240,17 @@ export function FeedApp({
       window.clearInterval(id);
     };
   }, [feed, session.startedAt]);
+
+  // Avviso dopo una correzione: resta qualche secondo.
+  useEffect(() => {
+    if (!notice) return;
+    const id = window.setTimeout(() => {
+      setNotice(null);
+    }, 5000);
+    return () => {
+      window.clearTimeout(id);
+    };
+  }, [notice]);
 
   const scrollToIndex = useCallback(
     (index: number) => {
@@ -379,6 +410,35 @@ export function FeedApp({
     stopSpeaking();
   };
 
+  /**
+   * Salva le correzioni del foglio *Segnala errore*. Se lo studente aveva
+   * già risposto alla domanda con quella che ora è la risposta giusta, il
+   * ripasso la conta come giusta.
+   */
+  const saveReport = (item: FeedEntry, result: ReportResult) => {
+    if (!feed) return;
+    for (const draft of result.drafts) reportCorrection(feed.subjectId, draft);
+    const given = answers[item.key];
+    const fix = result.answerFix;
+    if (item.type === 'quiz' && fix && given !== undefined) {
+      const nowRight =
+        fix.kind === 'true_false' ? given === fix.answer : given === fix.correctIndex;
+      if (nowRight) {
+        void recordStudyAnswer({
+          subjectId: feed.subjectId,
+          conceptKey: item.quiz.conceptKey,
+          questionId: item.key,
+          source: 'feed',
+          grade: gradeFromAnswer(true),
+          language: languageOf(item),
+        });
+      }
+    }
+    nextId.current += 1;
+    setNotice({ id: nextId.current, text: result.message });
+    setSheet(null);
+  };
+
   const finishSession = (again: boolean) => {
     setEnded(false);
     setSession(newSession(Date.now()));
@@ -489,6 +549,7 @@ export function FeedApp({
                   story={storyOf(item.card, language)}
                   state={cards[item.key] ?? INITIAL_CARD}
                   saved={savedKeys.has(item.key)}
+                  corrected={isCorrected(item)}
                   autoMs={index === current ? autoMs : 0}
                   onGesture={(gesture) => {
                     onGesture(index, gesture);
@@ -504,6 +565,10 @@ export function FeedApp({
                   language={language}
                   answer={answers[item.key]}
                   showPoints={prefs.points}
+                  corrected={isCorrected(item)}
+                  onActions={() => {
+                    if (!ended) setSheet('actions');
+                  }}
                   onAnswer={(answer, correct) => {
                     onAnswer(item, answer, correct);
                   }}
@@ -564,10 +629,41 @@ export function FeedApp({
             setSheet(null);
             setForcedIntro(true);
           }}
+          onReport={() => {
+            stopSpeaking();
+            setSheet('report');
+          }}
           onClose={() => {
             setSheet(null);
           }}
         />
+      ) : null}
+      {sheet === 'report' && entry && shownFeed ? (
+        <ReportSheet
+          entry={entry}
+          language={languageOf(entry)}
+          beat={
+            entry.type === 'card'
+              ? (() => {
+                  const story = storyOf(entry.card, languageOf(entry));
+                  const state = cards[entry.key] ?? INITIAL_CARD;
+                  return story.beats[Math.min(state.beat, story.beats.length - 1)] ?? null;
+                })()
+              : null
+          }
+          subject={shownFeed}
+          onSave={(result) => {
+            saveReport(entry, result);
+          }}
+          onClose={() => {
+            setSheet(null);
+          }}
+        />
+      ) : null}
+      {notice ? (
+        <p key={notice.id} className="ef-notice" role="status">
+          {notice.text}
+        </p>
       ) : null}
       {sheet === 'chapters' ? (
         <ChapterSheet

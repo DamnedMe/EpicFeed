@@ -15,7 +15,7 @@ Vincoli: il feed di una lezione è uno solo per tutti quelli che l'hanno importa
 ### 1. Correggi la frase (scelta A)
 Dal foglio azioni (*tieni premuto*) **Segnala errore** apre un foglio con la frase della battuta che si stava leggendo già pronta da modificare; con le frecce si sceglie un'altra frase della scheda. Un motivo rapido (contenuto, traduzione, codice, poco chiaro) e, se non si sa la correzione, **Rifalla da capo**: la scheda la riscrive Claude dai riassunti.
 
-Le domande si segnalano allo stesso modo; in più si può indicare che **la risposta giusta è un'altra**. La risposta data prima non conta come errore nel ripasso.
+Le domande si segnalano allo stesso modo; in più si può indicare che **la risposta giusta è un'altra**. La risposta data prima non conta come errore nel ripasso: il ripasso FSRS non cancella risposte, quindi se lo studente aveva dato la risposta che ora risulta giusta l'app registra per quel concetto una risposta giusta, così il concetto non torna prima del dovuto.
 
 ### 2. L'altra lingua la sistema Claude (scelta A)
 Lo studente corregge la lingua che vede. La correzione resta *in attesa di Claude*: alla prossima sessione su Claude Desktop, Claude la verifica con i riassunti e scrive la stessa correzione nell'altra lingua. Se la correzione non trova riscontro nei riassunti, Claude non la scarta: la segna *da ricontrollare* con una nota e il passaggio del riassunto, e la correzione resta applicata finché lo studente non la annulla. Il codice non si traduce e le risposte valgono per entrambe le lingue: lì Claude non serve.
@@ -51,5 +51,5 @@ Due strumenti nuovi, usati dal prompt di generazione: `segnalazioni_in_attesa` (
 
 ## Conseguenze
 - `@epicfeed/feed`: `domain/corrections.ts` (regole e applicazione), `application/corrections.ts` (`ReportError`, `ListCorrections`, `WithdrawCorrection`, `CompleteCorrection`), `contracts/corrections.ts`, `infrastructure/correction-repository.ts`.
-- Web app: `features/feed/api/corrections-handler.ts` e `correction-generation-handler.ts`; interfaccia in PR 2 (foglio, correzioni applicate al feed, *Le mie segnalazioni* in Io).
+- Web app: `features/feed/api/corrections-handler.ts` e `correction-generation-handler.ts`; interfaccia in `features/feed/report/` (foglio, correzioni applicate al feed con `correctSubject`, sincronizzazione, *Le mie segnalazioni* in `/profile/reports`).
 - L'ADR 0006 prevedeva entità `Correction` e `Glossary` nel core: con l'ADR 0019 stanno nel pacchetto `feed`, e il glossario personale si ricava dalle correzioni di tipo `term` invece di una tabella a parte.

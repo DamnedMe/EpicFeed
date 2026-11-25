@@ -66,6 +66,7 @@ const paths = {
     </>
   ),
   close: <path d="M6 6l12 12M18 6L6 18" />,
+  flag: <path d="M5 21V4h11l-1.5 4L16 12H5" />,
 } as const;
 
 export type IconName = keyof typeof paths;

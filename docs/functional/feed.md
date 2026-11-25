@@ -39,8 +39,31 @@ Il tocco singolo aspetta un attimo (230 ms) per capire se arriva un secondo tocc
 - **Leggi in inglese / in italiano**;
 - **Guarda sul portale**: apre sul portale Epicode la parte video della scheda e dice a che minuto cercare (*cerca il minuto 4:12 nel player*); se la scheda non ha un minuto apre la lezione;
 - **Fonte**: la parte da cui viene la scheda (per le slide si apre la lezione, perché le slide non hanno una pagina loro sul portale);
+- **Segnala errore**: corregge la scheda (vedi sotto);
 - **Chiedi a Claude**: in arrivo con l'assistente di studio (M6);
 - **Rivedi i gesti**.
+
+Anche sulle domande, *tieni premuto* (o il pulsante *Altre azioni* per chi usa il lettore di schermo) apre il foglio con **Segnala errore**.
+
+## Segnala errore (M5)
+Il foglio si apre con la frase che si stava leggendo già pronta da correggere; le frecce ‹ › passano alle altre frasi della scheda (titolo, frase chiave, passi, righe del confronto, spiegazione, righe di codice). Si sceglie un motivo (*contenuto sbagliato*, *traduzione*, *codice*, *poco chiaro*) e si tocca **Salva correzione**. Per le domande si può anche indicare **qual è la risposta giusta**.
+
+- La correzione si vede subito, con il segno *corretta da te* sulla scheda, anche senza rete: parte verso il server quando torna la connessione e vale su tutti i propri dispositivi. Le correzioni sono **solo personali**.
+- Si corregge la lingua che si vede: l'altra la allinea Claude alla prossima sessione su Claude Desktop.
+- Se la correzione cambia un solo **termine** che compare anche in altre schede della materia (es. «Big 0» → «Big O»), il foglio chiede se correggerlo **in tutte** o **solo in questa**. Il termine si sostituisce come parola intera, nelle due lingue, mai dentro il codice.
+- **Non so la correzione: rifalla da capo** chiede a Claude di riscrivere la scheda dai riassunti.
+- Se una domanda aveva la risposta giusta sbagliata e la si era data "giusta", nel ripasso conta come risposta giusta: il concetto non torna più presto per colpa dell'errore.
+
+Le correzioni restano anche quando la lezione viene rigenerata: si ritrovano cercando la frase originale. Se la frase non c'è più, la correzione diventa *da ricontrollare*.
+
+### Le mie segnalazioni
+In *Io → I tuoi dati sul dispositivo → Le mie segnalazioni* c'è l'elenco delle correzioni, dalla più recente, con lo stato:
+- **Applicata** (anche *in tutta la materia* per i termini; *altra lingua in attesa di Claude* finché Claude non l'ha allineata);
+- **In attesa di Claude** per le schede da rifare;
+- **Da inviare** se non è ancora arrivata al server;
+- **Da ricontrollare** se la lezione è cambiata e la frase non c'è più, oppure se Claude non trova riscontro nei riassunti (con la sua nota e il passaggio del riassunto). La correzione resta applicata finché non la si annulla.
+
+**Annulla** toglie la correzione da tutti i dispositivi.
 
 ## Domande
 Dopo ogni 3 schede arriva un gruppo di **fino a 3 domande** della stessa lezione: prima quelle sui concetti delle schede appena lette, poi quelle sugli altri concetti già letti nella lezione, mai su qualcosa che non si è ancora visto. In alto a destra la domanda dice la sua posizione nel gruppo (*1/3*, *2/3*, …). Alla fine della lezione arriva un ultimo gruppo con le domande rimaste sulle ultime schede. Sul corso DSA quasi tutte le domande generate (246 su 247) entrano così nel feed.
@@ -58,7 +81,7 @@ Le schede partono nella **lingua di studio** e le domande nella **lingua delle d
 ## Io
 - **Aspetto**: tema scuro, chiaro o automatico e uno dei 5 accenti; valgono subito e restano per le visite successive.
 - **Studio**: lingua di studio, lingua delle domande, punti e serie, vibrazione, animazioni (si spengono da sole se il sistema chiede di ridurle), avanzamento automatico alla velocità di lettura, *Rivedi i gesti*.
-- **I tuoi dati sul dispositivo**: *Salvati* (un tocco riapre il feed su quella scheda), punti totali, serie migliore, sessioni completate.
+- **I tuoi dati sul dispositivo**: *Salvati* (un tocco riapre il feed su quella scheda), *Le mie segnalazioni*, punti totali, serie migliore, sessioni completate.
 - **Contenuti**: Le mie lezioni, Estensione, Claude Desktop. In fondo, *Esci*.
 
 ## Cosa resta sul telefono

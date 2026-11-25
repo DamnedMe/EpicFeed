@@ -19,6 +19,8 @@ interface CardSlideProps {
   readonly story: CardStory;
   readonly state: CardState;
   readonly saved: boolean;
+  /** Scheda cambiata da una correzione dello studente (segno *Corretta da te*). */
+  readonly corrected?: boolean;
   /** Durata della battuta in avanzamento automatico (0 se spento). */
   readonly autoMs: number;
   readonly onGesture: (gesture: Gesture) => void;
@@ -206,6 +208,7 @@ export function CardSlide({
   story,
   state,
   saved,
+  corrected = false,
   autoMs,
   onGesture,
   onRevealBlank,
@@ -275,6 +278,7 @@ export function CardSlide({
             </span>
           ) : null}
           {saved ? <span className="saved">· {copy.saved}</span> : null}
+          {corrected ? <span className="ef-fixed-mark">{copy.corrected}</span> : null}
         </div>
         <BeatContent
           story={story}
