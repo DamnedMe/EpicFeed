@@ -21,7 +21,7 @@ Le domande si segnalano allo stesso modo; in più si può indicare che **la risp
 Lo studente corregge la lingua che vede. La correzione resta *in attesa di Claude*: alla prossima sessione su Claude Desktop, Claude la verifica con i riassunti e scrive la stessa correzione nell'altra lingua. Se la correzione non trova riscontro nei riassunti, Claude non la scarta: la segna *da ricontrollare* con una nota e il passaggio del riassunto, e la correzione resta applicata finché lo studente non la annulla. Il codice non si traduce e le risposte valgono per entrambe le lingue: lì Claude non serve.
 
 ### 3. Un termine si corregge ovunque, con conferma (scelta A)
-Se la correzione riguarda un termine (es. «Big 0» al posto di «Big O»), l'app conta in quante schede della materia compare e propone di correggerle tutte insieme oppure solo quella. Il termine si sostituisce come parola intera, nelle due lingue, in schede, domande e concetti, mai dentro il codice. Le correzioni di termini entrano nel glossario personale della materia, che Claude Desktop riceve nelle generazioni successive (M5, PR 3).
+Se la correzione riguarda un termine (es. «Big 0» al posto di «Big O»), l'app conta in quante schede della materia compare e propone di correggerle tutte insieme oppure solo quella. Il termine si sostituisce come parola intera, nelle due lingue, in schede, domande e concetti, mai dentro il codice. Una correzione di termine vale per tutta la materia, quindi anche per le lezioni generate dopo: l'app la applica a ogni lezione sul dispositivo. Claude Desktop non la riceve quando genera, perché il feed è condiviso e le correzioni restano personali (scelta di Damian, 25/11).
 
 ### 4. Le correzioni si applicano sul dispositivo (scelta A)
 Il server manda il feed com'è e, a parte, l'elenco delle correzioni dello studente (`GET /api/corrections`); la web app le applica mentre disegna le schede. Così:
@@ -40,8 +40,8 @@ L'applicazione è una funzione pura del dominio (`applyCorrections` di `@epicfee
 - Limiti: 1.000 correzioni per studente, testi fino a 2.000 caratteri, 24 interventi per esito di Claude.
 - Le correzioni non cambiano mai il feed condiviso né il glossario comune.
 
-### Server MCP (PR 3)
-Due strumenti nuovi, usati dal prompt di generazione: `segnalazioni_in_attesa` (le correzioni da completare, con l'elemento come lo vedeva lo studente) e `completa_segnalazione` (la correzione nell'altra lingua, la scheda rifatta, oppure la nota *da ricontrollare*). I nomi evitano `salva_correzione`, già usato dalla correzione degli esercizi d'esame. `segnala_errore`, per segnalare chiedendolo a Claude, arriva in M6 con l'assistente di studio.
+### Server MCP
+Due strumenti nuovi (`apps/mcp/src/feed/report-tools.ts`), con il prompt `sistema_segnalazioni`; le istruzioni del server chiedono di usarli anche alla fine di ogni generazione: `segnalazioni_in_attesa` (le correzioni da completare, con l'elemento come lo vedeva lo studente) e `completa_segnalazione` (la correzione nell'altra lingua, la scheda rifatta, oppure la nota *da ricontrollare*). I nomi evitano `salva_correzione`, già usato dalla correzione degli esercizi d'esame. `segnala_errore`, per segnalare chiedendolo a Claude, arriva in M6 con l'assistente di studio.
 
 ## Alternative scartate
 - **Evidenzia e riscrivi**: preciso, ma selezionare il testo si scontra con i gesti del feed (*tieni premuto* apre già le azioni).
@@ -52,4 +52,4 @@ Due strumenti nuovi, usati dal prompt di generazione: `segnalazioni_in_attesa` (
 ## Conseguenze
 - `@epicfeed/feed`: `domain/corrections.ts` (regole e applicazione), `application/corrections.ts` (`ReportError`, `ListCorrections`, `WithdrawCorrection`, `CompleteCorrection`), `contracts/corrections.ts`, `infrastructure/correction-repository.ts`.
 - Web app: `features/feed/api/corrections-handler.ts` e `correction-generation-handler.ts`; interfaccia in `features/feed/report/` (foglio, correzioni applicate al feed con `correctSubject`, sincronizzazione, *Le mie segnalazioni* in `/profile/reports`).
-- L'ADR 0006 prevedeva entità `Correction` e `Glossary` nel core: con l'ADR 0019 stanno nel pacchetto `feed`, e il glossario personale si ricava dalle correzioni di tipo `term` invece di una tabella a parte.
+- L'ADR 0006 prevedeva entità `Correction` e `Glossary` nel core: con l'ADR 0019 stanno nel pacchetto `feed`, e il glossario personale sono le correzioni di tipo `term`, applicate solo sul dispositivo, invece di una tabella a parte.

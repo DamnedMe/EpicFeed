@@ -49,7 +49,7 @@ Anche sulle domande, *tieni premuto* (o il pulsante *Altre azioni* per chi usa i
 Il foglio si apre con la frase che si stava leggendo già pronta da correggere; le frecce ‹ › passano alle altre frasi della scheda (titolo, frase chiave, passi, righe del confronto, spiegazione, righe di codice). Si sceglie un motivo (*contenuto sbagliato*, *traduzione*, *codice*, *poco chiaro*) e si tocca **Salva correzione**. Per le domande si può anche indicare **qual è la risposta giusta**.
 
 - La correzione si vede subito, con il segno *corretta da te* sulla scheda, anche senza rete: parte verso il server quando torna la connessione e vale su tutti i propri dispositivi. Le correzioni sono **solo personali**.
-- Si corregge la lingua che si vede: l'altra la allinea Claude alla prossima sessione su Claude Desktop.
+- Si corregge la lingua che si vede: l'altra la allinea Claude su Claude Desktop, alla fine della prossima generazione oppure chiedendo **"sistema le mie segnalazioni di EpicFeed"**. Claude controlla la correzione con i riassunti: se non torna, la segna *da ricontrollare* con una nota.
 - Se la correzione cambia un solo **termine** che compare anche in altre schede della materia (es. «Big 0» → «Big O»), il foglio chiede se correggerlo **in tutte** o **solo in questa**. Il termine si sostituisce come parola intera, nelle due lingue, mai dentro il codice.
 - **Non so la correzione: rifalla da capo** chiede a Claude di riscrivere la scheda dai riassunti.
 - Se una domanda aveva la risposta giusta sbagliata e la si era data "giusta", nel ripasso conta come risposta giusta: il concetto non torna più presto per colpa dell'errore.

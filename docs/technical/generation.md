@@ -90,6 +90,7 @@ Gira sul PC dello studente dentro Claude Desktop, come estensione `.mcpb`. Parla
 | `src/feed/prompt.ts` | Istruzioni di generazione versionate (`PROMPT_VERSION`, formato `AAAA-MM-GG.n`): gerarchia delle fonti, tipi di scheda, quiz, concetti, glossario. Ogni feed salvato porta la versione: se le istruzioni cambiano si sa quali lezioni rigenerare. Cambiare il testo significa aumentare la versione. |
 | `src/api-client.ts` | `EpicFeedApi`: token solo nell'header `Authorization`, solo HTTPS (HTTP solo verso localhost), `redirect: 'error'`, timeout di 30 s, risposte validate con gli schemi dei pacchetti di funzione (`@epicfeed/feed`, `@epicfeed/exam`, `@epicfeed/shared`). Errori come `ApiRequestError(status, code, message, issues)`. |
 | `src/server.ts`, `src/feed/tools.ts` | `createEpicFeedServer(api)` monta gli strumenti delle due funzioni; `registerFeedTools` registra quelli del feed e il prompt (sotto). Ricorda in memoria solo le parti delle lezioni lette, per il controllo locale. |
+| `src/feed/report-prompt.ts`, `src/feed/report-tools.ts` | Istruzioni versionate (`REPORT_PROMPT_VERSION`) e strumenti di *Segnala errore* (`registerReportTools`). Ricorda in memoria le segnalazioni lette, per il controllo locale. |
 | `src/exam/bank-tools.ts` | Strumenti della banca degli esercizi (`registerExamBankTools`): legge il materiale d'esame dallo zip sul PC e ricorda i concetti della materia per il controllo locale. |
 | `src/exam/prompt.ts`, `src/exam/pack-tools.ts` | Istruzioni versionate (`EXAM_PROMPT_VERSION`) e strumenti dei pacchetti d'esame (`registerExamTools`). Ricorda in memoria concetti e domande del feed letto, per il controllo locale. |
 | `src/tool-results.ts` | Risultati comuni: testo, elenco dei problemi da correggere, errori dell'API spiegati a Claude. |
@@ -112,8 +113,10 @@ Strumenti (nomi in italiano, perché Claude li mostra allo studente):
 | `salva_esercizi_esame { subjectId, bank }` | Controlla la banca con `checkExamBank` e la invia con `EXAM_BANK_PROMPT_VERSION`. |
 | `risposte_da_correggere` | Invii in attesa di correzione (fino a 5 per volta): consegna, risposta con le righe numerate, test, approfondimento, soluzione modello e griglia, più le istruzioni (sezione *Correzione delle risposte*). |
 | `salva_correzione { id, correction }` | Controlla la correzione con `checkCorrection` e la invia. |
+| `segnalazioni_in_attesa` | Correzioni di *Segnala errore* in attesa di Claude (fino a 5 per volta): tipo, lezione, interventi dello studente ed elemento come lo vedeva, più le istruzioni (sezione *Segnala errore*). |
+| `completa_segnalazione { id, completion }` | Controlla l'esito con `checkCompletion` e lo invia. |
 
-Il prompt MCP `genera_lezioni` avvia la generazione di tutte le lezioni nuove; `genera_domande_esame` quella dei pacchetti d'esame; `correggi_risposte` la correzione delle risposte inviate dall'app. Le istruzioni del server (`SERVER_INSTRUCTIONS`) dicono a Claude l'ordine degli strumenti e di non chiedere conferma lezione per lezione. Un `409 CONFLICT` suggerisce di rileggere la lezione; un `401` di creare un nuovo token. Gli errori inattesi non mostrano dettagli.
+Il prompt MCP `genera_lezioni` avvia la generazione di tutte le lezioni nuove; `genera_domande_esame` quella dei pacchetti d'esame; `correggi_risposte` la correzione delle risposte inviate dall'app; `sistema_segnalazioni` il completamento delle segnalazioni. Le istruzioni del server (`SERVER_INSTRUCTIONS`) dicono a Claude l'ordine degli strumenti e di non chiedere conferma lezione per lezione. Un `409 CONFLICT` suggerisce di rileggere la lezione; un `401` di creare un nuovo token. Gli errori inattesi non mostrano dettagli.
 
 ### Slide dallo zip (`importa_slide`, ADR 0012)
 Tutto avviene sul PC; a EpicFeed arriva solo il testo.
@@ -217,4 +220,8 @@ App ── GET /api/corrections ──▶ applyCorrections sul dispositivo
 
 - **Esito `done`**: interventi `{ field, index?, language, original, corrected }` sulla stessa scheda o domanda. Per una frase corretta in una lingua serve la stessa frase nell'altra (`checkCompletion`); per una scheda da rifare almeno un intervento, scritto solo dai riassunti.
 - **Esito `disputed`**: nota in italiano (≤ 600 caratteri) e, se c'è, il passaggio del riassunto che contraddice la correzione. La correzione resta applicata e lo studente la ritrova *da ricontrollare*.
-- Vale il primo esito (`409` per i successivi). Gli strumenti MCP arrivano nella PR 3 di M5.
+- Vale il primo esito (`409` per i successivi: lo strumento rimanda alla segnalazione successiva).
+- Le istruzioni (`REPORT_INSTRUCTIONS`) chiedono di leggere prima le fonti con `leggi_lezione` e di verificare la correzione con i riassunti; `original` va preso dall'elemento come lo vedeva lo studente. Le istruzioni del server chiedono di controllare le segnalazioni anche alla fine di ogni generazione.
+- Claude non modifica mai il feed condiviso: completa solo la correzione personale.
+
+Uso: in Claude Desktop, "sistema le mie segnalazioni di EpicFeed" (o il prompt `sistema_segnalazioni`).

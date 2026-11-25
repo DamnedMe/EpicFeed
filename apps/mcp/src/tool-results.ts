@@ -34,13 +34,16 @@ export function issuesResult(
       ? 'Il feed'
       : tool === 'salva_correzione'
         ? 'La correzione'
-        : 'Il pacchetto';
+        : tool === 'completa_segnalazione'
+          ? 'La segnalazione'
+          : 'Il pacchetto';
+  const feminine = what === 'La correzione' || what === 'La segnalazione';
   return {
     isError: true,
     content: [
       {
         type: 'text',
-        text: `${what} non è stat${what === 'La correzione' ? 'a salvata' : 'o salvato'}: ${String(issues.length)} problemi da correggere.\n${list}\nCorreggi solo questi punti e chiama di nuovo ${tool}.`,
+        text: `${what} non è stat${feminine ? 'a salvata' : 'o salvato'}: ${String(issues.length)} problemi da correggere.\n${list}\nCorreggi solo questi punti e chiama di nuovo ${tool}.`,
       },
     ],
   };
@@ -66,7 +69,9 @@ export async function withErrors(
       const reread =
         tool === 'salva_feed_lezione'
           ? ' Chiama di nuovo leggi_lezione e rigenera il feed dalle fonti aggiornate.'
-          : ' Chiama di nuovo leggi_lezione_esame e riscrivi il pacchetto sul feed aggiornato.';
+          : tool === 'completa_segnalazione'
+            ? ' Passa alla segnalazione successiva: chiama di nuovo segnalazioni_in_attesa.'
+            : ' Chiama di nuovo leggi_lezione_esame e riscrivi il pacchetto sul feed aggiornato.';
       const hint =
         error.code === 'UNAUTHORIZED'
           ? ' Crea un nuovo token nella pagina Claude Desktop di EpicFeed e incollalo nelle impostazioni dell’estensione.'

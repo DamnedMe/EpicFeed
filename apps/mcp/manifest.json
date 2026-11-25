@@ -69,6 +69,14 @@
     {
       "name": "salva_correzione",
       "description": "Controlla e salva la correzione di un invio, con suggerimenti sulle righe."
+    },
+    {
+      "name": "segnalazioni_in_attesa",
+      "description": "Correzioni fatte con Segnala errore che aspettano Claude."
+    },
+    {
+      "name": "completa_segnalazione",
+      "description": "Controlla e salva l'altra lingua o l'elemento rifatto di una segnalazione."
     }
   ],
   "prompts": [
@@ -86,6 +94,11 @@
       "name": "correggi_risposte",
       "description": "Corregge in inglese le risposte d'esame inviate dall'app.",
       "text": "Correggi le mie risposte d'esame di EpicFeed in attesa, un invio alla volta, con gli strumenti di EpicFeed."
+    },
+    {
+      "name": "sistema_segnalazioni",
+      "description": "Completa le correzioni fatte con Segnala errore: altra lingua e schede da rifare.",
+      "text": "Sistema le mie segnalazioni di EpicFeed in attesa, una alla volta, con gli strumenti di EpicFeed."
     }
   ],
   "user_config": {
