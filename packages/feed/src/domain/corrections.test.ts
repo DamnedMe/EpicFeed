@@ -11,6 +11,7 @@ import {
   checkCompletion,
   checkCorrectionDraft,
   countTermUsage,
+  findText,
   initialClaudeStatus,
   missingLanguageEdits,
 } from './corrections.js';
@@ -349,6 +350,15 @@ describe('applyCorrections su confronti e domande', () => {
       'tf-same': 'already',
       'tf-gone': 'missing',
     });
+  });
+});
+
+describe('findText', () => {
+  it('trova una frase anche se il campo ha a capo o spazi doppi', () => {
+    expect(findText('Uno.\n\nDue  parole qui.', 'Due parole qui.')).toEqual({ start: 6, end: 22 });
+    expect(findText('abc', 'abc')).toEqual({ start: 0, end: 3 });
+    expect(findText('abc', 'x (y)')).toBeNull();
+    expect(findText('abc', '   ')).toBeNull();
   });
 });
 

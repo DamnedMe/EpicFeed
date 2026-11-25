@@ -517,11 +517,32 @@ function tryEdit(item: Record<string, unknown>, edit: TextEdit): CorrectionOutco
   const access = fieldAccess(item, edit);
   if (!access) return 'missing';
   const text = access.get();
-  if (text.includes(edit.original)) {
-    access.set(text.replace(edit.original, () => edit.corrected));
+  const found = findText(text, edit.original);
+  if (found) {
+    access.set(text.slice(0, found.start) + edit.corrected + text.slice(found.end));
     return 'applied';
   }
-  return text.includes(edit.corrected) ? 'already' : 'missing';
+  return findText(text, edit.corrected) ? 'already' : 'missing';
+}
+
+/**
+ * Cerca un tratto di testo. Le frasi mostrate nel feed hanno gli spazi
+ * compattati (`splitSentences`), il campo salvato può avere a capo o spazi
+ * doppi: se il confronto esatto fallisce, ogni gruppo di spazi vale come uno.
+ *
+ * @returns Inizio e fine nel testo, oppure `null`.
+ */
+export function findText(text: string, part: string): { start: number; end: number } | null {
+  const exact = text.indexOf(part);
+  if (exact >= 0) return { start: exact, end: exact + part.length };
+  const words = part.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return null;
+  const pattern = new RegExp(
+    words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+'),
+    'u',
+  );
+  const match = pattern.exec(text);
+  return match ? { start: match.index, end: match.index + match[0].length } : null;
 }
 
 function applyEdit(
@@ -542,7 +563,7 @@ function applyEdit(
   for (const item of items) {
     if (item === own) continue;
     const access = fieldAccess(item, edit);
-    if (access?.get().includes(edit.original)) {
+    if (access && findText(access.get(), edit.original)) {
       tryEdit(item, edit);
       return { outcome: 'applied', itemId: String(item.id) };
     }
