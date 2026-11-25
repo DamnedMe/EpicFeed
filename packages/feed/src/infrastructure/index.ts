@@ -6,3 +6,4 @@
  */
 export * from './generation-repository.js';
 export * from './study-feed-repository.js';
+export * from './correction-repository.js';

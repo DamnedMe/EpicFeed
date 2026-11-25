@@ -6,6 +6,7 @@ import {
 } from '@epicfeed/exam/infrastructure';
 import { DrizzleProgressRepository } from '@epicfeed/review/infrastructure';
 import {
+  DrizzleCorrectionRepository,
   DrizzleGenerationRepository,
   DrizzleStudyFeedRepository,
 } from '@epicfeed/feed/infrastructure';
@@ -28,14 +29,18 @@ import {
   SaveExamPack,
 } from '@epicfeed/exam';
 import {
+  CompleteCorrection,
   ImportLessonSlides,
+  ListCorrections,
   ListLessonsToGenerate,
   ListOwnedLessons,
   ListStudySubjects,
   ReadLessonForGeneration,
   ReadSubjectFeed,
   RealignLessonFeeds,
+  ReportError,
   SaveLessonFeed,
+  WithdrawCorrection,
 } from '@epicfeed/feed';
 import { ImportLesson } from '@epicfeed/ingest';
 import { PossessionProofVerifier } from '@epicfeed/catalog';
@@ -77,6 +82,11 @@ export interface Services {
   readonly listSubmissions: ListSubmissions;
   readonly saveCorrection: SaveCorrection;
   readonly deleteSubmission: DeleteSubmission;
+  /** Segnala errore (ADR 0020): correzioni personali al feed. */
+  readonly reportError: ReportError;
+  readonly listCorrections: ListCorrections;
+  readonly withdrawCorrection: WithdrawCorrection;
+  readonly completeCorrection: CompleteCorrection;
 }
 
 let services: Services | undefined;
@@ -107,6 +117,7 @@ export function getServices(): Services {
   const studyFeed = new DrizzleStudyFeedRepository(db);
   const exams = new DrizzleExamPackRepository(db);
   const submissions = new DrizzleExamSubmissionRepository(db);
+  const corrections = new DrizzleCorrectionRepository(db);
   const verifier = new PossessionProofVerifier(systemClock);
   services = {
     importLesson: new ImportLesson({ catalog, verifier, clock: systemClock }),
@@ -139,6 +150,10 @@ export function getServices(): Services {
     listSubmissions: new ListSubmissions(submissions, systemClock),
     saveCorrection: new SaveCorrection(submissions, systemClock),
     deleteSubmission: new DeleteSubmission(submissions),
+    reportError: new ReportError(corrections),
+    listCorrections: new ListCorrections(corrections),
+    withdrawCorrection: new WithdrawCorrection(corrections),
+    completeCorrection: new CompleteCorrection(corrections, systemClock),
   };
   return services;
 }

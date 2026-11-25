@@ -22,14 +22,14 @@
 <!-- stato:inizio -->
 <!-- Blocco generato da scripts/docs-status.mjs a partire da docs/status.json: non modificarlo a mano. -->
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://study-feed-steel.vercel.app/readme/status-light.svg?v=2026-11-24">
-  <img src="https://study-feed-steel.vercel.app/readme/status-dark.svg?v=2026-11-24" alt="Stato dello sviluppo di EpicFeed: milestone da M0 a M9" width="100%">
+  <source media="(prefers-color-scheme: light)" srcset="https://study-feed-steel.vercel.app/readme/status-light.svg?v=2026-11-25">
+  <img src="https://study-feed-steel.vercel.app/readme/status-dark.svg?v=2026-11-25" alt="Stato dello sviluppo di EpicFeed: milestone da M0 a M9" width="100%">
 </picture>
 
 > [!TIP]
 > 🏁 Ultimo traguardo: **M4 Ripasso ed esame** chiusa il 24/11: ripasso FSRS, progressi sincronizzati e cifrati, sezione Esame con quiz di modulo, esercizi con Python nel browser, correzione di Claude e colloquio in chat. **MVP completo.**
 >
-> 🛠️ Ora: **MVP completo** (M0–M4). Prossima milestone: **M5 Segnala errore**.
+> 🛠️ Ora: **M5 Segnala errore**: correzioni personali salvate nell'area privata e applicate al feed sul dispositivo.
 
 <!-- stato:fine -->
 

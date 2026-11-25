@@ -25,6 +25,8 @@ Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailw
 | `GET /api/feed/subjects` | Materie con lezioni importate e quante hanno un feed ([feed di studio](#feed-di-studio-m3)) | sessione |
 | `GET /api/feed/subjects/{id}` | Feed di tutta la materia, con ETag (`304` se invariato) | sessione |
 | `POST /api/exam/submissions`, `GET /api/exam/submissions`, `DELETE /api/exam/submissions/{id}` | Invio per la correzione di Claude, elenco con le correzioni arrivate, cancellazione dopo averle conservate ([esame](#esame-m4)); `POST` e `DELETE` solo dalla stessa origine | sessione |
+| `GET /api/corrections`, `POST /api/corrections`, `DELETE /api/corrections/{id}` | Correzioni personali di *Segnala errore*: elenco da applicare al feed sul dispositivo, nuova correzione (`201`, o `200` se l'id c'era già), annullamento ([ADR 0020](../decisions/0020-report-error-m5.md)); `POST` e `DELETE` solo dalla stessa origine | sessione |
+| `GET /api/generation/corrections`, `POST /api/generation/corrections/{id}/completion` | Correzioni in attesa di Claude e salvataggio del suo lavoro ([generation.md](generation.md#segnala-errore-m5)) | token "genera" |
 | `GET /api/exam/subjects/{id}` | Contenuti d'esame della materia: pacchetti dei feed correnti e banca dello studente, con ETag ([esame](#esame-m4)) | sessione |
 | `POST /api/import` | Import di una lezione ([import.md](import.md#api-post-apiimport)) | token di import |
 | `POST /api/extension/token` | Crea un token di import | sessione, stessa origine |

@@ -104,3 +104,54 @@ export const glossaryTerms = pgTable(
     }),
   ],
 ).enableRLS();
+
+/**
+ * Correzioni personali alle schede e alle domande (M5, ADR 0006 punto 3 e
+ * ADR 0020): area privata dello studente. Non cambiano il feed condiviso;
+ * la web app le scarica e le applica sul dispositivo. L'id lo sceglie l'app,
+ * così una correzione fatta offline si reinvia senza doppioni. Lo studente le
+ * vede solo con la RLS; scrive solo l'API sul server.
+ */
+export const feedCorrections = pgTable(
+  'feed_corrections',
+  {
+    id: uuid('id').primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => authUsers.id, { onDelete: 'cascade' }),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subjects.id, { onDelete: 'cascade' }),
+    /** Lezione corretta; `null` per un termine, che vale in tutta la materia. */
+    lessonId: uuid('lesson_id').references(() => lessons.id, { onDelete: 'cascade' }),
+    kind: text('kind').notNull(),
+    /** Correzione dello studente, validata con `correctionDraftSchema` di `@epicfeed/feed`. */
+    correction: jsonb('correction').notNull(),
+    claudeStatus: text('claude_status').notNull(),
+    /** Esito del lavoro di Claude (`correctionCompletionSchema`), `null` finché non arriva. */
+    completion: jsonb('completion'),
+    createdAt: createdAt(),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+  },
+  (t) => [
+    check('feed_corrections_kind_check', sql`kind in ('text', 'regenerate', 'answer', 'term')`),
+    check(
+      'feed_corrections_claude_status_check',
+      sql`claude_status in ('pending', 'done', 'disputed', 'not_needed')`,
+    ),
+    check('feed_corrections_lesson_check', sql`(kind = 'term') = (lesson_id is null)`),
+    check('feed_corrections_size_check', sql`pg_column_size(correction) <= 65536`),
+    check(
+      'feed_corrections_completion_size_check',
+      sql`completion is null or pg_column_size(completion) <= 65536`,
+    ),
+    index('feed_corrections_user_idx').on(t.userId, t.createdAt),
+    index('feed_corrections_subject_idx').on(t.subjectId),
+    index('feed_corrections_lesson_idx').on(t.lessonId),
+    pgPolicy('feed_corrections_select_own', {
+      for: 'select',
+      to: authenticatedRole,
+      using: sql`${t.userId} = ${authUid}`,
+    }),
+  ],
+).enableRLS();

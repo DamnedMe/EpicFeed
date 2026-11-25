@@ -40,7 +40,7 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
 | M2 | **Generazione via MCP** | Da Claude Desktop: "genera le lezioni nuove" crea schede, quiz, concetti e glossario per le versioni importate, con l'intervallo di video di ogni scheda | M |
 | M3 | **Feed** | Feed verticale sul telefono, swipe fluido, "Guarda sul portale" al minuto giusto, temi e accenti | M |
 | M4 | **Quiz, ripasso ed esame** | Quiz di fine capitolo, ripasso giornaliero FSRS, backup esportabile; sezione Esame con esercizi aperti in inglese, timer, simulazione scritta del colloquio di 20 minuti, quiz di modulo da 50 domande, correzione di Claude e codice eseguibile ([ADR 0014](decisions/0014-exam-preparation.md)). **Fine MVP** | L |
-| M5 | Segnala errore | Correzioni salvate nell'area privata e riapplicate alle nuove versioni | S |
+| M5 | Segnala errore | Correzioni salvate nell'area privata e riapplicate alle nuove versioni; avviata il 25/11/2026 con le scelte dell'[ADR 0020](decisions/0020-report-error-m5.md) | S |
 | M6 | Assistente di studio MCP | Strumenti di studio per Claude Desktop: cerca lezione, concetti deboli, quiz al volo, segnala errore | M |
 | M7 | Libri | Libreria, import PDF/EPUB via MCP, modalità Studiare/Solo leggere | L |
 | M8 | Rifinitura | Accedi con Google, audit di sicurezza, termini d'uso, prova con un altro studente | M |

@@ -1,8 +1,8 @@
 {
-  "aggiornato": "2026-11-24",
+  "aggiornato": "2026-11-25",
   "mvpFinoA": "M4",
   "ultimoTraguardo": "**M4 Ripasso ed esame** chiusa il 24/11: ripasso FSRS, progressi sincronizzati e cifrati, sezione Esame con quiz di modulo, esercizi con Python nel browser, correzione di Claude e colloquio in chat. **MVP completo.**",
-  "inCorso": "**MVP completo** (M0–M4). Prossima milestone: **M5 Segnala errore**.",
+  "inCorso": "**M5 Segnala errore**: correzioni personali salvate nell'area privata e applicate al feed sul dispositivo.",
   "milestone": [
     {
       "id": "M0",
@@ -37,7 +37,9 @@
     {
       "id": "M5",
       "nome": "Segnala errore",
-      "stato": "da-fare"
+      "stato": "in-corso",
+      "avanzamento": 0.3,
+      "nota": "dati e API"
     },
     {
       "id": "M6",
