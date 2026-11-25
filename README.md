@@ -27,9 +27,9 @@
 </picture>
 
 > [!TIP]
-> 🏁 Ultimo traguardo: **M4 Ripasso ed esame** chiusa il 24/11: ripasso FSRS, progressi sincronizzati e cifrati, sezione Esame con quiz di modulo, esercizi con Python nel browser, correzione di Claude e colloquio in chat. **MVP completo.**
+> 🏁 Ultimo traguardo: **M5 Segnala errore** chiusa il 25/11: correzioni personali di schede e domande dal feed, applicate sul dispositivo anche offline, *Le mie segnalazioni* in Io e completamento dell'altra lingua da Claude Desktop.
 >
-> 🛠️ Ora: **M5 Segnala errore**: correzioni personali salvate nell'area privata e applicate al feed sul dispositivo.
+> 🛠️ Ora: Prossima: **M6 Assistente di studio MCP**.
 
 <!-- stato:fine -->
 
