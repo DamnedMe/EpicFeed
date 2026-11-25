@@ -620,14 +620,12 @@ function termTargets(item: Record<string, unknown>): Record<StudyLanguage, unkno
     | {
         left: Record<StudyLanguage, unknown>;
         right: Record<StudyLanguage, unknown>;
-        rows: Record<string, Record<StudyLanguage, unknown>>[];
+        rows: Record<'aspect' | 'left' | 'right', Record<StudyLanguage, unknown>>[];
       }
     | undefined;
   if (comparison) {
     targets.push(comparison.left, comparison.right);
-    for (const row of comparison.rows) {
-      for (const cell of [row.aspect, row.left, row.right]) if (cell) targets.push(cell);
-    }
+    for (const row of comparison.rows) targets.push(row.aspect, row.left, row.right);
   }
   return targets;
 }
@@ -648,8 +646,7 @@ function replaceTerm(feed: MutableFeed, from: string, to: string): string[] {
             touched = true;
           }
         } else if (Array.isArray(value)) {
-          value.forEach((entry: unknown, i) => {
-            if (typeof entry !== 'string') return;
+          value.forEach((entry: string, i) => {
             const next = entry.replace(pattern, () => to);
             if (next !== entry) {
               value[i] = next;

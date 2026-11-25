@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import type { CorrectableFeed, CorrectionDraft, StoredCorrection } from './corrections.js';
+import type {
+  AnswerFix,
+  CorrectableFeed,
+  CorrectionDraft,
+  StoredCorrection,
+  TextEdit,
+} from './corrections.js';
 import {
   applyCorrections,
   checkCompletion,
@@ -211,6 +217,141 @@ describe('applyCorrections', () => {
   });
 });
 
+describe('applyCorrections su confronti e domande', () => {
+  const comparisonFeed = (): CorrectableFeed => ({
+    cards: [
+      {
+        id: 'stack-vs-queue',
+        title: { it: 'Pila o coda', en: 'Stack or queue' },
+        keyPoint: { it: 'Due regole.', en: 'Two rules.' },
+        body: { it: 'Cambia l’ordine.', en: 'Order changes.' },
+        comparison: {
+          left: { it: 'Pila', en: 'Stack' },
+          right: { it: 'Coda', en: 'Queue' },
+          rows: [
+            {
+              aspect: { it: 'Regola', en: 'Rule' },
+              left: { it: 'FIFO', en: 'FIFO' },
+              right: { it: 'LIFO', en: 'LIFO' },
+            },
+          ],
+        },
+        terms: [],
+      },
+    ],
+    quiz: [],
+    concepts: [],
+  });
+  const edit = (field: TextEdit['field'], original: string, corrected: string, index?: number) =>
+    stored(`c-${field}`, {
+      ...textFix,
+      itemId: 'stack-vs-queue',
+      edits: [{ field, index, language: 'it', original, corrected }],
+    });
+
+  it('corregge intestazioni e celle del confronto', () => {
+    const result = applyCorrections(comparisonFeed(), LESSON, [
+      edit('comparisonLeft', 'Pila', 'Pila (stack)'),
+      edit('comparisonRight', 'Coda', 'Coda (queue)'),
+      edit('rowAspect', 'Regola', 'Ordine', 0),
+      edit('rowLeft', 'FIFO', 'LIFO', 0),
+      edit('rowRight', 'LIFO', 'FIFO', 0),
+    ]);
+    const comparison = firstCard(result.feed).comparison;
+    expect(comparison?.left.it).toBe('Pila (stack)');
+    expect(comparison?.right.it).toBe('Coda (queue)');
+    expect(comparison?.rows[0]).toMatchObject({
+      aspect: { it: 'Ordine' },
+      left: { it: 'LIFO' },
+      right: { it: 'FIFO' },
+    });
+  });
+
+  it('un campo che la scheda non ha resta da ricontrollare', () => {
+    const result = applyCorrections(feed(), LESSON, [
+      stored('a', {
+        ...textFix,
+        edits: [{ field: 'rowLeft', index: 3, language: 'it', original: 'x', corrected: 'y' }],
+      }),
+      stored('bb', {
+        ...textFix,
+        edits: [{ field: 'comparisonLeft', language: 'it', original: 'x', corrected: 'y' }],
+      }),
+      stored('ccc', {
+        ...textFix,
+        edits: [{ field: 'steps', index: 9, language: 'it', original: 'x', corrected: 'y' }],
+      }),
+    ]);
+    expect([...result.outcomes.values()]).toEqual(['missing', 'missing', 'missing']);
+  });
+
+  it('corregge testo e opzioni delle domande e sostituisce i termini anche lì', () => {
+    const result = applyCorrections(feed(), LESSON, [
+      stored('a', {
+        ...textFix,
+        itemType: 'quiz',
+        itemId: 'q-pop',
+        edits: [
+          {
+            field: 'question',
+            language: 'it',
+            original: 'la cima',
+            corrected: 'l’elemento in cima',
+          },
+          { field: 'options', index: 1, language: 'en', original: 'peek', corrected: 'peek()' },
+        ],
+      }),
+      stored('bb', { kind: 'term', from: 'pop', to: 'pop()', reason: 'code' }),
+    ]);
+    const [mc] = result.feed.quiz;
+    expect(mc?.question.it).toBe('Cosa toglie l’elemento in cima?');
+    expect(mc?.kind === 'multiple_choice' && mc.options.en).toEqual(['push', 'peek()', 'pop()']);
+  });
+
+  it('risposte già giuste, opzioni sparite e tipi diversi', () => {
+    const answer = (
+      id: string,
+      fix: AnswerFix,
+      question = { it: 'Cosa toglie la cima?', en: '' },
+    ) =>
+      stored(id, {
+        kind: 'answer',
+        lessonId: LESSON,
+        itemId: 'q-pop',
+        fix,
+        question,
+        reason: 'content',
+        snapshot: {},
+      });
+    const result = applyCorrections(feed(), LESSON, [
+      answer('mc-same', {
+        kind: 'multiple_choice',
+        correctIndex: 1,
+        option: { it: 'peek', en: 'peek' },
+      }),
+      answer('mc-gone', {
+        kind: 'multiple_choice',
+        correctIndex: 3,
+        option: { it: 'size', en: 'size' },
+      }),
+      answer('tf-on-mc', { kind: 'true_false', answer: true }),
+      answer('tf-same', { kind: 'true_false', answer: false }, { it: 'La pila è LIFO.', en: '' }),
+      answer(
+        'tf-gone',
+        { kind: 'true_false', answer: true },
+        { it: 'Domanda sparita', en: 'Gone' },
+      ),
+    ]);
+    expect(Object.fromEntries(result.outcomes)).toEqual({
+      'mc-same': 'already',
+      'mc-gone': 'missing',
+      'tf-on-mc': 'missing',
+      'tf-same': 'already',
+      'tf-gone': 'missing',
+    });
+  });
+});
+
 describe('regole delle correzioni', () => {
   it('chiede a Claude solo l’altra lingua mancante', () => {
     expect(initialClaudeStatus(textFix)).toBe('pending');
@@ -249,6 +390,18 @@ describe('regole delle correzioni', () => {
     ).toHaveLength(1);
   });
 
+  it('non accetta lavoro di Claude su risposte e termini', () => {
+    expect(
+      checkCompletion(
+        { kind: 'term', from: 'a', to: 'b', reason: 'content' },
+        {
+          outcome: 'done',
+          edits: [{ field: 'body', language: 'it', original: 'a', corrected: 'b' }],
+        },
+      )[0]?.path,
+    ).toBe('outcome');
+  });
+
   it('pretende da Claude la stessa frase nell’altra lingua', () => {
     expect(checkCompletion(textFix, { outcome: 'done', edits: [] }).length).toBeGreaterThan(0);
     expect(
@@ -273,5 +426,6 @@ describe('countTermUsage', () => {
       'Big 0',
     );
     expect(usage).toEqual({ items: 1, lessons: 1, lessonTitles: ['Pile e code'] });
+    expect(countTermUsage([{ title: 'x', feed: feed() }], '  ').items).toBe(0);
   });
 });
