@@ -207,6 +207,54 @@ describe('RLS delle risposte da correggere', () => {
   });
 });
 
+describe('RLS delle correzioni personali (M5)', () => {
+  const ids = ['1d1d1d1d-0000-4000-8000-000000000001', '1d1d1d1d-0000-4000-8000-000000000002'];
+  beforeAll(async () => {
+    for (const [i, user] of [anna, carla].entries()) {
+      await db.query(
+        `insert into feed_corrections (id, user_id, subject_id, lesson_id, kind, correction, claude_status)
+         values ($1, $2, $3, $4, 'text', '{}', 'pending')`,
+        [ids[i], user, subject, lesson],
+      );
+    }
+  });
+
+  it('ognuno vede solo le proprie correzioni', async () => {
+    const own = async (user: string) =>
+      asUser(db, user, (q) => q(`select user_id from feed_corrections`));
+    expect(await own(anna)).toEqual([{ user_id: anna }]);
+    expect(await own(bruno)).toEqual([]);
+    await expect(asUser(db, null, (q) => q(`select * from feed_corrections`))).rejects.toThrow(
+      /permission denied/,
+    );
+  });
+
+  it.each([
+    `update feed_corrections set claude_status = 'done'`,
+    `delete from feed_corrections`,
+    `insert into feed_corrections (id, user_id, subject_id, kind, correction, claude_status) values (gen_random_uuid(), '${anna}', (select id from subjects limit 1), 'term', '{}', 'not_needed')`,
+  ])('scrittura negata dal client: %s', async (statement) => {
+    await expect(asUser(db, anna, (q) => q(statement))).rejects.toThrow(/permission denied/);
+  });
+
+  it('un termine non ha lezione, le altre correzioni sì', async () => {
+    await expect(
+      db.query(
+        `insert into feed_corrections (id, user_id, subject_id, lesson_id, kind, correction, claude_status)
+         values (gen_random_uuid(), $1, $2, $3, 'term', '{}', 'not_needed')`,
+        [anna, subject, lesson],
+      ),
+    ).rejects.toThrow(/feed_corrections_lesson_check/);
+    await expect(
+      db.query(
+        `insert into feed_corrections (id, user_id, subject_id, kind, correction, claude_status)
+         values (gen_random_uuid(), $1, $2, 'text', '{}', 'pending')`,
+        [anna, subject],
+      ),
+    ).rejects.toThrow(/feed_corrections_lesson_check/);
+  });
+});
+
 describe('Integrità delle tabelle di M2', () => {
   it('accetta un solo feed per lezione e impronta delle fonti', async () => {
     await expect(

@@ -203,3 +203,18 @@ Uso: in Claude Desktop, "correggi le mie risposte di EpicFeed" (o il prompt `cor
 ## Prossimi passi
 - Prova su 2–3 lezioni DSA reali, valutata da Damian; taratura di soglia e tetto delle figure.
 - Verificare che i nomi dentro lo zip reale coincidano con quelli della pagina Course downloads (punto aperto dell'ADR 0012).
+
+## Segnala errore (M5)
+Decisioni: [ADR 0020](../decisions/0020-report-error-m5.md). Lo studente corregge una frase nella lingua che vede, oppure chiede di rifare la scheda; Claude Desktop completa il lavoro.
+
+```
+App ── POST /api/corrections (sessione) ──▶ feed_corrections (claude_status = pending)
+Claude Desktop ──▶ server MCP ──▶ API EpicFeed
+   │  segnalazioni_in_attesa   GET  /api/generation/corrections
+   └─ completa_segnalazione    POST /api/generation/corrections/:id/completion   checkCompletion → salva
+App ── GET /api/corrections ──▶ applyCorrections sul dispositivo
+```
+
+- **Esito `done`**: interventi `{ field, index?, language, original, corrected }` sulla stessa scheda o domanda. Per una frase corretta in una lingua serve la stessa frase nell'altra (`checkCompletion`); per una scheda da rifare almeno un intervento, scritto solo dai riassunti.
+- **Esito `disputed`**: nota in italiano (≤ 600 caratteri) e, se c'è, il passaggio del riassunto che contraddice la correzione. La correzione resta applicata e lo studente la ritrova *da ricontrollare*.
+- Vale il primo esito (`409` per i successivi). Gli strumenti MCP arrivano nella PR 3 di M5.

@@ -10,7 +10,7 @@ Mappa "funzione → file". La repo è organizzata in un pacchetto per funzione (
 | `catalog` | corsi, materie, capitoli, lezioni, versioni dei contenuti, permessi, sottotitoli | `/lessons` | `packages/catalog` |
 | `ingest` | import delle lezioni dall'estensione | `/extension` | `packages/ingest` |
 | `access` | token di estensione e Claude Desktop, limiti di frequenza | `/extension`, `/claude-desktop` | `packages/access` |
-| `feed` | schede a battute, domande, generazione via MCP, slide | `/` | `packages/feed` |
+| `feed` | schede a battute, domande, generazione via MCP, slide, correzioni personali (Segnala errore) | `/` | `packages/feed` |
 | `review` | ripasso FSRS e sincronizzazione cifrata | `/review` | `packages/review` (gli archivi del browser in `apps/web/src/features/review` e `sync`) |
 | `exam` | quiz di modulo, esercizi, correzione di Claude, colloquio | `/review#esame` | `packages/exam` |
 
