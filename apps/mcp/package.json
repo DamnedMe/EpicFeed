@@ -16,10 +16,10 @@
     "@epicfeed/feed": "workspace:*",
     "@epicfeed/shared": "workspace:*",
     "@modelcontextprotocol/sdk": "1.32.2",
-    "@napi-rs/canvas": "1.1.0",
+    "@napi-rs/canvas": "1.2.0",
     "pdfjs-dist": "6.5.438",
     "yauzl": "3.4.0",
-    "zod": "4.6.6"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@epicfeed/config": "workspace:*",
