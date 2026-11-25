@@ -10,7 +10,7 @@ import { formatMinute } from './model';
  * Foglio dal basso: si chiude toccando fuori, con Esc o con il pulsante.
  * Il fuoco entra nel foglio all'apertura, per tastiera e lettori di schermo.
  */
-function Sheet({
+export function Sheet({
   title,
   subtitle,
   onClose,
@@ -66,7 +66,7 @@ const ORIGIN_LABEL = {
 
 /**
  * Foglio delle azioni (tieni premuto): Salva, Ascolta, lingua, Guarda sul
- * portale, Fonte, Chiedi (da M6) e i gesti.
+ * portale, Fonte, Segnala errore (M5), Chiedi (da M6) e i gesti.
  */
 export function ActionSheet(props: {
   entry: FeedEntry;
@@ -77,6 +77,7 @@ export function ActionSheet(props: {
   onListen: () => void;
   onLanguage: () => void;
   onGestures: () => void;
+  onReport: () => void;
   onClose: () => void;
 }) {
   const { entry, language } = props;
@@ -147,6 +148,17 @@ export function ActionSheet(props: {
           </span>
         </a>
       ) : null}
+      <button type="button" className="ef-action" onClick={props.onReport}>
+        <Icon name="flag" />
+        <span>
+          Segnala errore
+          <small>
+            {isCard
+              ? 'Correggi una frase della scheda'
+              : 'Correggi la domanda o la risposta giusta'}
+          </small>
+        </span>
+      </button>
       <button type="button" className="ef-action" disabled>
         <Icon name="ask" />
         <span>

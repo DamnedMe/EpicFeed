@@ -57,3 +57,20 @@
     transform: scale(1);
   }
 }
+
+/* Avviso dopo una correzione (Segnala errore, M5). */
+.ef-notice {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: calc(86px + env(safe-area-inset-bottom));
+  z-index: 25;
+  margin: 0;
+  padding: 11px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-background);
+  color: var(--sf-text);
+  font: 500 13.5px/1.4 var(--sf-font-body);
+  animation: ef-fade 0.2s both;
+}

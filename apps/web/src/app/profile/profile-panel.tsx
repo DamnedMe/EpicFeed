@@ -179,6 +179,10 @@ export function ProfilePanel({ theme, accent }: { theme: ThemePreference; accent
             Salvati
             <small>{saved.length}</small>
           </Link>
+          <Link className="ef-row-link" href="/profile/reports">
+            Le mie segnalazioni
+            <small>→</small>
+          </Link>
           <div className="ef-row-link">
             Punti totali
             <small>{totals.points}</small>

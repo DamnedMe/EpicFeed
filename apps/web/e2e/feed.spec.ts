@@ -155,6 +155,42 @@ test('tieni premuto apre le azioni con il minuto sul portale', async ({ page }) 
   await expect(page.getByRole('button', { name: 'Cambia lingua della scheda' })).toHaveText('EN');
 });
 
+test('Segnala errore corregge la frase e la scheda lo mostra', async ({ page }) => {
+  await open(page);
+  await tap(page);
+  const box = await slide(page).locator('.ef-stage').boundingBox();
+  if (!box) throw new Error('scheda non visibile');
+  await page.mouse.move(box.x + box.width / 2, box.y + 200);
+  await page.mouse.down();
+  await page.waitForTimeout(650);
+  await page.mouse.up();
+  await page.getByRole('button', { name: 'Segnala errore' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Segnala errore' });
+  // Parte dalla frase della battuta che si stava leggendo: la frase chiave.
+  await expect(sheet.getByText(/frase chiave/)).toBeVisible();
+  const field = sheet.getByLabel('Correzione');
+  await expect(field).toHaveValue('La head è il primo nodo della lista collegata.');
+  await field.fill('La head è il primo nodo della linked list.');
+  await sheet.getByRole('button', { name: 'Salva correzione' }).click();
+  await expect(sheet).toHaveCount(0);
+  await expect(page.getByText(/Correzione salvata/)).toBeVisible();
+  await expect(slide(page).locator('.ef-key')).toHaveText(
+    'La head è il primo nodo della linked list.',
+  );
+  await expect(slide(page).getByText('corretta da te')).toBeVisible();
+  // Arrivata al server simulato: sul dispositivo non è più da inviare.
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const state = JSON.parse(localStorage.getItem('ef:corrections') ?? '{}') as {
+          items?: { unsent: boolean }[];
+        };
+        return state.items?.map((item) => item.unsent);
+      }),
+    )
+    .toEqual([false]);
+});
+
 test('scorrendo arrivano passi, confronto, codice e una domanda in inglese', async ({ page }) => {
   await open(page);
   const feed = page.locator('.ef-feed');

@@ -325,3 +325,176 @@
     opacity: 0.4;
   }
 }
+
+/* Segnala errore (M5, ADR 0020): foglio con la frase da correggere. */
+.ef-report {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+.ef-report-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font: 500 12px var(--sf-font-mono);
+  color: var(--sf-text-muted);
+}
+.ef-report-nav button {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-surface);
+  color: var(--sf-text);
+  font: 600 18px var(--sf-font-body);
+  cursor: pointer;
+}
+.ef-report-nav button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.ef-report-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-surface);
+}
+.ef-report-field:focus-within {
+  border-color: var(--sf-accent-fill);
+}
+.ef-report-field small,
+.ef-report-answers legend {
+  font: 500 10.5px var(--sf-font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sf-text-muted);
+}
+.ef-report-field textarea {
+  width: 100%;
+  border: 0;
+  background: none;
+  color: var(--sf-text);
+  font: 400 15px/1.45 var(--sf-font-body);
+  resize: vertical;
+  outline: none;
+}
+.ef-report-field textarea.code {
+  font: 400 13.5px/1.5 var(--sf-font-mono);
+}
+.ef-report-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.ef-report-answers button {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--sf-border);
+  background: none;
+  color: var(--sf-text);
+  font: 500 14px var(--sf-font-body);
+  text-align: left;
+  cursor: pointer;
+}
+.ef-report-answers button.now {
+  border-color: var(--sf-accent-fill);
+}
+.ef-report-answers small {
+  color: var(--sf-text-muted);
+  font: 500 11px var(--sf-font-mono);
+}
+.ef-report-answers button.now small {
+  color: var(--sf-accent-text);
+}
+.ef-report-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ef-report-chips button {
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--sf-border);
+  background: none;
+  color: var(--sf-text);
+  font: 500 12.5px var(--sf-font-body);
+  cursor: pointer;
+}
+.ef-report-chips button[aria-checked='true'] {
+  background: var(--sf-accent-fill);
+  border-color: transparent;
+  color: var(--sf-accent-on-fill);
+}
+.ef-report .ef-cta:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.ef-report-ghost {
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid var(--sf-border);
+  background: none;
+  color: var(--sf-text);
+  font: 600 14px var(--sf-font-body);
+  cursor: pointer;
+}
+.ef-fixed-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ef-fixed-mark::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sf-accent-fill);
+}
+
+/* Le mie segnalazioni (M5) */
+.ef-report-row {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--sf-border);
+  font-size: 0.9rem;
+}
+.ef-report-row:last-child {
+  border-bottom: 0;
+}
+.ef-report-row small {
+  color: var(--sf-text-muted);
+  font-size: 0.78rem;
+}
+.ef-report-row .ef-link {
+  color: var(--sf-accent-text);
+  justify-self: start;
+}
+.ef-report-status {
+  justify-self: start;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-family: var(--sf-font-mono);
+  font-size: 0.7rem;
+}
+.ef-report-status.ok {
+  background: color-mix(in oklab, var(--sf-accent-fill) 22%, transparent);
+}
+.ef-report-status.wait {
+  background: rgb(127 127 127 / 0.18);
+}
+.ef-report-status.check {
+  background: rgb(234 179 8 / 0.2);
+}
