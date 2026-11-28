@@ -1,6 +1,11 @@
-import type { CorrectionCompletion, StoredCorrection } from '@epicfeed/feed';
+import type { CorrectionCompletion, ReportErrorInput, StoredCorrection } from '@epicfeed/feed';
 import type { UserId } from '@epicfeed/shared';
-import { completeCorrectionRequestSchema, MAX_CORRECTION_REQUEST_BYTES } from '@epicfeed/feed';
+import { DomainError } from '@epicfeed/shared';
+import {
+  completeCorrectionRequestSchema,
+  MAX_CORRECTION_REQUEST_BYTES,
+  reportErrorRequestSchema,
+} from '@epicfeed/feed';
 import * as z from 'zod';
 import { apiError, apiOk } from '@/server/http';
 import type { GenerationAccessDeps } from '@/server/generation-api';
@@ -9,12 +14,18 @@ import { authorize, domainErrorResponse, readJsonBody, zodIssues } from '@/serve
 /**
  * API delle correzioni per Claude Desktop (M5, ADR 0020), con il token
  * "genera": le correzioni in attesa (altra lingua da allineare, schede da
- * rifare) e il salvataggio del lavoro di Claude.
+ * rifare), il salvataggio del lavoro di Claude e, da M6 (ADR 0021), le
+ * correzioni che lo studente chiede a Claude in chat (`segnala_errore`).
  */
 export interface CorrectionGenerationDeps extends GenerationAccessDeps {
   /** Correzioni dello studente in attesa di Claude. */
   listPendingCorrections(userId: UserId): Promise<StoredCorrection[]>;
   completeCorrection(userId: UserId, id: string, completion: CorrectionCompletion): Promise<void>;
+  /** Salva una correzione dello studente (lo stesso caso d'uso della web app). */
+  reportError(
+    userId: UserId,
+    input: ReportErrorInput,
+  ): Promise<{ correction: StoredCorrection; created: boolean }>;
 }
 
 const CORRECTION = 'La correzione';
@@ -83,5 +94,64 @@ export async function handleCompleteCorrection(
     return apiOk({ saved: true }, 201);
   } catch (error) {
     return domainErrorResponse(error, deps, CORRECTION, NO_CORRECTION);
+  }
+}
+
+/**
+ * `POST /api/generation/corrections`: salva una correzione che lo studente ha
+ * chiesto a Claude in chat e confermato (M6, ADR 0021). È una correzione
+ * dello studente come quelle della web app: compare in *Le mie segnalazioni*
+ * e si può annullare. Reinviare lo stesso id restituisce quella già salvata.
+ *
+ * @param request - Richiesta HTTP (token "genera", corpo: `reportErrorRequestSchema`).
+ * @param deps - Servizi.
+ * @returns `201` se nuova, `200` se c'era già, con la correzione salvata.
+ */
+export async function handleReportErrorFromClaude(
+  request: Request,
+  deps: CorrectionGenerationDeps,
+): Promise<Response> {
+  const auth = await authorize(request, deps);
+  if ('response' in auth) return auth.response;
+  await deps.record(auth.userId, 'save', null);
+  const body = await readJsonBody(
+    request,
+    MAX_CORRECTION_REQUEST_BYTES,
+    `${CORRECTION} è troppo grande.`,
+  );
+  if (body instanceof Response) return body;
+  const parsed = reportErrorRequestSchema.safeParse(body.json);
+  if (!parsed.success) {
+    return apiError(
+      'INVALID_FEED',
+      `${CORRECTION} non ha la forma attesa.`,
+      {},
+      zodIssues(parsed.error),
+    );
+  }
+  const { id, subjectId, correction } = parsed.data;
+  try {
+    const result = await deps.reportError(auth.userId, {
+      id: id.toLowerCase(),
+      subjectId: subjectId.toLowerCase(),
+      correction:
+        correction.kind === 'term'
+          ? correction
+          : { ...correction, lessonId: correction.lessonId.toLowerCase() },
+    });
+    return apiOk({ correction: result.correction }, result.created ? 201 : 200);
+  } catch (error) {
+    if (error instanceof DomainError && error.code === 'LIMIT_REACHED') {
+      return apiError('CONFLICT', error.message);
+    }
+    if (error instanceof DomainError && error.code === 'ALREADY_DONE') {
+      return apiError('CONFLICT', 'Id della correzione già in uso: riprova con un id nuovo.');
+    }
+    return domainErrorResponse(
+      error,
+      deps,
+      CORRECTION,
+      'Lezione non trovata tra quelle che hai importato.',
+    );
   }
 }

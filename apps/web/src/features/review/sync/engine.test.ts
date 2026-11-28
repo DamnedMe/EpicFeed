@@ -4,7 +4,7 @@ import type { StoredProgress } from '@epicfeed/review';
 import { recordAnswer } from '@epicfeed/review';
 import { systemClock } from '@epicfeed/shared';
 import { progressStore } from '@/features/review/progress-store';
-import { decryptSnapshot, derivePasswordKey } from './crypto';
+import { decryptSnapshot, derivePasswordKey } from '@epicfeed/review/crypto';
 import { currentSyncStatus, forgetPasswordKey, rememberPasswordKey, syncNow } from './engine';
 import { syncKeyStore } from './key-store';
 
@@ -102,7 +102,7 @@ describe('sincronizzazione dei progressi', () => {
     const key = await derivePasswordKey(EMAIL, PASSWORD);
     const current = stored ? await decryptSnapshot(key, stored) : null;
     if (!current || !stored) throw new Error('copia');
-    const { encryptSnapshot } = await import('./crypto');
+    const { encryptSnapshot } = await import('@epicfeed/review/crypto');
     const fromPc = {
       ...current,
       answers: [
@@ -125,7 +125,7 @@ describe('sincronizzazione dei progressi', () => {
 
   it('con una password cambiata altrove si blocca invece di sovrascrivere', async () => {
     const other = await derivePasswordKey(EMAIL, 'la password nuova');
-    const { encryptSnapshot } = await import('./crypto');
+    const { encryptSnapshot } = await import('@epicfeed/review/crypto');
     const before = stored;
     stored = {
       ...(await encryptSnapshot(other, { version: 1, answers: [], reviewDays: [], bestStreak: 0 })),

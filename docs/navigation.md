@@ -11,7 +11,7 @@ Mappa "funzione → file". La repo è organizzata in un pacchetto per funzione (
 | `ingest` | import delle lezioni dall'estensione | `/extension` | `packages/ingest` |
 | `access` | token di estensione e Claude Desktop, limiti di frequenza | `/extension`, `/claude-desktop` | `packages/access` |
 | `feed` | schede a battute, domande, generazione via MCP, slide, correzioni personali (Segnala errore) | `/` | `packages/feed` |
-| `review` | ripasso FSRS e sincronizzazione cifrata | `/review` | `packages/review` (gli archivi del browser in `apps/web/src/features/review` e `sync`) |
+| `review` | ripasso FSRS e sincronizzazione cifrata | `/review` | `packages/review` (la cifratura della copia in `src/crypto`, `@epicfeed/review/crypto`; gli archivi del browser in `apps/web/src/features/review` e `sync`) |
 | `exam` | quiz di modulo, esercizi, correzione di Claude, colloquio | `/review#esame` | `packages/exam` |
 
 Pagine fuori dalle funzioni: `/login` (accesso), `/profile` e `/profile/saved` (preferenze e schede salvate).
@@ -39,7 +39,7 @@ Schema in `packages/db/src/schema/`, un file per funzione, migrazioni in `packag
 | --- | --- | --- |
 | Web app e API | `apps/web` | `src/app/` pagine e rotte (solo composizione); `src/features/<funzione>/` schermate e, in `api/`, gli handler delle API; `src/server/` parti comuni lato server e `container.ts` (montaggio); `src/proxy.ts` sicurezza e sessione |
 | Estensione Chrome | `apps/extension` | `src/entrypoints/` popup e script del portale, `src/lib/` logica |
-| Server MCP | `apps/mcp` | `src/main.ts`, `src/server.ts` (monta gli strumenti); `src/feed/` strumenti del feed e import delle slide; `src/exam/` pacchetti, banca degli esercizi e correzioni |
+| Server MCP | `apps/mcp` | `src/main.ts`, `src/server.ts` (monta gli strumenti); `src/feed/` strumenti del feed e import delle slide; `src/exam/` pacchetti, banca degli esercizi e correzioni; `src/study/` assistente di studio (cerca lezione, concetti deboli, segnala errore in chat) |
 
 ## Nomi nell'interfaccia e nel codice
 
@@ -61,6 +61,6 @@ Schema in `packages/db/src/schema/`, un file per funzione, migrazioni in `packag
 | `catalog` | `packages/catalog` | `db/src/schema/catalog.ts` | | `app/lessons` | |
 | `ingest` | `packages/ingest` | | `features/ingest/api` | `app/extension` | |
 | `access` | `packages/access` | `db/src/schema/access.ts` | `server/generation-api.ts` | `app/extension`, `app/claude-desktop` | |
-| `feed` | `packages/feed` | `db/src/schema/feed.ts` | `features/feed/api` | `features/feed` | `src/feed` |
-| `review` | `packages/review` | `db/src/schema/review.ts` | `features/review/api` | `features/review` | |
+| `feed` | `packages/feed` | `db/src/schema/feed.ts` | `features/feed/api` | `features/feed` | `src/feed`, `src/study` |
+| `review` | `packages/review` | `db/src/schema/review.ts` | `features/review/api` | `features/review` | `src/study` (progressi) |
 | `exam` | `packages/exam` | `db/src/schema/exam.ts` | `features/exam/api` | `features/exam` | `src/exam` |

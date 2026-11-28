@@ -131,4 +131,55 @@ describe('EpicFeedApi', () => {
     expect(init?.method).toBe('POST');
     expect(init?.body).toBe(JSON.stringify({ completion }));
   });
+
+  it('legge materie e feed per l’assistente di studio', async () => {
+    const subjects = { subjects: [] };
+    const first = api(json(subjects));
+    expect(await first.client.listStudySubjects()).toEqual(subjects);
+    expect(String(first.fetchMock.mock.calls[0]?.[0])).toBe(
+      'https://app.test/api/generation/study/subjects',
+    );
+    const feed = { subjectId: lessonId, title: 'DSA', version: 'f'.repeat(64), chapters: [] };
+    const second = api(json(feed));
+    expect(await second.client.readStudySubject(lessonId)).toEqual(feed);
+    expect(String(second.fetchMock.mock.calls[0]?.[0])).toBe(
+      `https://app.test/api/generation/study/subjects/${lessonId}`,
+    );
+  });
+
+  it('legge la copia cifrata dei progressi, null se non c’è', async () => {
+    const stored = {
+      kdf: 'pbkdf2-sha256-600000',
+      salt: `${'A'.repeat(22)}==`,
+      iv: 'B'.repeat(16),
+      ciphertext: 'C'.repeat(40),
+      revision: 2,
+    };
+    expect(await api(json(stored)).client.readProgress()).toEqual(stored);
+    const missing = api(json({ error: { code: 'NOT_FOUND', message: 'Nessuna copia' } }, 404));
+    expect(await missing.client.readProgress()).toBeNull();
+    const failing = api(json({ error: { code: 'INTERNAL', message: 'Errore' } }, 500));
+    await expect(failing.client.readProgress()).rejects.toBeInstanceOf(ApiRequestError);
+  });
+
+  it('invia la correzione chiesta a Claude e restituisce quella salvata', async () => {
+    const correction = {
+      id: '60000000-0000-4000-8000-000000000001',
+      subjectId: '40000000-0000-4000-8000-000000000001',
+      correction: { kind: 'term', from: 'Big 0', to: 'Big O', reason: 'content' },
+      claudeStatus: 'not_needed',
+      completion: null,
+      createdAt: '2026-11-28T10:00:00.000Z',
+    };
+    const { client, fetchMock } = api(json({ correction }, 201));
+    const body = {
+      id: correction.id,
+      subjectId: correction.subjectId,
+      correction: { kind: 'term' as const, from: 'Big 0', to: 'Big O', reason: 'content' as const },
+    };
+    expect(await client.reportError(body)).toEqual(correction);
+    const [url, init] = fetchMock.mock.calls[0] ?? [];
+    expect(String(url)).toBe('https://app.test/api/generation/corrections');
+    expect(JSON.parse(init?.body as string)).toEqual(body);
+  });
 });

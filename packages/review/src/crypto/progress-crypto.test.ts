@@ -1,4 +1,4 @@
-import type { ProgressSnapshot } from '@epicfeed/review';
+import type { ProgressSnapshot } from '../application/progress-sync.js';
 import { describe, expect, it } from 'vitest';
 import {
   decryptSnapshot,
@@ -6,7 +6,7 @@ import {
   encryptSnapshot,
   fromBase64,
   toBase64,
-} from './crypto';
+} from './progress-crypto.js';
 
 const snapshot: ProgressSnapshot = {
   version: 1,

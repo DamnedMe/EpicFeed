@@ -1,8 +1,8 @@
 {
   "name": "@epicfeed/mcp",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "private": true,
-  "description": "Server MCP di EpicFeed per Claude Desktop: genera schede, quiz e concetti delle lezioni importate (M2).",
+  "description": "Server MCP di EpicFeed per Claude Desktop: genera schede, quiz e concetti delle lezioni importate (M2) e fa da assistente di studio (M6).",
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.build.json && node scripts/bundle.mjs",
@@ -14,6 +14,7 @@
   "dependencies": {
     "@epicfeed/exam": "workspace:*",
     "@epicfeed/feed": "workspace:*",
+    "@epicfeed/review": "workspace:*",
     "@epicfeed/shared": "workspace:*",
     "@modelcontextprotocol/sdk": "1.32.2",
     "@napi-rs/canvas": "1.1.0",

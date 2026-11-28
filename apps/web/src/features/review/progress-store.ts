@@ -10,6 +10,7 @@ import {
   EMPTY_DAY_STREAK,
   MAX_REVIEW_DAYS,
   PROGRESS_SNAPSHOT_VERSION,
+  answerRecordSchema,
   mergeSnapshots,
   replayAnswers,
   streakFromDays,
@@ -62,14 +63,8 @@ const streakSchema: z.ZodType<DayStreak> = z.object({
   best: z.number().int().min(0),
 });
 
-export const answerSchema: z.ZodType<AnswerRecord> = z.object({
-  conceptId: z.string().min(1).max(200),
-  questionId: z.string().max(300).nullable(),
-  source: z.enum(['feed', 'review', 'quiz', 'exercise', 'interview']),
-  grade: z.enum(['again', 'hard', 'good']),
-  language: z.enum(['it', 'en']),
-  at: z.iso.datetime(),
-});
+/** Risposta dello storico: la stessa forma della copia cifrata. */
+export const answerSchema: z.ZodType<AnswerRecord> = answerRecordSchema;
 
 const daySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const daysSchema = z.array(daySchema).max(MAX_REVIEW_DAYS * 2);

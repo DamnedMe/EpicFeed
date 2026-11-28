@@ -49,3 +49,25 @@ export const progressPutResponseSchema = z.strictObject({
 });
 /** Risposta di `PUT /api/progress`. */
 export type ProgressPutResponse = z.infer<typeof progressPutResponseSchema>;
+
+/**
+ * Risposta dello storico come viaggia dentro la copia cifrata. Le sorgenti
+ * sono quelle di `AnswerSource`: aggiungerne una vuol dire cambiare la
+ * versione della copia, perché un'app più vecchia scarterebbe la copia intera.
+ */
+export const answerRecordSchema = z.object({
+  conceptId: z.string().min(1).max(200),
+  questionId: z.string().max(300).nullable(),
+  source: z.enum(['feed', 'review', 'quiz', 'exercise', 'interview']),
+  grade: z.enum(['again', 'hard', 'good']),
+  language: z.enum(['it', 'en']),
+  at: z.iso.datetime(),
+});
+
+/** Progressi in chiaro, come stanno dentro la copia cifrata (ADR 0018). */
+export const progressSnapshotSchema = z.object({
+  version: z.literal(1),
+  answers: z.array(answerRecordSchema),
+  reviewDays: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)),
+  bestStreak: z.number().int().min(0),
+});

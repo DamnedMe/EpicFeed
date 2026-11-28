@@ -64,6 +64,9 @@ importers:
       '@epicfeed/feed':
         specifier: workspace:*
         version: link:../../packages/feed
+      '@epicfeed/review':
+        specifier: workspace:*
+        version: link:../../packages/review
       '@epicfeed/shared':
         specifier: workspace:*
         version: link:../../packages/shared

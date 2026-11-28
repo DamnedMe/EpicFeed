@@ -3,7 +3,7 @@
 <rect width="1200" height="480" rx="28" fill="#0B0B0E"/>
 <rect width="1200" height="480" rx="28" fill="url(#glow)"/>
 <rect x="0.5" y="0.5" width="1199" height="479" rx="28" fill="none" stroke="#26262C"/>
-<text x="64" y="78" font-family="'JetBrains Mono', ui-monospace, Consolas, Menlo, monospace" font-size="15" letter-spacing="3" fill="#FF4D3D">STATO DELLO SVILUPPO · 25/11/2026</text>
+<text x="64" y="78" font-family="'JetBrains Mono', ui-monospace, Consolas, Menlo, monospace" font-size="15" letter-spacing="3" fill="#FF4D3D">STATO DELLO SVILUPPO · 28/11/2026</text>
 <text x="64" y="140" font-family="'Space Grotesk', Inter, 'Segoe UI', system-ui, sans-serif" font-size="58" font-weight="700" fill="#DCE3EA">EpicFeed<tspan fill="#E10600">.</tspan></text>
 <text x="64" y="178" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="20" fill="#98A0A9">Il materiale Epicode diventa un feed di studio, quiz e ripasso.</text>
 <g transform="translate(860,62)">
@@ -17,7 +17,7 @@
 <path d="M54 262 v-10 h514.2222222222222 v10" fill="none" stroke="#26262C" stroke-width="2"/>
 <text x="311.1111111111111" y="244" text-anchor="middle" font-family="'JetBrains Mono', ui-monospace, Consolas, Menlo, monospace" font-size="13" letter-spacing="2" fill="#98A0A9">MVP</text>
 <line x1="80" y1="330" x2="1120" y2="330" stroke="#26262C" stroke-width="4" stroke-linecap="round"/>
-<line x1="80" y1="330" x2="657.7777777777778" y2="330" stroke="#E10600" stroke-width="4" stroke-linecap="round"/>
+<line x1="80" y1="330" x2="686.6666666666666" y2="330" stroke="#E10600" stroke-width="4" stroke-linecap="round"/>
 <circle cx="80" cy="330" r="15" fill="#E10600"/>
 <path d="M74 330 l4 4.5 l8 -9" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="80" y="382" text-anchor="middle" font-family="'JetBrains Mono', ui-monospace, Consolas, Menlo, monospace" font-size="15" font-weight="500" fill="#DCE3EA">M0</text>
@@ -53,11 +53,13 @@
 <text x="657.7777777777778" y="406" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="14" fill="#DCE3EA">Segnala</text>
 <text x="657.7777777777778" y="424" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="14" fill="#DCE3EA">errore</text>
 <text x="657.7777777777778" y="450" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="13" fill="#98A0A9">✓ 25/11</text>
-<circle cx="773.3333333333334" cy="330" r="13" fill="#0B0B0E" stroke="#26262C" stroke-width="3"/>
-<text x="773.3333333333334" y="382" text-anchor="middle" font-family="'JetBrains Mono', ui-monospace, Consolas, Menlo, monospace" font-size="15" font-weight="500" fill="#98A0A9">M6</text>
-<text x="773.3333333333334" y="406" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="14" fill="#98A0A9">Assistente</text>
-<text x="773.3333333333334" y="424" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="14" fill="#98A0A9">MCP</text>
-<text x="773.3333333333334" y="450" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="13" fill="#98A0A9">in programma</text>
+<circle cx="773.3333333333334" cy="330" r="26" fill="#E10600" fill-opacity="0.16"/>
+<circle cx="773.3333333333334" cy="330" r="15" fill="#0B0B0E" stroke="#E10600" stroke-width="4"/>
+<circle cx="773.3333333333334" cy="330" r="5" fill="#E10600"/>
+<text x="773.3333333333334" y="382" text-anchor="middle" font-family="'JetBrains Mono', ui-monospace, Consolas, Menlo, monospace" font-size="15" font-weight="500" fill="#FF4D3D">M6</text>
+<text x="773.3333333333334" y="406" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="14" fill="#DCE3EA">Assistente</text>
+<text x="773.3333333333334" y="424" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="14" fill="#DCE3EA">di studio</text>
+<text x="773.3333333333334" y="450" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="13" fill="#FF4D3D">in corso</text>
 <circle cx="888.8888888888889" cy="330" r="13" fill="#0B0B0E" stroke="#26262C" stroke-width="3"/>
 <text x="888.8888888888889" y="382" text-anchor="middle" font-family="'JetBrains Mono', ui-monospace, Consolas, Menlo, monospace" font-size="15" font-weight="500" fill="#98A0A9">M7</text>
 <text x="888.8888888888889" y="406" text-anchor="middle" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="14" fill="#98A0A9">Libri</text>

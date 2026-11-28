@@ -4,7 +4,7 @@ import { syncProgress } from '@epicfeed/review';
 import { setDeviceFlag, SYNC_KEY_COOKIE } from '@/features/device-flags';
 import { useEffect, useSyncExternalStore } from 'react';
 import { notifyProgress, onProgress, progressStore } from '@/features/review/progress-store';
-import { derivePasswordKey, normalizeEmail } from './crypto';
+import { derivePasswordKey, normalizeEmail } from '@epicfeed/review/crypto';
 import { syncKeyStore } from './key-store';
 import { HttpProgressVault, SyncHttpError } from './vault';
 

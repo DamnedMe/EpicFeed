@@ -41,7 +41,7 @@ Ogni milestone finisce con una PR (o poche) che include codice, test e documenta
 | M3 | **Feed** | Feed verticale sul telefono, swipe fluido, "Guarda sul portale" al minuto giusto, temi e accenti | M |
 | M4 | **Quiz, ripasso ed esame** | Quiz di fine capitolo, ripasso giornaliero FSRS, backup esportabile; sezione Esame con esercizi aperti in inglese, timer, simulazione scritta del colloquio di 20 minuti, quiz di modulo da 50 domande, correzione di Claude e codice eseguibile ([ADR 0014](decisions/0014-exam-preparation.md)). **Fine MVP** | L |
 | M5 | **Segnala errore** | Correzioni salvate nell'area privata e riapplicate alle nuove versioni; realizzata il 25/11/2026 con le scelte dell'[ADR 0020](decisions/0020-report-error-m5.md) | S |
-| M6 | Assistente di studio MCP | Strumenti di studio per Claude Desktop: cerca lezione, concetti deboli, quiz al volo, segnala errore | M |
+| M6 | Assistente di studio | Strumenti di studio per Claude Desktop (cerca lezione, concetti deboli, quiz al volo interattivo, segnala errore) e assistente nell'app con la chiave API dello studente (Gemini, Claude, OpenAI); avviata il 28/11/2026, scelte nell'[ADR 0021](decisions/0021-study-assistant-m6.md) | L |
 | M7 | Libri | Libreria, import PDF/EPUB via MCP, modalità Studiare/Solo leggere | L |
 | M8 | Rifinitura | Accedi con Google, audit di sicurezza, termini d'uso, prova con un altro studente | M |
 | M9 | Modalità desktop | Aperta da un PC, l'app passa da sola a un layout per schermi grandi (rilevato da larghezza e tipo di puntatore, non dal browser): feed centrato con pannelli laterali per lezione e ripasso, scorciatoie da tastiera al posto dei gesti, scelta manuale sempre possibile in Io | M |

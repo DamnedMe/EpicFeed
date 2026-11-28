@@ -94,7 +94,8 @@ Gira sul PC dello studente dentro Claude Desktop, come estensione `.mcpb`. Parla
 | `src/exam/bank-tools.ts` | Strumenti della banca degli esercizi (`registerExamBankTools`): legge il materiale d'esame dallo zip sul PC e ricorda i concetti della materia per il controllo locale. |
 | `src/exam/prompt.ts`, `src/exam/pack-tools.ts` | Istruzioni versionate (`EXAM_PROMPT_VERSION`) e strumenti dei pacchetti d'esame (`registerExamTools`). Ricorda in memoria concetti e domande del feed letto, per il controllo locale. |
 | `src/tool-results.ts` | Risultati comuni: testo, elenco dei problemi da correggere, errori dell'API spiegati a Claude. |
-| `src/config.ts` | Legge `EPICFEED_TOKEN` e `EPICFEED_API_URL` (dalle impostazioni dell'estensione). Senza token valido il server parte lo stesso e ogni strumento risponde come crearne uno. |
+| `src/config.ts` | Legge `EPICFEED_TOKEN` e `EPICFEED_API_URL` (dalle impostazioni dell'estensione). Senza token valido il server parte lo stesso e ogni strumento risponde come crearne uno. Da M6 legge anche `EPICFEED_EMAIL` ed `EPICFEED_PASSWORD`, facoltativi, per aprire i progressi. |
+| `src/study/` | Assistente di studio (M6): libreria delle materie in memoria, ricerca, concetti deboli, lettura dei progressi cifrati, *Segnala errore* in chat (sezione *Assistente di studio*). |
 | `src/main.ts` | Avvio su stdio; i log vanno solo su stderr (stdout è il canale MCP). |
 
 Strumenti (nomi in italiano, perché Claude li mostra allo studente):
@@ -115,6 +116,9 @@ Strumenti (nomi in italiano, perché Claude li mostra allo studente):
 | `salva_correzione { id, correction }` | Controlla la correzione con `checkCorrection` e la invia. |
 | `segnalazioni_in_attesa` | Correzioni di *Segnala errore* in attesa di Claude (fino a 5 per volta): tipo, lezione, interventi dello studente ed elemento come lo vedeva, più le istruzioni (sezione *Segnala errore*). |
 | `completa_segnalazione { id, completion }` | Controlla l'esito con `checkCompletion` e lo invia. |
+| `cerca_lezione { testo, materia?, limite? }` | Cerca nelle lezioni dello studente (sezione *Assistente di studio*). |
+| `concetti_deboli { materia?, limite? }` | Concetti deboli dai progressi decifrati sul PC. |
+| `segnala_errore { subjectId, kind, …, confirmed }` | Anteprima (`confirmed: false`) e salvataggio (`confirmed: true`) di una correzione chiesta in chat. |
 
 Il prompt MCP `genera_lezioni` avvia la generazione di tutte le lezioni nuove; `genera_domande_esame` quella dei pacchetti d'esame; `correggi_risposte` la correzione delle risposte inviate dall'app; `sistema_segnalazioni` il completamento delle segnalazioni. Le istruzioni del server (`SERVER_INSTRUCTIONS`) dicono a Claude l'ordine degli strumenti e di non chiedere conferma lezione per lezione. Un `409 CONFLICT` suggerisce di rileggere la lezione; un `401` di creare un nuovo token. Gli errori inattesi non mostrano dettagli.
 
@@ -225,3 +229,28 @@ App ── GET /api/corrections ──▶ applyCorrections sul dispositivo
 - Claude non modifica mai il feed condiviso: completa solo la correzione personale.
 
 Uso: in Claude Desktop, "sistema le mie segnalazioni di EpicFeed" (o il prompt `sistema_segnalazioni`).
+
+## Assistente di studio (M6)
+Decisioni: [ADR 0021](../decisions/0021-study-assistant-m6.md). Claude Desktop cerca nelle lezioni dello studente, conosce i suoi concetti deboli e corregge le schede quando glielo chiede. Tutto gira sul PC, sul feed della materia scaricato con il token "genera".
+
+```
+Claude Desktop ──▶ server MCP (sul PC) ──▶ API EpicFeed (token "genera")
+   │  cerca_lezione      GET  /api/generation/study/subjects, /:id   ricerca sul PC
+   │  concetti_deboli    GET  /api/generation/progress               decifrata sul PC (ADR 0018)
+   └─ segnala_errore     POST /api/generation/corrections            dopo il sì dello studente
+```
+
+| File (`apps/mcp/src/study`) | Ruolo |
+|---|---|
+| `library.ts` | `StudyLibrary`: materie e feed come li scarica la web app, in memoria per 5 minuti; scelta della materia per id o parte del titolo, solo tra quelle con lezioni generate. |
+| `search.ts` | `searchLessons`: titoli di lezioni, schede, domande, termini e concetti nelle due lingue, senza maiuscole né accenti. Le parole pesano per campo (titolo e termini 4, concetto 3, lezione 3, frase chiave 2, testo 1); con tutte le parole il punteggio raddoppia; le domande valgono l'80%. Ogni risultato porta gli id per `segnala_errore` e, se la scheda è allineata, il minuto del video e il link alla parte sul portale. |
+| `concepts.ts` | `subjectProgress`: concetti della materia e stati FSRS ricalcolati dallo storico (`replayAnswers`), concetti deboli con le stesse regole del Ripasso dell'app (`summarizeReview`). |
+| `progress.ts` | `ProgressReader`: scarica la copia cifrata e la apre con `@epicfeed/review/crypto` (la stessa cifratura del browser, con WebCrypto di Node). La chiave si ricava una volta per avvio. Esiti: `ok`, `no_credentials`, `no_copy`, `wrong_password`, ciascuno con le istruzioni per lo studente. |
+| `report-error.ts` | `prepareReport`: costruisce la correzione di M5 (`text`, `answer`, `term`), la valida con `correctionDraftSchema` e `checkCorrectionDraft` e la prova con `applyCorrections` sul feed: una frase che non c'è non diventa una correzione. Per una domanda ricava dal feed l'opzione giusta e il testo; per un termine conta dove compare (`countTermUsage`). |
+| `tools.ts`, `prompt.ts` | Strumenti, istruzioni del server (`STUDY_SERVER_INSTRUCTIONS`) e prompt `studia_con_epicfeed`. |
+
+- **Segnala errore in due passi**: con `confirmed: false` lo strumento restituisce l'anteprima e chiede a Claude di mostrarla; con `confirmed: true` salva. L'id della correzione lo sceglie il server MCP (UUID). Dopo il salvataggio la materia si riscarica. Le correzioni arrivano già nelle due lingue, quindi non aspettano Claude (`not_needed`).
+- **Credenziali**: email (`account_email`) e password (`account_password`, campo `sensitive`, nel portachiavi del sistema) sono impostazioni facoltative del manifest. Servono solo a ricavare la chiave sul PC e non vengono mai inviate; senza, la ricerca e le correzioni funzionano lo stesso.
+- **API**: i tre endpoint usano il token "genera" e il limite di frequenza della generazione (`read` per le letture, `save` per le correzioni). `GET /api/generation/study/subjects/:id` restituisce la materia nella stessa forma di `GET /api/feed/subjects/:id` (`subjectFeedResponseSchema`), senza ETag né riallineamento dei minuti, che restano alla web app.
+
+Uso: in Claude Desktop, "dove si parla di AVL nelle mie lezioni?", "su cosa vado peggio in DSA?", "la scheda sugli heap dice O(n), è sbagliato" (o il prompt `studia_con_epicfeed`).
