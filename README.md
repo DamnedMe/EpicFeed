@@ -29,7 +29,7 @@
 > [!TIP]
 > 🏁 Ultimo traguardo: **M5 Segnala errore** chiusa il 25/11: correzioni personali di schede e domande dal feed, applicate sul dispositivo anche offline, *Le mie segnalazioni* in Io e completamento dell'altra lingua da Claude Desktop.
 >
-> 🛠️ Ora: **M6 Assistente di studio**: scelte fatte ([ADR 0021](docs/decisions/0021-study-assistant-m6.md)); in Claude Desktop cerca lezione, concetti deboli, segnala errore e quiz al volo interattivo che conta nel ripasso.
+> 🛠️ Ora: **M6 Assistente di studio**: scelte fatte ([ADR 0021](docs/decisions/0021-study-assistant-m6.md)); in Claude Desktop cerca lezione, concetti deboli, segnala errore e quiz al volo che conta nel ripasso; nell'app *Chiedi a Claude* con una chiave API propria (Gemini, Claude, OpenAI).
 
 <!-- stato:fine -->
 

@@ -1,11 +1,12 @@
 import { createServerClient } from '@supabase/ssr';
+import { PROVIDER_ORIGINS } from '@epicfeed/assistant';
 import { NextResponse, type NextRequest } from 'next/server';
 
 /**
  * Proxy di Next.js (ex middleware), eseguito prima di ogni pagina:
  * 1. genera un nonce e imposta una Content Security Policy rigorosa
  *    (nessuno script inline senza nonce, nessun frame, connessioni solo verso
- *    l'app e Supabase);
+ *    l'app, Supabase e i fornitori dell'assistente);
  * 2. rinnova la sessione di Supabase nei cookie e verifica il token;
  * 3. manda alla pagina di accesso chi apre una pagina protetta senza sessione.
  *
@@ -66,7 +67,8 @@ function contentSecurityPolicy(nonce: string, https: boolean): string {
     "worker-src 'self'",
     "manifest-src 'self'",
     "font-src 'self'",
-    `connect-src 'self' ${supabase}`.trim(),
+    // Fornitori dell'assistente: il browser li chiama con la chiave dello studente (ADR 0021).
+    `connect-src 'self' ${supabase} ${PROVIDER_ORIGINS.join(' ')}`.replace(/\s+/g, ' ').trim(),
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

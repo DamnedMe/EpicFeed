@@ -16,6 +16,15 @@ Per i concetti deboli e per portare nel ripasso le risposte dei quiz Claude deve
 
 I progressi arrivano dall'ultima sincronizzazione: apri il Ripasso nell'app con la password se Claude dice che non ci sono.
 
-## In arrivo con le prossime parti di M6
-- **Assistente nell'app** con una tua chiave API (Google Gemini, con un livello gratuito, Anthropic Claude od OpenAI): *Chiedi a Claude* dal feed risponde subito, anche sul telefono. La chiave resta sul dispositivo.
-- Senza chiave, *Chiedi a Claude* mette la domanda in coda per Claude Desktop e la risposta torna in *Io › Le mie domande*.
+## Nell'app, con una tua chiave API
+In *Io › Assistente* scegli il fornitore e incolla una tua chiave:
+
+- **Google Gemini**: gratuita, con limiti al minuto e al giorno che di solito bastano per studiare. Il link *Crea una chiave gratuita su Google AI Studio* apre la pagina giusta: accedi con l'account Google, tocca *Create API key* e copia la chiave. Sul livello gratuito Google può usare le richieste per migliorare i suoi modelli, quindi non scrivere dati personali nelle domande.
+- **Anthropic Claude** e **OpenAI**: a consumo, con un credito caricato sul loro sito; una domanda costa una frazione di centesimo. Conviene impostare un tetto di spesa.
+
+*Prova e salva* controlla la chiave e sceglie il modello più veloce ed economico, che puoi cambiare. La chiave resta solo su questo dispositivo e va direttamente al fornitore: EpicFeed non la vede. *Rimuovi chiave* la cancella. La pagina mostra quante richieste hai fatto oggi.
+
+Poi, nel feed, tieni premuto su una scheda o una domanda e scegli **Chiedi a Claude**: scrivi la domanda o tocca *Spiegamelo più semplice*, *Fammi un esempio*, *In inglese* o *Fammi una domanda*. La risposta arriva subito e parte dalla scheda e dai concetti della lezione. Al fornitore vanno solo la domanda, la scheda e i concetti, mai email o password. La conversazione resta nel foglio e si chiude con lui.
+
+## In arrivo
+- Senza chiave, *Chiedi a Claude* metterà la domanda in coda per Claude Desktop e la risposta tornerà in *Io › Le mie domande*.

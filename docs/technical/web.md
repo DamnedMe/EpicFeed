@@ -11,6 +11,7 @@ Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailw
 | `/` | **Feed di studio** a battute ([feed.md](../functional/feed.md)); la materia arriva da `GET /api/feed/subjects/{id}` | sessione |
 | `/profile` | **Io**: aspetto, preferenze di studio, totali, collegamenti | sessione |
 | `/profile/saved` | Schede salvate sul dispositivo | sessione |
+| `/profile/assistant` | **Io › Assistente**: chiave API dello studente per *Chiedi a Claude* ([assistente nell'app](#assistente-nellapp-m6)) | sessione |
 | `/review` | **Ripasso** dei concetti a battute e sezione **Esame** (`#esame`) ([review.md](../functional/review.md)) | sessione |
 | `GET /api/progress` | Copia cifrata dei progressi (`404` se non c'è) ([sincronizzazione](#sincronizzazione-dei-progressi-m4)) | sessione |
 | `PUT /api/progress` | Scrive la copia cifrata se `baseRevision` è ancora quella (`409` altrimenti) | sessione, stessa origine |
@@ -74,7 +75,7 @@ Ogni pagina protetta richiama `requireUser()`, che ricontrolla l'allowlist. La s
 Le letture del catalogo passano da `withUserRls`: la query gira con il ruolo `authenticated` e l'id dell'utente nei claim, quindi la RLS del database decide cosa si vede anche se il server usa una connessione privilegiata.
 
 ## Sicurezza
-- **CSP per richiesta** (`proxy.ts`): script e stili solo con nonce, `frame-ancestors 'none'`, `connect-src` solo verso l'app e Supabase, `worker-src` e `manifest-src` solo dall'app (service worker e manifest della PWA), `upgrade-insecure-requests` in HTTPS.
+- **CSP per richiesta** (`proxy.ts`): script e stili solo con nonce, `frame-ancestors 'none'`, `connect-src` solo verso l'app, Supabase e i tre fornitori dell'assistente (`PROVIDER_ORIGINS` di `@epicfeed/assistant`), `worker-src` e `manifest-src` solo dall'app (service worker e manifest della PWA), `upgrade-insecure-requests` in HTTPS.
 - Header fissi (`next.config.ts`): HSTS, `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY`, `Permissions-Policy`.
 - Le API che usano la sessione accettano solo richieste della stessa origine (`isSameOrigin`), contro il CSRF.
 - Nessuna chiave privilegiata nel client: il browser riceve solo URL e chiave pubblicabile di Supabase.
@@ -201,6 +202,17 @@ Decisioni in [ADR 0018](../decisions/0018-encrypted-progress-sync.md); unione e 
   - Le cache hanno la versione nel nome (`epicfeed-shell-v1`, `epicfeed-static-v1`): cambiare `VERSION` le svuota all'attivazione; `skipWaiting` e `clients.claim` fanno valere subito la versione nuova.
 - `next.config.ts` serve `/sw.js` con `Cache-Control: no-cache`, perché il browser controlli sempre se è cambiato; `proxy.ts` esclude `sw.js`, il manifest e le icone (niente sessione né CSP da rinnovare per file statici).
 - Senza rete, quindi, l'app installata si apre sul feed con l'ultima materia scaricata e l'avviso *offline*; punti, salvati e posizione restano sul dispositivo come sempre.
+
+## Assistente nell'app (M6)
+Decisioni: [ADR 0021](../decisions/0021-study-assistant-m6.md), scelta 0. Lo studente salva in *Io › Assistente* una propria chiave API di Google Gemini, Anthropic Claude od OpenAI; *Chiedi a Claude* (tieni premuto sulla scheda) risponde nel feed.
+
+- **Dove sta la chiave**: IndexedDB `epicfeed-assistant` (`src/features/assistant/key-store.ts`), con il fornitore, il modello scelto, i modelli disponibili e il conteggio delle richieste del giorno. Non va mai al server di EpicFeed: le richieste partono dal browser verso il fornitore (`assistant-client.ts`), con la chiave nell'intestazione (mai nell'indirizzo). Per Anthropic serve `anthropic-dangerous-direct-browser-access`, perché la chiave è dello studente.
+- **Prova e modello**: *Prova e salva* chiede l'elenco dei modelli con la chiave. Se risponde, la chiave è valida e si sceglie il modello più recente della famiglia veloce ed economica (`pickDefaultModel`: Gemini Flash, Claude Haiku, i modelli piccoli di OpenAI), preferendo le versioni stabili; lo studente può cambiarlo. I nomi dei modelli non sono scritti nel codice: cambiano troppo spesso.
+- **Cosa riceve il fornitore** (`systemPrompt` e `entryContext`): materia e lezione, la scheda nelle due lingue (frase chiave, testo, passi, confronto, codice) o la domanda con opzioni, soluzione e spiegazione, i concetti della lezione toccati, gli ultimi 8 messaggi e la domanda (al massimo 1.000 caratteri). Risposte fino a 900 token, in breve, nella lingua della domanda. Mai email, password o token.
+- **Risposta**: Markdown semplice (paragrafi, elenchi, codice, grassetto) trasformato in elementi React da `markdown.ts`: l'HTML del modello resta testo.
+- **Errori**: chiave non valida, limite di richieste, credito finito, fornitore non raggiungibile, risposta vuota, ciascuno con un messaggio; la domanda resta nel campo per riprovare. Tempo massimo 30 secondi.
+- **Sicurezza**: la CSP apre `connect-src` solo verso i tre fornitori; nessuno script di terzi nella pagina. *Rimuovi chiave* la cancella dal dispositivo.
+- Codice: regole e richieste HTTP nel pacchetto `@epicfeed/assistant` (puro, nessuna chiamata), browser in `src/features/assistant` (chiave, chiamate, foglio *Chiedi a Claude*, pannello di *Io › Assistente*). Test: pacchetto, `src/features/assistant/*.test.ts` e il test Playwright che salva una chiave di Gemini finta e chiede sulla scheda con il fornitore simulato.
 
 ## Variabili d'ambiente
 Esempio commentato in `apps/web/.env.example`. In locale vanno in `apps/web/.env.local` (ignorato da git), su Vercel in *Settings → Environment Variables*.

@@ -23,6 +23,7 @@ const TYPES: Record<string, string> = {
 const PAGES: Record<string, string> = {
   '/': 'index.html',
   '/profile': 'profile.html',
+  '/profile/assistant': 'assistant.html',
   '/review': 'review.html',
 };
 
@@ -37,8 +38,10 @@ function pageFile(path: string, cookie: string): string {
   if (path === '/review' && has('ef-sync-key')) return 'review-key.html';
   return PAGES[path] ?? path;
 }
-const CSP =
-  "default-src 'self'; script-src 'self'; style-src 'self' 'nonce-e2e-nonce'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self'";
+/** Fornitori dell'assistente, chiamati dal browser come in produzione (`src/proxy.ts`). */
+const PROVIDERS =
+  'https://generativelanguage.googleapis.com https://api.anthropic.com https://api.openai.com';
+const CSP = `default-src 'self'; script-src 'self'; style-src 'self' 'nonce-e2e-nonce'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' ${PROVIDERS}`;
 /** CSP del worker dei test Python, come in produzione (`next.config.ts`). */
 const WORKER_CSP = "default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'";
 
@@ -189,6 +192,77 @@ test('Segnala errore corregge la frase e la scheda lo mostra', async ({ page }) 
       }),
     )
     .toEqual([false]);
+});
+
+test('Chiedi a Claude: aggiungi la chiave di Gemini e chiedi sulla scheda', async ({ page }) => {
+  const GEMINI = 'https://generativelanguage.googleapis.com/v1beta';
+  const asked: string[] = [];
+  await page.route(`${GEMINI}/**`, async (route) => {
+    const request = route.request();
+    // La chiave va solo nell'intestazione, mai nell'indirizzo.
+    expect(request.url()).not.toContain('AIza');
+    expect(request.headers()['x-goog-api-key']).toBe('AIzaSyFinta1234567890abcdef');
+    if (request.method() === 'GET') {
+      return route.fulfill({
+        json: {
+          models: [
+            { name: 'models/gemini-3.8-flash', supportedGenerationMethods: ['generateContent'] },
+            { name: 'models/gemini-3.8-pro', supportedGenerationMethods: ['generateContent'] },
+          ],
+        },
+        headers: { 'access-control-allow-origin': '*' },
+      });
+    }
+    asked.push(request.postData() ?? '');
+    return route.fulfill({
+      json: {
+        candidates: [
+          {
+            content: { parts: [{ text: 'La **head** è il primo nodo:\n- da lì parte la lista' }] },
+          },
+        ],
+      },
+      headers: { 'access-control-allow-origin': '*' },
+    });
+  });
+
+  await open(page);
+  const box = await slide(page).locator('.ef-stage').boundingBox();
+  if (!box) throw new Error('scheda non visibile');
+  const hold = async () => {
+    await page.mouse.move(box.x + box.width / 2, box.y + 200);
+    await page.mouse.down();
+    await page.waitForTimeout(650);
+    await page.mouse.up();
+  };
+  await hold();
+  await page.getByRole('button', { name: /Chiedi a Claude/ }).click();
+  const empty = page.getByRole('dialog', { name: 'Chiedi a Claude' });
+  await expect(empty.getByText(/aggiungi una tua chiave API/)).toBeVisible();
+  await empty.getByRole('link', { name: 'Aggiungi una chiave' }).click();
+
+  await expect(page.getByRole('link', { name: /Google AI Studio/ })).toHaveAttribute(
+    'href',
+    'https://aistudio.google.com/app/apikey',
+  );
+  await page.getByLabel('Chiave API').fill('  AIzaSyFinta1234567890abcdef ');
+  await page.getByRole('button', { name: 'Prova e salva' }).click();
+  await expect(page.getByText('Chiave valida · solo su questo dispositivo')).toBeVisible();
+  await expect(page.getByLabel(/Modello/)).toHaveValue('gemini-3.8-flash');
+  await expect(page.getByText('AIza••••••••••def')).toBeVisible();
+
+  await page.goto(ORIGIN);
+  await expect(slide(page)).toBeVisible();
+  await hold();
+  await page.getByRole('button', { name: /Chiedi a Claude/ }).click();
+  const sheet = page.getByRole('dialog', { name: 'Chiedi a Claude' });
+  await sheet.getByLabel('La tua domanda').fill('Cos’è la head?');
+  await sheet.getByRole('button', { name: 'Chiedi', exact: true }).click();
+  await expect(sheet.locator('.ef-ask-reply strong')).toHaveText('head');
+  await expect(sheet.locator('.ef-ask-reply li')).toHaveText('da lì parte la lista');
+  expect(asked).toHaveLength(1);
+  expect(asked[0]).toContain('linked list');
+  expect(asked[0]).toContain('Cos’è la head?');
 });
 
 test('scorrendo arrivano passi, confronto, codice e una domanda in inglese', async ({ page }) => {

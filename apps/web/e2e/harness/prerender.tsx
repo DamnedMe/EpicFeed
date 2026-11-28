@@ -5,7 +5,7 @@
 import { renderToString } from 'react-dom/server';
 import { feedPreview } from '@/features/feed/model';
 import { fixture } from './fixture';
-import { FeedPage, ProfilePage, ReviewPage } from './pages';
+import { AssistantPage, FeedPage, ProfilePage, ReviewPage } from './pages';
 
 /** Anteprima della prima lezione, come `loadFeedPreview` sul server. */
 export const preview = feedPreview(fixture);
@@ -16,4 +16,5 @@ export const html = {
   review: () => renderToString(<ReviewPage syncKey={false} />),
   reviewWithKey: () => renderToString(<ReviewPage syncKey />),
   profile: () => renderToString(<ProfilePage />),
+  assistant: () => renderToString(<AssistantPage />),
 };

@@ -21,6 +21,7 @@
     "@codemirror/state": "6.7.6",
     "@codemirror/view": "6.43.15",
     "@epicfeed/access": "workspace:*",
+    "@epicfeed/assistant": "workspace:*",
     "@epicfeed/catalog": "workspace:*",
     "@epicfeed/db": "workspace:*",
     "@epicfeed/exam": "workspace:*",

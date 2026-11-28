@@ -10,7 +10,7 @@
 | [functional/overview.md](functional/overview.md) | Documentazione funzionale: cosa fa l'app per lo studente |
 | [functional/feed.md](functional/feed.md) | Feed di studio: schede a battute, gesti, domande, punti, sessioni, Io |
 | [functional/review.md](functional/review.md) | Ripasso dei concetti e sezione Esame |
-| [functional/assistant.md](functional/assistant.md) | Assistente di studio: Claude Desktop e, in arrivo, l'assistente nell'app |
+| [functional/assistant.md](functional/assistant.md) | Assistente di studio: Claude Desktop e l'assistente nell'app con una chiave API |
 | [design-system.md](design-system.md) | Colori, temi, accenti, tipografia e mockup |
 | [technical/setup.md](technical/setup.md) | Setup, comandi, struttura del monorepo, convenzioni e CI |
 | [technical/core.md](technical/core.md) | Catalogo e import (`catalog`, `ingest`): entità, forma canonica e impronta del contenuto, sottotitoli, prova di possesso, ImportLesson |

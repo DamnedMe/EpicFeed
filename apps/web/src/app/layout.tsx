@@ -14,6 +14,7 @@ import '@/components/bottom-nav.css';
 import '@/components/page.css';
 import '@/features/review/review.css';
 import '@/features/exam/exam.css';
+import '@/features/assistant/assistant.css';
 
 // Font self-hosted da next/font: scaricati alla build, serviti dall'app (CSP `font-src 'self'`).
 const display = Space_Grotesk({

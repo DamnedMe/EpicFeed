@@ -209,6 +209,10 @@ export function ProfilePanel({ theme, accent }: { theme: ThemePreference; accent
             Estensione
             <small>→</small>
           </Link>
+          <Link className="ef-row-link" href="/profile/assistant">
+            Assistente
+            <small>→</small>
+          </Link>
           <Link className="ef-row-link" href="/claude-desktop">
             Claude Desktop
             <small>→</small>
