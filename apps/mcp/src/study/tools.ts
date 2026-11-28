@@ -6,7 +6,7 @@ import { issuesResult, text, withErrors } from '../tool-results.js';
 import type { SubjectProgress } from './concepts.js';
 import { subjectProgress } from './concepts.js';
 import type { StudyLibrary } from './library.js';
-import type { ProgressReader } from './progress.js';
+import type { StudentProgress } from './progress.js';
 import { progressProblem } from './progress.js';
 import { STUDY_PROMPT } from './prompt.js';
 import type { ClaudeReport, PreparedReport } from './report-error.js';
@@ -21,7 +21,7 @@ export type StudyApi = Pick<EpicFeedApi, 'reportError'>;
 export interface StudyServices {
   readonly api: StudyApi;
   readonly library: StudyLibrary;
-  readonly progress: ProgressReader;
+  readonly progress: StudentProgress;
   /** Adesso (test). */
   readonly now?: () => Date;
   /** Id nuovo per una correzione (test). */

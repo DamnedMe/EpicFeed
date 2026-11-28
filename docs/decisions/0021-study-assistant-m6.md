@@ -45,7 +45,7 @@ Lo studente dice in chat che una scheda è sbagliata. Claude la trova con *cerca
 
 ## Come si realizza (4 PR)
 1. **Ricerca, concetti deboli, segnala errore** in Claude Desktop: API con il token "genera" per materie e feed (`GET /api/generation/study/subjects`, `/:id`), copia cifrata dei progressi (`GET /api/generation/progress`) e correzioni chieste a Claude (`POST /api/generation/corrections`); cifratura dei progressi spostata in `@epicfeed/review/crypto` per usarla sia nel browser sia nel server MCP; strumenti `cerca_lezione`, `concetti_deboli`, `segnala_errore` e prompt `studia_con_epicfeed` ([generation.md](../technical/generation.md#assistente-di-studio-m6)).
-2. **Quiz al volo** interattivo e scrittura delle risposte nello storico cifrato.
+2. **Quiz al volo** interattivo e scrittura delle risposte nello storico cifrato: `PUT /api/generation/progress` con il token "genera", strumenti `quiz_al_volo` (app MCP con la risorsa `ui://epicfeed/quiz.html`) e `registra_risposte`. Le risposte entrano con `source: 'quiz'`, già noto alle app esistenti.
 3. **Assistente nell'app** con la chiave dello studente: *Io › Assistente*, *Chiedi a Claude* dal feed.
 4. **Domande in coda** senza chiave, *Le mie domande* e chiusura di M6.
 

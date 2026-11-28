@@ -23,9 +23,9 @@ import type {
   SaveExamPackRequest,
   SaveExamPackResponse,
 } from '@epicfeed/exam';
-import type { ProgressResponse } from '@epicfeed/review';
+import type { ProgressPut, ProgressResponse } from '@epicfeed/review';
 import { apiErrorSchema } from '@epicfeed/shared';
-import { progressResponseSchema } from '@epicfeed/review';
+import { progressPutResponseSchema, progressResponseSchema } from '@epicfeed/review';
 import {
   correctionsResponseSchema,
   importSlidesResponseSchema,
@@ -351,6 +351,26 @@ export class EpicFeedApi {
       );
     } catch (error) {
       if (error instanceof ApiRequestError && error.status === 404) return null;
+      throw error;
+    }
+  }
+
+  /**
+   * Scrive la copia cifrata sul PC (risposte dei quiz in chat).
+   *
+   * @param body - Copia cifrata e versione di partenza.
+   * @returns La nuova versione, oppure `null` se nel frattempo è cambiata (`409`).
+   */
+  async writeProgress(body: ProgressPut): Promise<number | null> {
+    try {
+      const { revision } = await this.request(
+        '/api/generation/progress',
+        { method: 'PUT', body: JSON.stringify(body) },
+        progressPutResponseSchema,
+      );
+      return revision;
+    } catch (error) {
+      if (error instanceof ApiRequestError && error.status === 409) return null;
       throw error;
     }
   }

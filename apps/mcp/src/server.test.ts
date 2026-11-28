@@ -128,6 +128,7 @@ async function connect(
     listStudySubjects: vi.fn(() => Promise.reject(new Error('non usato'))),
     readStudySubject: vi.fn(() => Promise.reject(new Error('non usato'))),
     readProgress: vi.fn(() => Promise.reject(new Error('non usato'))),
+    writeProgress: vi.fn(() => Promise.reject(new Error('non usato'))),
     reportError: vi.fn(() => Promise.reject(new Error('non usato'))),
     ...overrides,
   };
@@ -161,6 +162,8 @@ describe('server MCP di EpicFeed', () => {
       'leggi_materiale_esame',
       'lezioni_da_generare',
       'lezioni_per_esame',
+      'quiz_al_volo',
+      'registra_risposte',
       'risposte_da_correggere',
       'salva_correzione',
       'salva_domande_esame',
