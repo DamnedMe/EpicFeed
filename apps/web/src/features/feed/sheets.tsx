@@ -66,7 +66,7 @@ const ORIGIN_LABEL = {
 
 /**
  * Foglio delle azioni (tieni premuto): Salva, Ascolta, lingua, Guarda sul
- * portale, Fonte, Segnala errore (M5), Chiedi (da M6) e i gesti.
+ * portale, Fonte, Segnala errore (M5), Chiedi a Claude (M6) e i gesti.
  */
 export function ActionSheet(props: {
   entry: FeedEntry;
@@ -78,6 +78,7 @@ export function ActionSheet(props: {
   onLanguage: () => void;
   onGestures: () => void;
   onReport: () => void;
+  onAsk: () => void;
   onClose: () => void;
 }) {
   const { entry, language } = props;
@@ -159,11 +160,11 @@ export function ActionSheet(props: {
           </small>
         </span>
       </button>
-      <button type="button" className="ef-action" disabled>
+      <button type="button" className="ef-action" onClick={props.onAsk}>
         <Icon name="ask" />
         <span>
           Chiedi a Claude
-          <small>In arrivo con l&apos;assistente di studio</small>
+          <small>{isCard ? 'Una domanda su questa scheda' : 'Una domanda su questa domanda'}</small>
         </span>
       </button>
       <button type="button" className="ef-action" onClick={props.onGestures}>

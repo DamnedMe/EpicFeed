@@ -5,6 +5,7 @@
  */
 import { ProfilePanel } from '@/app/profile/profile-panel';
 import { BottomNav } from '@/components/bottom-nav';
+import { AssistantSettingsPanel } from '@/features/assistant/assistant-settings';
 import { FeedApp } from '@/features/feed/feed-app';
 import type { SubjectFeed } from '@/features/feed/model';
 import { ReviewApp } from '@/features/review/review-app';
@@ -30,6 +31,19 @@ export function ProfilePage() {
         <span className="truncate font-mono text-xs text-muted">studente@example.com</span>
       </header>
       <ProfilePanel theme="dark" accent="racing-red" />
+      <BottomNav active="profile" />
+    </div>
+  );
+}
+
+/** *Io › Assistente*: la chiave API dello studente. */
+export function AssistantPage() {
+  return (
+    <div className="ef-page">
+      <header className="flex flex-col gap-1">
+        <h1 className="font-display text-3xl font-bold tracking-tight">Assistente</h1>
+      </header>
+      <AssistantSettingsPanel />
       <BottomNav active="profile" />
     </div>
   );

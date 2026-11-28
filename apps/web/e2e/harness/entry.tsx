@@ -51,10 +51,16 @@ function correctionsApi(url: string, init?: RequestInit): Response {
   return Response.json({ corrections: [...corrections.values()] });
 }
 
+const realFetch = window.fetch.bind(window);
+
 window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
   if (network === 'lenta') return new Promise<Response>(() => {});
   if (network === 'assente') return Promise.reject(new TypeError('Failed to fetch'));
   const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+  // Fornitori dell'assistente: la rete vera, intercettata da Playwright.
+  if (new URL(url, window.location.href).origin !== window.location.origin) {
+    return realFetch(input, init);
+  }
   if (new URL(url, window.location.href).pathname.startsWith('/api/corrections')) {
     return Promise.resolve(correctionsApi(url, init));
   }

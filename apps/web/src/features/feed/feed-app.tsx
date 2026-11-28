@@ -21,6 +21,7 @@ import type { SessionSummary } from './overlays';
 import { GestureIntro, SessionEnd } from './overlays';
 import type { QuizAnswer } from './quiz-slide';
 import { QuizSlide } from './quiz-slide';
+import { AskSheet } from '../assistant/ask-sheet';
 import { ActionSheet, ChapterSheet } from './sheets';
 import { readValue, STORAGE_KEYS, writeValue } from './storage';
 import { useProgressSync } from '@/features/review/sync/engine';
@@ -88,7 +89,7 @@ export function FeedApp({
   const [cards, setCards] = useState<Record<string, CardState>>({});
   const [answers, setAnswers] = useState<Record<string, QuizAnswer>>({});
   const [languages, setLanguages] = useState<Record<string, StudyLanguage>>({});
-  const [sheet, setSheet] = useState<'actions' | 'chapters' | 'report' | null>(null);
+  const [sheet, setSheet] = useState<'actions' | 'chapters' | 'report' | 'ask' | null>(null);
   const [notice, setNotice] = useState<{ id: number; text: string } | null>(null);
   const { corrections } = useCorrections();
   const [forcedIntro, setForcedIntro] = useState(false);
@@ -633,6 +634,10 @@ export function FeedApp({
             stopSpeaking();
             setSheet('report');
           }}
+          onAsk={() => {
+            stopSpeaking();
+            setSheet('ask');
+          }}
           onClose={() => {
             setSheet(null);
           }}
@@ -655,6 +660,16 @@ export function FeedApp({
           onSave={(result) => {
             saveReport(entry, result);
           }}
+          onClose={() => {
+            setSheet(null);
+          }}
+        />
+      ) : null}
+      {sheet === 'ask' && entry && shownFeed ? (
+        <AskSheet
+          feed={shownFeed}
+          entry={entry}
+          language={languageOf(entry)}
           onClose={() => {
             setSheet(null);
           }}
