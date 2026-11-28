@@ -17,12 +17,12 @@
     "@epicfeed/feed": "workspace:*",
     "@epicfeed/review": "workspace:*",
     "@epicfeed/shared": "workspace:*",
-    "@modelcontextprotocol/ext-apps": "1.7.5",
+    "@modelcontextprotocol/ext-apps": "2.0.4",
     "@modelcontextprotocol/sdk": "1.32.2",
-    "@napi-rs/canvas": "1.1.0",
+    "@napi-rs/canvas": "1.2.1",
     "pdfjs-dist": "6.5.438",
     "yauzl": "3.4.0",
-    "zod": "4.6.6"
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@epicfeed/config": "workspace:*",
