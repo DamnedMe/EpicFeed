@@ -1,6 +1,9 @@
 import type {
   CorrectionCompletion,
+  ReportErrorRequest,
   StoredCorrection,
+  StudySubjectsResponse,
+  SubjectFeedResponse,
   ImportSlidesRequest,
   ImportSlidesResponse,
   LessonSourcesResponse,
@@ -20,7 +23,9 @@ import type {
   SaveExamPackRequest,
   SaveExamPackResponse,
 } from '@epicfeed/exam';
+import type { ProgressResponse } from '@epicfeed/review';
 import { apiErrorSchema } from '@epicfeed/shared';
+import { progressResponseSchema } from '@epicfeed/review';
 import {
   correctionsResponseSchema,
   importSlidesResponseSchema,
@@ -28,6 +33,9 @@ import {
   lessonSourcesResponseSchema,
   lessonsToGenerateResponseSchema,
   saveLessonFeedResponseSchema,
+  storedCorrectionSchema,
+  studySubjectsResponseSchema,
+  subjectFeedResponseSchema,
 } from '@epicfeed/feed';
 import {
   lessonForExamResponseSchema,
@@ -39,6 +47,9 @@ import {
   subjectsForExamResponseSchema,
 } from '@epicfeed/exam';
 import * as z from 'zod';
+
+/** Risposta di `POST /api/generation/corrections`. */
+const reportSavedSchema = z.object({ correction: storedCorrectionSchema });
 
 /** Risposta di `POST /api/generation/corrections/:id/completion`. */
 const completionSavedSchema = z.object({ saved: z.literal(true) });
@@ -297,6 +308,66 @@ export class EpicFeedApi {
       { method: 'POST', body: JSON.stringify({ completion }) },
       completionSavedSchema,
     );
+  }
+
+  /**
+   * Materie con lezioni importate (assistente di studio, M6).
+   *
+   * @returns La risposta validata.
+   */
+  async listStudySubjects(): Promise<StudySubjectsResponse> {
+    return this.request(
+      '/api/generation/study/subjects',
+      { method: 'GET' },
+      studySubjectsResponseSchema,
+    );
+  }
+
+  /**
+   * Feed di tutta una materia, come lo scarica la web app.
+   *
+   * @param subjectId - Id della materia.
+   * @returns La risposta validata.
+   */
+  async readStudySubject(subjectId: string): Promise<SubjectFeedResponse> {
+    return this.request(
+      `/api/generation/study/subjects/${encodeURIComponent(subjectId)}`,
+      { method: 'GET' },
+      subjectFeedResponseSchema,
+    );
+  }
+
+  /**
+   * Copia cifrata dei progressi (ADR 0018), da decifrare sul PC.
+   *
+   * @returns La copia, oppure `null` se lo studente non l'ha ancora sincronizzata.
+   */
+  async readProgress(): Promise<ProgressResponse | null> {
+    try {
+      return await this.request(
+        '/api/generation/progress',
+        { method: 'GET' },
+        progressResponseSchema,
+      );
+    } catch (error) {
+      if (error instanceof ApiRequestError && error.status === 404) return null;
+      throw error;
+    }
+  }
+
+  /**
+   * Salva una correzione che lo studente ha chiesto a Claude e confermato.
+   *
+   * @param body - Correzione già validata, con l'id scelto dal server MCP.
+   * @returns La correzione salvata.
+   */
+  async reportError(body: ReportErrorRequest): Promise<StoredCorrection> {
+    const { correction } = await this.request(
+      '/api/generation/corrections',
+      { method: 'POST', body: JSON.stringify(body) },
+      reportSavedSchema,
+    );
+    return correction;
   }
 
   private async request<T>(path: string, init: RequestInit, schema: z.ZodType<T>): Promise<T> {

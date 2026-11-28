@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { DEFAULT_API_URL, apiFromEnv } from './config.js';
+import { DEFAULT_API_URL, apiFromEnv, credentialsFromEnv } from './config.js';
 
 const token = `sfg_${'A'.repeat(43)}`;
 const ok = () =>
@@ -37,5 +37,31 @@ describe('apiFromEnv', () => {
       fetchMock as typeof fetch,
     ).listLessons(1);
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain('http://localhost:3000/');
+  });
+});
+
+describe('credentialsFromEnv', () => {
+  it('legge email e password, senza toccare gli spazi della password', () => {
+    expect(
+      credentialsFromEnv({ EPICFEED_EMAIL: ' anna@example.com ', EPICFEED_PASSWORD: ' segreta ' }),
+    ).toEqual({ email: 'anna@example.com', password: ' segreta ' });
+  });
+
+  it('senza uno dei due, o con i segnaposto di Claude Desktop, non ci sono credenziali', () => {
+    expect(credentialsFromEnv({})).toBeNull();
+    expect(credentialsFromEnv({ EPICFEED_EMAIL: 'anna@example.com' })).toBeNull();
+    expect(credentialsFromEnv({ EPICFEED_EMAIL: 'anna', EPICFEED_PASSWORD: 'x' })).toBeNull();
+    expect(
+      credentialsFromEnv({
+        EPICFEED_EMAIL: '${user_config.account_email}',
+        EPICFEED_PASSWORD: '${user_config.account_password}',
+      }),
+    ).toBeNull();
+    expect(
+      credentialsFromEnv({
+        EPICFEED_EMAIL: 'anna@example.com',
+        EPICFEED_PASSWORD: '${user_config.account_password}',
+      }),
+    ).toBeNull();
   });
 });

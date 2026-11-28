@@ -1,10 +1,11 @@
-import type { EncryptedProgress, ProgressSnapshot } from '@epicfeed/review';
-import { PROGRESS_KDF, PROGRESS_SNAPSHOT_VERSION } from '@epicfeed/review';
-import * as z from 'zod';
-import { answerSchema } from '@/features/review/progress-store';
+import type { ProgressSnapshot } from '../application/progress-sync.js';
+import type { EncryptedProgress } from '../contracts/progress.js';
+import { PROGRESS_KDF, progressSnapshotSchema } from '../contracts/progress.js';
 
 /**
- * Cifratura dei progressi nel browser (M4, ADR 0018), solo con WebCrypto.
+ * Cifratura dei progressi (M4, ADR 0018), solo con WebCrypto: la usano il
+ * browser e, da M6, il server MCP sul PC dello studente (Node ha la stessa
+ * API in `globalThis.crypto`). Si importa da `@epicfeed/review/crypto`.
  *
  * 1. **Chiave della password**: PBKDF2-SHA256 con 600.000 iterazioni (OWASP)
  *    sulla password, con un sale ricavato dall'email. Si calcola una volta,
@@ -27,13 +28,6 @@ const AAD = encoder.encode(`epicfeed/progress/v1/${PROGRESS_KDF}`);
 /** Primo byte del testo in chiaro: come è codificata la copia. */
 const PLAIN_JSON = 0;
 const GZIP_JSON = 1;
-
-const snapshotSchema: z.ZodType<ProgressSnapshot> = z.object({
-  version: z.literal(PROGRESS_SNAPSHOT_VERSION),
-  answers: z.array(answerSchema),
-  reviewDays: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)),
-  bestStreak: z.number().int().min(0),
-});
 
 /** Byte in base64 (standard, con `=`). */
 export function toBase64(bytes: Uint8Array): string {
@@ -161,8 +155,8 @@ export async function decryptSnapshot(
     const body = plain.subarray(1);
     const json =
       plain[0] === GZIP_JSON ? await pipe(body.slice(), new DecompressionStream('gzip')) : body;
-    const parsed = snapshotSchema.safeParse(JSON.parse(new TextDecoder().decode(json)));
-    return parsed.success ? parsed.data : null;
+    const parsed = progressSnapshotSchema.safeParse(JSON.parse(new TextDecoder().decode(json)));
+    return parsed.success ? (parsed.data satisfies ProgressSnapshot) : null;
   } catch {
     return null;
   }

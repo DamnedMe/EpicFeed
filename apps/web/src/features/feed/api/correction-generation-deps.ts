@@ -15,5 +15,6 @@ export function correctionGenerationDeps(): CorrectionGenerationDeps {
     listPendingCorrections: (userId) => services.listCorrections.execute(userId, 'pending'),
     completeCorrection: (userId, id, completion) =>
       services.completeCorrection.execute(userId, id, completion),
+    reportError: (userId, input) => services.reportError.execute(userId, input),
   };
 }

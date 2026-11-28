@@ -125,6 +125,10 @@ async function connect(
     saveCorrection: vi.fn(() => Promise.reject(new Error('non usato'))),
     listPendingReports: vi.fn(() => Promise.reject(new Error('non usato'))),
     completeReport: vi.fn(() => Promise.reject(new Error('non usato'))),
+    listStudySubjects: vi.fn(() => Promise.reject(new Error('non usato'))),
+    readStudySubject: vi.fn(() => Promise.reject(new Error('non usato'))),
+    readProgress: vi.fn(() => Promise.reject(new Error('non usato'))),
+    reportError: vi.fn(() => Promise.reject(new Error('non usato'))),
     ...overrides,
   };
   const [clientSide, serverSide] = InMemoryTransport.createLinkedPair();
@@ -148,7 +152,9 @@ describe('server MCP di EpicFeed', () => {
     const { client } = await connect();
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([
+      'cerca_lezione',
       'completa_segnalazione',
+      'concetti_deboli',
       'importa_slide',
       'leggi_lezione',
       'leggi_lezione_esame',
@@ -160,6 +166,7 @@ describe('server MCP di EpicFeed', () => {
       'salva_domande_esame',
       'salva_esercizi_esame',
       'salva_feed_lezione',
+      'segnala_errore',
       'segnalazioni_in_attesa',
       'stato_generazione',
     ]);
@@ -167,6 +174,7 @@ describe('server MCP di EpicFeed', () => {
     expect(client.getInstructions()).toContain('lezioni_per_esame');
     expect(client.getInstructions()).toContain('risposte_da_correggere');
     expect(client.getInstructions()).toContain('segnalazioni_in_attesa');
+    expect(client.getInstructions()).toContain('cerca_lezione');
     const prompt = await client.getPrompt({ name: 'genera_lezioni' });
     const first = prompt.messages[0]?.content as { text: string };
     expect(first.text).toContain(PROMPT_VERSION);

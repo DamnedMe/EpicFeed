@@ -6,7 +6,7 @@ import type {
   RemoteProgress,
 } from '@epicfeed/review';
 import { progressPutResponseSchema, progressResponseSchema } from '@epicfeed/review';
-import { decryptSnapshot, encryptSnapshot } from './crypto';
+import { decryptSnapshot, encryptSnapshot } from '@epicfeed/review/crypto';
 
 /** Errore di rete o del server: la sincronizzazione riproverà più tardi. */
 export class SyncHttpError extends Error {

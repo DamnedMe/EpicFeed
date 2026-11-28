@@ -179,7 +179,7 @@ Decisioni in [ADR 0018](../decisions/0018-encrypted-progress-sync.md); unione e 
 
 | File (`src/features/review/sync`) | Ruolo |
 |---|---|
-| `crypto.ts` | WebCrypto: `derivePasswordKey` (PBKDF2-SHA256 600.000 iterazioni, sale dall'email → chiave HKDF non estraibile), `encryptSnapshot`/`decryptSnapshot` (HKDF con sale casuale → AES-GCM 256, iv casuale, gzip, dati associati con il `kdf`); la copia decifrata passa da uno schema zod |
+| `@epicfeed/review/crypto` | WebCrypto, in `packages/review/src/crypto` da M6 perché lo usa anche il server MCP: `derivePasswordKey` (PBKDF2-SHA256 600.000 iterazioni, sale dall'email → chiave HKDF non estraibile), `encryptSnapshot`/`decryptSnapshot` (HKDF con sale casuale → AES-GCM 256, iv casuale, gzip, dati associati con il `kdf`); la copia decifrata passa da uno schema zod |
 | `key-store.ts` | Database `epicfeed-sync`: la chiave (`CryptoKey` non estraibile, email, account, `trusted`) e il proprietario dei progressi del dispositivo |
 | `vault.ts` | `HttpProgressVault`, adapter della porta `ProgressVault`: `GET`/`PUT /api/progress`, `409` → `{ ok: false }`, errori di rete → `SyncHttpError` |
 | `engine.ts` | `syncNow` (una alla volta, con coda), `useProgressSync` (apertura, 20 s dopo l'ultima risposta, secondo piano, ritorno della rete), `useSyncStatus`, `rememberPasswordKey`/`forgetPasswordKey`; controllo del proprietario dei progressi |
@@ -187,7 +187,7 @@ Decisioni in [ADR 0018](../decisions/0018-encrypted-progress-sync.md); unione e 
 | `sync-panel.tsx` | Stato in fondo alla home del Ripasso e richiesta della password (*Sincronizza telefono e PC*, *La password è cambiata*); senza chiave (`keyExpected={false}`) la richiesta sta in cima e si mostra subito |
 
 - La chiave si prepara nel form di accesso (`login-form.tsx`) e in quello della password (`password-form.tsx`) **prima** di mandare il form: è l'unico momento in cui il browser ha la password. Se l'accesso o il salvataggio non riescono, la chiave si cancella.
-- Lato server: `src/features/review/api/progress-handler.ts` (handler puri, testati senza Next.js), `progress-deps.ts`, `src/app/api/progress/route.ts`; `DrizzleProgressRepository` in `packages/review/src/infrastructure` (lettura con la RLS dello studente, scrittura con `revision = base` e incremento atomico).
+- Lato server: `src/features/review/api/progress-handler.ts` (handler puri, testati senza Next.js), `progress-deps.ts`, `src/app/api/progress/route.ts`; per Claude Desktop (M6) `progress-generation-handler.ts`, che restituisce la copia cifrata con il token "genera" (`GET /api/generation/progress`); `DrizzleProgressRepository` in `packages/review/src/infrastructure` (lettura con la RLS dello studente, scrittura con `revision = base` e incremento atomico).
 - Nel banco di prova Playwright `confirmPassword` è una funzione vuota e non c'è chiave: la home del Ripasso mostra la richiesta della password, il resto non cambia.
 
 ### PWA e uso senza rete

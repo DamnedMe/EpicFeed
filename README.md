@@ -22,14 +22,14 @@
 <!-- stato:inizio -->
 <!-- Blocco generato da scripts/docs-status.mjs a partire da docs/status.json: non modificarlo a mano. -->
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://study-feed-steel.vercel.app/readme/status-light.svg?v=2026-11-25">
-  <img src="https://study-feed-steel.vercel.app/readme/status-dark.svg?v=2026-11-25" alt="Stato dello sviluppo di EpicFeed: milestone da M0 a M9" width="100%">
+  <source media="(prefers-color-scheme: light)" srcset="https://study-feed-steel.vercel.app/readme/status-light.svg?v=2026-11-28">
+  <img src="https://study-feed-steel.vercel.app/readme/status-dark.svg?v=2026-11-28" alt="Stato dello sviluppo di EpicFeed: milestone da M0 a M9" width="100%">
 </picture>
 
 > [!TIP]
 > 🏁 Ultimo traguardo: **M5 Segnala errore** chiusa il 25/11: correzioni personali di schede e domande dal feed, applicate sul dispositivo anche offline, *Le mie segnalazioni* in Io e completamento dell'altra lingua da Claude Desktop.
 >
-> 🛠️ Ora: Prossima: **M6 Assistente di studio MCP**.
+> 🛠️ Ora: **M6 Assistente di studio**: scelte fatte ([ADR 0021](docs/decisions/0021-study-assistant-m6.md)); prima PR con cerca lezione, concetti deboli e segnala errore in Claude Desktop.
 
 <!-- stato:fine -->
 

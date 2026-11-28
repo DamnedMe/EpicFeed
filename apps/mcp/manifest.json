@@ -3,8 +3,8 @@
   "name": "epicfeed",
   "display_name": "EpicFeed",
   "version": "0.0.0",
-  "description": "Genera schede, quiz e concetti in italiano e in inglese delle lezioni Epicode importate in EpicFeed.",
-  "long_description": "Collega Claude Desktop a EpicFeed: chiedi \"genera le lezioni nuove di EpicFeed\" e Claude legge le lezioni che hai importato, crea il feed di schede, quiz e concetti nelle due lingue e lo salva nell'app. Il server gira sul tuo PC e parla solo con EpicFeed, con un token che permette solo la generazione. Con \"genera le domande d'esame di EpicFeed\" aggiunge a ogni lezione domande d'esame in inglese: 10 a scelta multipla e 1-2 aperte con soluzione e griglia. Dal materiale \"Exam Prep\" dello zip delle slide crea anche la banca degli esercizi d'esame, con due varianti per esercizio. Con \"correggi le mie risposte di EpicFeed\" corregge in inglese gli esercizi e i colloqui simulati che invii dall'app, con punti per criterio e suggerimenti sulle righe del codice. Puoi anche indicare lo zip delle slide scaricato dal portale (Course downloads › Download all PDFs): i PDF restano sul PC, a EpicFeed arriva solo il testo.",
+  "description": "Genera il feed delle lezioni Epicode importate in EpicFeed e ti aiuta a studiarle: cerca lezione, concetti deboli, correzioni.",
+  "long_description": "Collega Claude Desktop a EpicFeed: chiedi \"genera le lezioni nuove di EpicFeed\" e Claude legge le lezioni che hai importato, crea il feed di schede, quiz e concetti nelle due lingue e lo salva nell'app. Il server gira sul tuo PC e parla solo con EpicFeed, con un token che permette solo la generazione. Con \"genera le domande d'esame di EpicFeed\" aggiunge a ogni lezione domande d'esame in inglese: 10 a scelta multipla e 1-2 aperte con soluzione e griglia. Dal materiale \"Exam Prep\" dello zip delle slide crea anche la banca degli esercizi d'esame, con due varianti per esercizio. Con \"correggi le mie risposte di EpicFeed\" corregge in inglese gli esercizi e i colloqui simulati che invii dall'app, con punti per criterio e suggerimenti sulle righe del codice. Puoi anche indicare lo zip delle slide scaricato dal portale (Course downloads › Download all PDFs): i PDF restano sul PC, a EpicFeed arriva solo il testo. Per studiare chiedi per esempio \"dove si parla di AVL nelle mie lezioni?\" o \"su cosa vado peggio in DSA?\": Claude cerca nelle tue schede e, se scrivi email e password di EpicFeed nelle impostazioni dell'estensione, legge i tuoi progressi decifrandoli sul PC. Se una scheda è sbagliata diglielo: ti mostra la correzione in italiano e in inglese e la salva dopo il tuo sì.",
   "author": {
     "name": "Damian"
   },
@@ -17,7 +17,9 @@
       "args": ["${__dirname}/server/index.js"],
       "env": {
         "EPICFEED_TOKEN": "${user_config.api_token}",
-        "EPICFEED_API_URL": "${user_config.api_url}"
+        "EPICFEED_API_URL": "${user_config.api_url}",
+        "EPICFEED_EMAIL": "${user_config.account_email}",
+        "EPICFEED_PASSWORD": "${user_config.account_password}"
       }
     }
   },
@@ -77,6 +79,18 @@
     {
       "name": "completa_segnalazione",
       "description": "Controlla e salva l'altra lingua o l'elemento rifatto di una segnalazione."
+    },
+    {
+      "name": "cerca_lezione",
+      "description": "Cerca un argomento nelle tue lezioni: scheda, frase chiave e minuto del video."
+    },
+    {
+      "name": "concetti_deboli",
+      "description": "I concetti su cui sbagli di più, dai progressi decifrati sul PC."
+    },
+    {
+      "name": "segnala_errore",
+      "description": "Corregge una scheda o una domanda sbagliata, dopo averti mostrato l'anteprima."
     }
   ],
   "prompts": [
@@ -99,6 +113,11 @@
       "name": "sistema_segnalazioni",
       "description": "Completa le correzioni fatte con Segnala errore: altra lingua e schede da rifare.",
       "text": "Sistema le mie segnalazioni di EpicFeed in attesa, una alla volta, con gli strumenti di EpicFeed."
+    },
+    {
+      "name": "studia_con_epicfeed",
+      "description": "Riparte dai concetti deboli e propone un argomento da ripassare insieme.",
+      "text": "Aiutami a studiare con EpicFeed. Guarda i miei concetti deboli con concetti_deboli, dimmi in breve da dove conviene ripartire e proponimi un argomento da ripassare insieme, usando cerca_lezione per partire dalle mie schede."
     }
   ],
   "user_config": {
@@ -108,6 +127,19 @@
       "description": "Crealo nella pagina Claude Desktop di EpicFeed (inizia con sfg_). Vale 90 giorni.",
       "sensitive": true,
       "required": true
+    },
+    "account_email": {
+      "type": "string",
+      "title": "Email di EpicFeed",
+      "description": "Facoltativa: con email e password Claude conosce i tuoi progressi (concetti deboli). Servono solo ad aprire sul PC la copia cifrata dei progressi.",
+      "required": false
+    },
+    "account_password": {
+      "type": "string",
+      "title": "Password di EpicFeed",
+      "description": "Facoltativa, resta nel portachiavi del sistema e non viene mai inviata: apre sul PC la copia cifrata dei progressi. Se la cambi nell'app, aggiornala qui.",
+      "sensitive": true,
+      "required": false
     },
     "api_url": {
       "type": "string",

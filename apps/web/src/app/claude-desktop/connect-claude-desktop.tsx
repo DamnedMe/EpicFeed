@@ -70,9 +70,10 @@ export function ConnectClaudeDesktop({ tokens }: { tokens: TokenRow[] }) {
     <div className="flex flex-col gap-4">
       <div className="glass flex flex-col gap-3 rounded-card p-5 text-sm">
         <p>
-          Claude Desktop genera schede e quiz delle lezioni importate tramite l&apos;estensione
-          EpicFeed. Per collegarla serve un token valido 90 giorni, che permette solo di leggere le
-          lezioni che hai importato e di salvarne le schede: non dà accesso al resto del tuo
+          Con l&apos;estensione EpicFeed, Claude Desktop genera schede e quiz delle lezioni
+          importate e ti aiuta a studiarle. Per collegarla serve un token valido 90 giorni, che
+          permette solo di leggere le lezioni che hai importato, salvarne le schede e le tue
+          correzioni, e leggere la copia cifrata dei tuoi progressi: non dà accesso al resto del tuo
           account.
         </p>
         <ol className="list-decimal pl-5 text-muted">
@@ -81,7 +82,14 @@ export function ConnectClaudeDesktop({ tokens }: { tokens: TokenRow[] }) {
             In Claude Desktop apri <em>Impostazioni → Estensioni → EpicFeed</em> e incollalo nel
             campo del token.
           </li>
-          <li>Chiedi a Claude, per esempio: &quot;genera le lezioni nuove di EpicFeed&quot;.</li>
+          <li>
+            Facoltativo: scrivi lì anche email e password di EpicFeed, così Claude conosce i tuoi
+            concetti deboli. La password resta sul PC e serve solo ad aprire i progressi cifrati.
+          </li>
+          <li>
+            Chiedi a Claude, per esempio: &quot;genera le lezioni nuove di EpicFeed&quot; oppure
+            &quot;su cosa vado peggio in DSA?&quot;.
+          </li>
         </ol>
         <button
           type="button"
