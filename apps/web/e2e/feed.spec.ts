@@ -194,7 +194,7 @@ test('Segnala errore corregge la frase e la scheda lo mostra', async ({ page }) 
     .toEqual([false]);
 });
 
-test('Chiedi a Claude: aggiungi la chiave di Gemini e chiedi sulla scheda', async ({ page }) => {
+test('Chiedi a Claude: in coda senza chiave, poi con la chiave di Gemini', async ({ page }) => {
   const GEMINI = 'https://generativelanguage.googleapis.com/v1beta';
   const asked: string[] = [];
   await page.route(`${GEMINI}/**`, async (route) => {
@@ -238,8 +238,20 @@ test('Chiedi a Claude: aggiungi la chiave di Gemini e chiedi sulla scheda', asyn
   await hold();
   await page.getByRole('button', { name: /Chiedi a Claude/ }).click();
   const empty = page.getByRole('dialog', { name: 'Chiedi a Claude' });
-  await expect(empty.getByText(/aggiungi una tua chiave API/)).toBeVisible();
-  await empty.getByRole('link', { name: 'Aggiungi una chiave' }).click();
+  // Senza chiave la domanda va in coda per Claude Desktop.
+  await empty.getByLabel('La tua domanda').fill('Perché serve la head?');
+  await empty.getByRole('button', { name: 'Metti in coda per Claude Desktop' }).click();
+  await expect(empty.getByText('Domanda in coda per Claude Desktop')).toBeVisible();
+  expect(await page.evaluate(() => fetch('/api/questions').then((r) => r.json()))).toMatchObject({
+    questions: [{ question: 'Perché serve la head?', status: 'pending', itemType: 'card' }],
+  });
+  await page.keyboard.press('Escape');
+  await hold();
+  await page.getByRole('button', { name: /Chiedi a Claude/ }).click();
+  await page
+    .getByRole('dialog', { name: 'Chiedi a Claude' })
+    .getByRole('link', { name: 'Aggiungi una chiave API' })
+    .click();
 
   await expect(page.getByRole('link', { name: /Google AI Studio/ })).toHaveAttribute(
     'href',

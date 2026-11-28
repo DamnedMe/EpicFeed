@@ -1,6 +1,6 @@
 /**
  * Schema Postgres di EpicFeed (Supabase, regione UE), un file per funzione:
- * `catalog`, `access`, `feed`, `exam`, `review` (ADR 0019). Le migrazioni
+ * `catalog`, `access`, `feed`, `exam`, `review`, `assistant` (ADR 0019). Le migrazioni
  * restano una sola sequenza in `migrations/`.
  *
  * Sicurezza (architettura §8):
@@ -17,3 +17,4 @@ export * from './access.js';
 export * from './feed.js';
 export * from './exam.js';
 export * from './review.js';
+export * from './assistant.js';

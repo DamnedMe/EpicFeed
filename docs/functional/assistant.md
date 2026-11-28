@@ -26,5 +26,5 @@ In *Io › Assistente* scegli il fornitore e incolla una tua chiave:
 
 Poi, nel feed, tieni premuto su una scheda o una domanda e scegli **Chiedi a Claude**: scrivi la domanda o tocca *Spiegamelo più semplice*, *Fammi un esempio*, *In inglese* o *Fammi una domanda*. La risposta arriva subito e parte dalla scheda e dai concetti della lezione. Al fornitore vanno solo la domanda, la scheda e i concetti, mai email o password. La conversazione resta nel foglio e si chiude con lui.
 
-## In arrivo
-- Senza chiave, *Chiedi a Claude* metterà la domanda in coda per Claude Desktop e la risposta tornerà in *Io › Le mie domande*.
+## Senza chiave: le domande per Claude Desktop
+Senza una chiave, *Chiedi a Claude* mette la domanda in coda, con la scheda su cui l'hai fatta. Sul PC, in Claude Desktop, chiedi «rispondi alle mie domande di EpicFeed» (o usa il prompt **Rispondi alle domande**): Claude risponde partendo dalle tue lezioni, nella lingua della domanda. Le risposte arrivano in **Io › Le mie domande**, dove vedi le domande in attesa e quelle con risposta e le cancelli quando non servono più. Puoi avere fino a 30 domande in attesa.

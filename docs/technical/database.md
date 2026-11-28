@@ -56,7 +56,7 @@ Vincoli `CHECK` replicano nel database le regole del dominio (titoli 1–300 car
   - `lesson_feeds`: solo se lo studente possiede **tutte** le versioni elencate in `source_version_ids`. Le versioni stanno nella riga e non in una tabella collegata, perché la policy deve vederle tutte: una tabella con la sua RLS mostrerebbe alla policy solo quelle dello studente, e il controllo passerebbe sempre;
   - `glossary_terms`: se lo studente vede la materia; `generation_events` e `progress_snapshots`: solo le proprie righe;
   - `lessons` → `chapters` → `subjects` → `editions` → `study_programs`: visibili se è visibile almeno un elemento del livello sotto. Ogni policy guarda un solo livello e si appoggia alla RLS di quel livello, così la regola resta semplice da leggere e la visibilità risale da `entitlements` fino al corso.
-- Nessuna policy di scrittura, e in più le migrazioni `0001_harden_grants`, `0004_harden_grants_import`, `0006_harden_grants_generation`, `0009_harden_grants_progress`, `0011_harden_grants_exam`, `0013_harden_grants_exam_banks` `0015_harden_grants_exam_submissions` e `0017_harden_grants_feed_corrections` tolgono a `authenticated` i privilegi di insert/update/delete e ad `anon` ogni privilegio. Le scritture (import, generazione) le fa solo l'API sul server, dopo validazione e prova di possesso.
+- Nessuna policy di scrittura, e in più le migrazioni `0001_harden_grants`, `0004_harden_grants_import`, `0006_harden_grants_generation`, `0009_harden_grants_progress`, `0011_harden_grants_exam`, `0013_harden_grants_exam_banks` `0015_harden_grants_exam_submissions`, `0017_harden_grants_feed_corrections` e `0019_harden_grants_study_questions` tolgono a `authenticated` i privilegi di insert/update/delete e ad `anon` ogni privilegio. Le scritture (import, generazione) le fa solo l'API sul server, dopo validazione e prova di possesso.
 - Le policy usano `(select auth.uid())`, che Postgres valuta una volta per query invece che per riga (raccomandazione di Supabase per la latenza).
 
 ### Come è testato
@@ -96,6 +96,7 @@ Progetto: **EpicFeed** (`https://nxuysaeevxcncchqjtep.supabase.co`), creato il 1
 - M4 (PR 3, banca degli esercizi): migrazioni `0012_exam_banks` (tabella `subject_exam_banks`) e `0013_harden_grants_exam_banks` (permessi), solo aggiunte; applicate il 24/11/2026.
 - M4 (PR 5, correzione di Claude): migrazioni `0014_exam_submissions` (tabella `exam_submissions`) e `0015_harden_grants_exam_submissions` (permessi), solo aggiunte: da applicare con il connettore dopo il merge.
 - M5 (PR 1, Segnala errore): migrazioni `0016_feed_corrections` (tabella `feed_corrections`) e `0017_harden_grants_feed_corrections` (permessi), solo aggiunte: da applicare con il connettore dopo il merge.
+- M6 (PR 4, domande in coda): migrazioni `0018_study_questions` (tabella `study_questions`) e `0019_harden_grants_study_questions` (permessi), solo aggiunte: da applicare con il connettore dopo il merge.
 
 ### Applicare le migrazioni con Claude (connettore Supabase)
 Con il connettore Supabase collegato, Claude può applicare le migrazioni nuove con `apply_migration`, aggiungendo nella stessa migrazione la riga in `drizzle.__drizzle_migrations` (hash SHA-256 del file `.sql` e campo `when` del journal). Non serve la password del database.

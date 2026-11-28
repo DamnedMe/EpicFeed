@@ -213,6 +213,10 @@ export function ProfilePanel({ theme, accent }: { theme: ThemePreference; accent
             Assistente
             <small>→</small>
           </Link>
+          <Link className="ef-row-link" href="/profile/questions">
+            Le mie domande
+            <small>→</small>
+          </Link>
           <Link className="ef-row-link" href="/claude-desktop">
             Claude Desktop
             <small>→</small>

@@ -73,6 +73,24 @@ async function connect(
       revision: 1,
     })),
     writeProgress: vi.fn(() => Promise.resolve(2)),
+    listPendingQuestions: vi.fn(() =>
+      Promise.resolve([
+        {
+          id: '70000000-0000-4000-8000-000000000001',
+          subjectId: SUBJECT_ID,
+          lessonId: HEAP_LESSON,
+          itemType: 'card' as const,
+          itemId: 'heap-sift',
+          question: 'Perché O(log n)?',
+          language: 'it' as const,
+          status: 'pending' as const,
+          answer: null,
+          createdAt: '2026-11-28T10:00:00.000Z',
+          answeredAt: null,
+        },
+      ]),
+    ),
+    answerQuestion: vi.fn(() => Promise.resolve()),
     reportError: vi.fn((body: Parameters<GenerationApi['reportError']>[0]) =>
       Promise.resolve({
         id: body.id,
@@ -311,5 +329,35 @@ describe('quiz al volo', () => {
     expect(resources.map((r) => r.uri)).toContain('ui://epicfeed/quiz.html');
     const page = await client.readResource({ uri: 'ui://epicfeed/quiz.html' });
     expect(page.contents[0]).toMatchObject({ mimeType: 'text/html;profile=mcp-app' });
+  });
+});
+
+describe('domande in coda', () => {
+  it('elenca le domande con la scheda e salva la risposta', async () => {
+    const { call, api } = await connect();
+    const list = await call('domande_in_attesa');
+    expect(list.text).toContain('«Perché O(log n)?»');
+    expect(list.text).toContain('Il sift-down costa O(n).');
+    expect(list.text).toContain('rispondi_domanda');
+    const saved = await call('rispondi_domanda', {
+      id: '70000000-0000-4000-8000-000000000001',
+      risposta: 'Perché l’albero è alto log n.',
+    });
+    expect(saved.text).toContain('Le mie domande');
+    expect(api.answerQuestion).toHaveBeenCalledWith(
+      '70000000-0000-4000-8000-000000000001',
+      'Perché l’albero è alto log n.',
+    );
+  });
+
+  it('senza domande lo dice', async () => {
+    const { call } = await connect({ listPendingQuestions: vi.fn(() => Promise.resolve([])) });
+    expect((await call('domande_in_attesa')).text).toContain('Non ci sono domande');
+  });
+
+  it('il prompt chiede di rispondere alle domande', async () => {
+    const { client } = await connect();
+    const prompt = await client.getPrompt({ name: 'rispondi_domande' });
+    expect(JSON.stringify(prompt.messages)).toContain('domande_in_attesa');
   });
 });

@@ -255,6 +255,50 @@ describe('RLS delle correzioni personali (M5)', () => {
   });
 });
 
+describe('RLS delle domande in coda (M6)', () => {
+  const ids = ['2e2e2e2e-0000-4000-8000-000000000001', '2e2e2e2e-0000-4000-8000-000000000002'];
+  beforeAll(async () => {
+    for (const [i, user] of [anna, carla].entries()) {
+      await db.query(
+        `insert into study_questions (id, user_id, subject_id, lesson_id, item_type, item_id, question, language)
+         values ($1, $2, $3, $4, 'card', 'avl-rotation', 'Perché?', 'it')`,
+        [ids[i], user, subject, lesson],
+      );
+    }
+  });
+
+  it('ognuno vede solo le proprie domande', async () => {
+    const own = async (user: string) =>
+      asUser(db, user, (q) => q(`select user_id from study_questions`));
+    expect(await own(anna)).toEqual([{ user_id: anna }]);
+    expect(await own(bruno)).toEqual([]);
+    await expect(asUser(db, null, (q) => q(`select * from study_questions`))).rejects.toThrow(
+      /permission denied/,
+    );
+  });
+
+  it.each([
+    `update study_questions set answer = 'x', status = 'answered'`,
+    `delete from study_questions`,
+    `insert into study_questions (id, user_id, subject_id, lesson_id, item_type, item_id, question, language) values (gen_random_uuid(), '${anna}', (select id from subjects limit 1), (select id from lessons limit 1), 'card', 'x', 'q', 'it')`,
+  ])('scrittura negata dal client: %s', async (statement) => {
+    await expect(asUser(db, anna, (q) => q(statement))).rejects.toThrow(/permission denied/);
+  });
+
+  it('risposta presente solo se la domanda ha risposta', async () => {
+    await expect(
+      db.query(`update study_questions set status = 'answered' where id = $1`, [ids[0]]),
+    ).rejects.toThrow(/study_questions_answer_check/);
+    await expect(
+      db.query(
+        `insert into study_questions (id, user_id, subject_id, lesson_id, item_type, item_id, question, language)
+         values (gen_random_uuid(), $1, $2, $3, 'card', 'Non Valido', 'q', 'it')`,
+        [anna, subject, lesson],
+      ),
+    ).rejects.toThrow(/study_questions_item_id_check/);
+  });
+});
+
 describe('Integrità delle tabelle di M2', () => {
   it('accetta un solo feed per lezione e impronta delle fonti', async () => {
     await expect(

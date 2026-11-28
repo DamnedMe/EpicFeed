@@ -160,3 +160,52 @@
   color: var(--sf-text);
   font: 500 12.5px var(--sf-font-mono);
 }
+
+/* Domande in coda (M6) */
+.ef-ask-link {
+  text-align: center;
+  text-decoration: none;
+}
+.ef-ask-note a {
+  color: var(--sf-accent-text);
+}
+.ef-question {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  border-top: 1px solid var(--sf-border);
+}
+.ef-question:first-child {
+  border-top: 0;
+}
+.ef-question-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font: 500 11px var(--sf-font-mono);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sf-text-muted);
+}
+.ef-question-head .answered {
+  color: var(--sf-accent-text);
+}
+.ef-question-text {
+  margin: 0;
+  font: 600 15px/1.4 var(--sf-font-body);
+}
+.ef-question-where {
+  margin: 0;
+  font: 400 12.5px var(--sf-font-body);
+  color: var(--sf-text-muted);
+}
+.ef-question-delete {
+  justify-self: start;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--sf-text-muted);
+  font: 500 12.5px var(--sf-font-body);
+  text-decoration: underline;
+  cursor: pointer;
+}
