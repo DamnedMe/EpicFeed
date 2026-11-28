@@ -24,7 +24,7 @@ packages/ingest/src/
 └─ contracts/                      import.ts (POST /api/import), extension.ts (collegamento)
 ```
 
-Feed, ripasso ed esame hanno i loro pacchetti (`packages/feed`, `packages/review`, `packages/exam`) con la stessa struttura; le regole sono descritte più sotto.
+Feed, ripasso ed esame hanno i loro pacchetti (`packages/feed`, `packages/review`, `packages/exam`) con la stessa struttura; le regole sono descritte più sotto. L'assistente nell'app (M6) ha `packages/assistant`, solo con `domain` e `contracts`: niente database, le chiamate ai fornitori partono dal browser ([web.md](web.md#assistente-nellapp-m6)).
 
 ## Entità
 | Entità | Cosa rappresenta |
