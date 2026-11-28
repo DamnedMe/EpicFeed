@@ -26,12 +26,12 @@
   },
   "devDependencies": {
     "@epicfeed/config": "workspace:*",
-    "@types/node": "26.6.6",
+    "@types/node": "26.6.10",
     "@types/yauzl": "3.4.0",
-    "@vitest/coverage-v8": "5.1.0",
+    "@vitest/coverage-v8": "5.1.2",
     "esbuild": "0.28.2",
     "eslint": "10.15.0",
-    "typescript": "6.0.3",
-    "vitest": "5.1.0"
+    "typescript": "7.0.2",
+    "vitest": "5.1.2"
   }
 }
