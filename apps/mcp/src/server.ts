@@ -16,15 +16,18 @@ import { SERVER_INSTRUCTIONS } from './feed/prompt.js';
 import type { StudyLibraryApi } from './study/library.js';
 import { StudyLibrary } from './study/library.js';
 import type { ProgressApi, ProgressCredentials } from './study/progress.js';
-import { ProgressReader } from './study/progress.js';
+import { StudentProgress } from './study/progress.js';
 import { STUDY_SERVER_INSTRUCTIONS } from './study/prompt.js';
+import { registerQuizTools } from './study/quiz-tools.js';
+import { fileQuizView } from './study/quiz-view.js';
+import type { QuizViewSource } from './study/quiz-view.js';
 import type { StudyApi } from './study/tools.js';
 import { registerStudyTools } from './study/tools.js';
 import type { SlidesToolkit } from './feed/slides/toolkit.js';
 import { defaultSlidesToolkit } from './feed/slides/toolkit.js';
 
 /** Versione del server MCP, mostrata a Claude Desktop. */
-export const SERVER_VERSION = '0.1.0';
+export const SERVER_VERSION = '0.3.0';
 
 /** Operazioni dell'API usate dagli strumenti (sostituibili nei test). */
 export type GenerationApi = FeedApi &
@@ -42,7 +45,8 @@ export type GenerationApi = FeedApi &
  * {@link registerExamTools}, {@link registerExamBankTools}) e della
  * correzione delle risposte ({@link registerCorrectionTools}); quelli di
  * *Segnala errore* (M5, {@link registerReportTools}); e quelli
- * dell'assistente di studio (M6, {@link registerStudyTools}).
+ * dell'assistente di studio (M6, {@link registerStudyTools},
+ * {@link registerQuizTools}).
  *
  * Il server tiene in memoria il token (dentro `api`) e, se lo studente le ha
  * impostate, email e password per aprire sul PC la copia cifrata dei
@@ -51,12 +55,14 @@ export type GenerationApi = FeedApi &
  * @param api - Client dell'API di EpicFeed.
  * @param slides - Operazioni sui PDF delle slide (sostituibili nei test).
  * @param credentials - Email e password di EpicFeed, oppure `null`.
+ * @param quizView - Pagina della scheda del quiz al volo (sostituibile nei test).
  * @returns Il server, da collegare a un trasporto (stdio in produzione).
  */
 export function createEpicFeedServer(
   api: GenerationApi,
   slides: SlidesToolkit = defaultSlidesToolkit(),
   credentials: ProgressCredentials | null = null,
+  quizView: QuizViewSource = fileQuizView(),
 ): McpServer {
   const server = new McpServer(
     { name: 'epicfeed', title: 'EpicFeed', version: SERVER_VERSION },
@@ -69,10 +75,9 @@ export function createEpicFeedServer(
   registerExamBankTools(server, api, slides);
   registerCorrectionTools(server, api);
   registerReportTools(server, api);
-  registerStudyTools(server, {
-    api,
-    library: new StudyLibrary(api),
-    progress: new ProgressReader(api, credentials),
-  });
+  const library = new StudyLibrary(api);
+  const progress = new StudentProgress(api, credentials);
+  registerStudyTools(server, { api, library, progress });
+  registerQuizTools(server, { library, progress, view: quizView });
   return server;
 }

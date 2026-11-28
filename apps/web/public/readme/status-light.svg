@@ -17,7 +17,7 @@
 <path d="M54 262 v-10 h514.2222222222222 v10" fill="none" stroke="#CBD2D9" stroke-width="2"/>
 <text x="311.1111111111111" y="244" text-anchor="middle" font-family="'JetBrains Mono', ui-monospace, Consolas, Menlo, monospace" font-size="13" letter-spacing="2" fill="#5B6570">MVP</text>
 <line x1="80" y1="330" x2="1120" y2="330" stroke="#CBD2D9" stroke-width="4" stroke-linecap="round"/>
-<line x1="80" y1="330" x2="686.6666666666666" y2="330" stroke="#E10600" stroke-width="4" stroke-linecap="round"/>
+<line x1="80" y1="330" x2="715.5555555555555" y2="330" stroke="#E10600" stroke-width="4" stroke-linecap="round"/>
 <circle cx="80" cy="330" r="15" fill="#E10600"/>
 <path d="M74 330 l4 4.5 l8 -9" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 <text x="80" y="382" text-anchor="middle" font-family="'JetBrains Mono', ui-monospace, Consolas, Menlo, monospace" font-size="15" font-weight="500" fill="#0B0B0E">M0</text>

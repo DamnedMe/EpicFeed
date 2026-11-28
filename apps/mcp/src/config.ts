@@ -62,6 +62,7 @@ function missingTokenApi(): GenerationApi {
     listStudySubjects: fail,
     readStudySubject: fail,
     readProgress: fail,
+    writeProgress: fail,
     reportError: fail,
   };
 }

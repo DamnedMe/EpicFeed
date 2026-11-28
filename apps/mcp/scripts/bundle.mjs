@@ -1,6 +1,7 @@
 // Crea il pacchetto del server per Claude Desktop in `bundle/`:
 // - `server/index.js`: un solo file con le dipendenze JavaScript (SDK MCP,
 //   zod, core, contratti, yauzl);
+// - `server/quiz-view.html`: la scheda del quiz al volo (app MCP);
 // - `server/node_modules/`: solo pdf.js e @napi-rs/canvas, che non si possono
 //   unire in un file (worker, font, WebAssembly e libreria nativa).
 // Il binario nativo copiato qui è quello del sistema su cui si compila;
@@ -10,6 +11,7 @@ import { cpSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } 
 import { createRequire } from 'node:module';
 import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { buildQuizView } from './build-view.mjs';
 
 const root = new URL('../', import.meta.url);
 const out = new URL('bundle/', root);
@@ -35,6 +37,8 @@ await build({
     js: "import { createRequire as __createRequire } from 'node:module'; const require = __createRequire(import.meta.url);",
   },
 });
+
+await buildQuizView(join(serverDir, 'quiz-view.html'));
 
 const require = createRequire(new URL('package.json', root));
 /** Cartella reale di un pacchetto installato (pnpm usa collegamenti). */

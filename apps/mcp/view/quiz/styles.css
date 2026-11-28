@@ -1,0 +1,161 @@
+/* Scheda del quiz al volo: colori di EpicFeed (ossidiana, ghiaccio, racing red). */
+:root {
+  color-scheme: dark;
+  --bg: #0b0b0e;
+  --surface: #15151b;
+  --line: #2a2a33;
+  --text: #dce3ea;
+  --muted: #8b939c;
+  --accent: #e10600;
+  --right: #3ccf91;
+  --wrong: #ff5a52;
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --line: #d9dee4;
+  --text: #0b0b0e;
+  --muted: #5b636c;
+  --right: #138a5a;
+  --wrong: #c8261e;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font:
+    15px/1.45 system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+}
+main {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 16px;
+}
+.top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.top .grow {
+  flex: 1;
+}
+.bar {
+  height: 3px;
+  margin: 10px 0 18px;
+  background: var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+.concept {
+  margin: 0 0 4px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+h1 {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 600;
+}
+.options {
+  display: grid;
+  gap: 8px;
+}
+.tf {
+  grid-template-columns: 1fr 1fr;
+}
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.option {
+  width: 100%;
+  padding: 12px 14px;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.tf .option {
+  text-align: center;
+}
+.option:hover:not(:disabled) {
+  border-color: var(--muted);
+}
+.option:disabled {
+  cursor: default;
+}
+.option.right {
+  border-color: var(--right);
+  color: var(--right);
+}
+.option.wrong {
+  border-color: var(--wrong);
+  color: var(--wrong);
+}
+.explain {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  background: var(--surface);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+}
+.explain strong {
+  display: block;
+  margin-bottom: 4px;
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.primary,
+.ghost {
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+}
+.primary {
+  background: var(--accent);
+  color: #fff;
+}
+.ghost {
+  background: transparent;
+  border-color: var(--line);
+}
+.lang {
+  padding: 2px 8px;
+  font-size: 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+}
+.score {
+  margin: 8px 0 4px;
+  font-size: 32px;
+  font-weight: 700;
+}
+.muted {
+  color: var(--muted);
+}
+ul {
+  padding-left: 18px;
+}

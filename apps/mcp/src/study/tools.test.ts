@@ -72,6 +72,7 @@ async function connect(
       )),
       revision: 1,
     })),
+    writeProgress: vi.fn(() => Promise.resolve(2)),
     reportError: vi.fn((body: Parameters<GenerationApi['reportError']>[0]) =>
       Promise.resolve({
         id: body.id,
@@ -225,5 +226,90 @@ describe('strumenti dell’assistente di studio', () => {
     const { client } = await connect();
     const prompt = await client.getPrompt({ name: 'studia_con_epicfeed' });
     expect((prompt.messages[0]?.content as { text: string }).text).toContain('concetti_deboli');
+  });
+});
+
+describe('quiz al volo', () => {
+  it('prepara il quiz dai concetti deboli e lo collega alla scheda interattiva', async () => {
+    const { client } = await connect({}, credentials);
+    const { tools } = await client.listTools();
+    const tool = tools.find((t) => t.name === 'quiz_al_volo');
+    expect(tool?._meta).toMatchObject({ ui: { resourceUri: 'ui://epicfeed/quiz.html' } });
+    const result = await client.callTool({ name: 'quiz_al_volo', arguments: { domande: 2 } });
+    const data = result.structuredContent as {
+      quiz: { focus: string; questions: unknown[] };
+      canRecord: boolean;
+      recordTool: string;
+    };
+    expect(data.quiz.focus).toBe('weak');
+    expect(data.quiz.questions).toHaveLength(2);
+    expect(data).toMatchObject({ canRecord: true, recordTool: 'registra_risposte' });
+    const textPart = (result.content as { text: string }[])[0]?.text ?? '';
+    expect(textPart).toContain('Soluzione (non rivelarla prima)');
+    expect(textPart).toContain('A) Sinistra');
+  });
+
+  it('senza credenziali il quiz si fa lo stesso, ma non torna nel ripasso', async () => {
+    const { client } = await connect();
+    const result = await client.callTool({
+      name: 'quiz_al_volo',
+      arguments: { argomento: 'avl', lingua: 'en' },
+    });
+    expect(result.structuredContent).toMatchObject({ canRecord: false, language: 'en' });
+    expect((result.content as { text: string }[])[0]?.text).toContain('non torneranno nel ripasso');
+  });
+
+  it('dice quando non trova la materia o l’argomento', async () => {
+    const { call } = await connect();
+    expect((await call('quiz_al_volo', { materia: 'python' })).text).toContain('Nessuna materia');
+    expect((await call('quiz_al_volo', { argomento: 'grafi' })).text).toContain(
+      'Nessuna domanda su «grafi»',
+    );
+    const empty = await connect({
+      listStudySubjects: vi.fn(() => Promise.resolve({ subjects: [] })),
+    });
+    expect((await empty.call('quiz_al_volo')).text).toContain('non ha ancora lezioni');
+  });
+
+  it('registra le risposte nella copia cifrata', async () => {
+    const { call, api } = await connect({}, credentials);
+    const result = await call('registra_risposte', {
+      risposte: [
+        {
+          conceptId: `${SUBJECT_ID}:avl-rotation`,
+          questionId: 'x:quiz:avl-case',
+          correct: true,
+          language: 'it',
+        },
+        {
+          conceptId: `${SUBJECT_ID}:avl-rotation`,
+          questionId: null,
+          correct: false,
+          language: 'it',
+        },
+      ],
+    });
+    expect(result.text).toContain('1 giuste su 2');
+    expect(api.writeProgress).toHaveBeenCalledTimes(1);
+    const none = await connect();
+    const refused = await none.call('registra_risposte', {
+      risposte: [
+        {
+          conceptId: `${SUBJECT_ID}:avl-rotation`,
+          questionId: null,
+          correct: true,
+          language: 'it',
+        },
+      ],
+    });
+    expect(refused.text).toContain('Configura');
+  });
+
+  it('serve la pagina della scheda come app MCP', async () => {
+    const { client } = await connect();
+    const { resources } = await client.listResources();
+    expect(resources.map((r) => r.uri)).toContain('ui://epicfeed/quiz.html');
+    const page = await client.readResource({ uri: 'ui://epicfeed/quiz.html' });
+    expect(page.contents[0]).toMatchObject({ mimeType: 'text/html;profile=mcp-app' });
   });
 });
