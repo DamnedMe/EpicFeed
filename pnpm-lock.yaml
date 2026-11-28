@@ -58,6 +58,9 @@ importers:
 
   apps/mcp:
     dependencies:
+      '@epicfeed/assistant':
+        specifier: workspace:*
+        version: link:../../packages/assistant
       '@epicfeed/exam':
         specifier: workspace:*
         version: link:../../packages/exam
@@ -277,16 +280,28 @@ importers:
 
   packages/assistant:
     dependencies:
+      '@epicfeed/db':
+        specifier: workspace:*
+        version: link:../db
       '@epicfeed/shared':
         specifier: workspace:*
         version: link:../shared
+      drizzle-orm:
+        specifier: 0.45.4
+        version: 0.45.4(@electric-sql/pglite@0.5.16)(@opentelemetry/api@1.9.1)(postgres@3.4.9)
       zod:
         specifier: 4.6.6
         version: 4.6.6
     devDependencies:
+      '@electric-sql/pglite':
+        specifier: 0.5.16
+        version: 0.5.16
       '@epicfeed/config':
         specifier: workspace:*
         version: link:../config
+      '@types/node':
+        specifier: 26.6.6
+        version: 26.6.6
       '@vitest/coverage-v8':
         specifier: 5.1.0
         version: 5.1.0(vitest@5.1.0)

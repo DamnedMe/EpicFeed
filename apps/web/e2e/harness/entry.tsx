@@ -51,6 +51,25 @@ function correctionsApi(url: string, init?: RequestInit): Response {
   return Response.json({ corrections: [...corrections.values()] });
 }
 
+/** Domande in coda per Claude Desktop, tenute in memoria (M6). */
+const questions: unknown[] = [];
+
+/** Risponde a `/api/questions` come il server: POST mette in coda, GET elenca. */
+function questionsApi(init?: RequestInit): Response {
+  if (init?.method === 'POST' && typeof init.body === 'string') {
+    const question = {
+      ...(JSON.parse(init.body) as object),
+      status: 'pending',
+      answer: null,
+      createdAt: new Date().toISOString(),
+      answeredAt: null,
+    };
+    questions.push(question);
+    return Response.json({ question }, { status: 201 });
+  }
+  return Response.json({ questions });
+}
+
 const realFetch = window.fetch.bind(window);
 
 window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
@@ -60,6 +79,9 @@ window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
   // Fornitori dell'assistente: la rete vera, intercettata da Playwright.
   if (new URL(url, window.location.href).origin !== window.location.origin) {
     return realFetch(input, init);
+  }
+  if (new URL(url, window.location.href).pathname.startsWith('/api/questions')) {
+    return Promise.resolve(questionsApi(init));
   }
   if (new URL(url, window.location.href).pathname.startsWith('/api/corrections')) {
     return Promise.resolve(correctionsApi(url, init));

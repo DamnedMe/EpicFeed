@@ -2,13 +2,17 @@
   "name": "@epicfeed/assistant",
   "version": "0.0.0",
   "private": true,
-  "description": "Assistente di studio nell'app: fornitori con la chiave dello studente (Gemini, Claude, OpenAI), contesto della scheda e conversazione.",
+  "description": "Assistente di studio: fornitori con la chiave dello studente (Gemini, Claude, OpenAI), contesto della scheda e domande in coda per Claude Desktop.",
   "type": "module",
   "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./infrastructure": {
+      "types": "./dist/infrastructure/index.d.ts",
+      "default": "./dist/infrastructure/index.js"
     }
   },
   "files": [
@@ -21,11 +25,15 @@
     "test": "vitest run --coverage"
   },
   "dependencies": {
+    "@epicfeed/db": "workspace:*",
     "@epicfeed/shared": "workspace:*",
+    "drizzle-orm": "0.45.4",
     "zod": "4.6.6"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.16",
     "@epicfeed/config": "workspace:*",
+    "@types/node": "26.6.6",
     "@vitest/coverage-v8": "5.1.0",
     "eslint": "10.15.0",
     "typescript": "6.0.3",

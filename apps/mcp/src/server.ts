@@ -18,6 +18,8 @@ import { StudyLibrary } from './study/library.js';
 import type { ProgressApi, ProgressCredentials } from './study/progress.js';
 import { StudentProgress } from './study/progress.js';
 import { STUDY_SERVER_INSTRUCTIONS } from './study/prompt.js';
+import type { QuestionApi } from './study/question-tools.js';
+import { registerQuestionTools } from './study/question-tools.js';
 import { registerQuizTools } from './study/quiz-tools.js';
 import { fileQuizView } from './study/quiz-view.js';
 import type { QuizViewSource } from './study/quiz-view.js';
@@ -37,7 +39,8 @@ export type GenerationApi = FeedApi &
   ReportApi &
   StudyApi &
   StudyLibraryApi &
-  ProgressApi;
+  ProgressApi &
+  QuestionApi;
 
 /**
  * Crea il server MCP di EpicFeed con gli strumenti di generazione del feed
@@ -46,7 +49,7 @@ export type GenerationApi = FeedApi &
  * correzione delle risposte ({@link registerCorrectionTools}); quelli di
  * *Segnala errore* (M5, {@link registerReportTools}); e quelli
  * dell'assistente di studio (M6, {@link registerStudyTools},
- * {@link registerQuizTools}).
+ * {@link registerQuizTools}, {@link registerQuestionTools}).
  *
  * Il server tiene in memoria il token (dentro `api`) e, se lo studente le ha
  * impostate, email e password per aprire sul PC la copia cifrata dei
@@ -79,5 +82,6 @@ export function createEpicFeedServer(
   const progress = new StudentProgress(api, credentials);
   registerStudyTools(server, { api, library, progress });
   registerQuizTools(server, { library, progress, view: quizView });
+  registerQuestionTools(server, { api, library });
   return server;
 }

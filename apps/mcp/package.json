@@ -12,6 +12,7 @@
     "test": "vitest run --coverage"
   },
   "dependencies": {
+    "@epicfeed/assistant": "workspace:*",
     "@epicfeed/exam": "workspace:*",
     "@epicfeed/feed": "workspace:*",
     "@epicfeed/review": "workspace:*",

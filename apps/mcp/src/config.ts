@@ -64,6 +64,8 @@ function missingTokenApi(): GenerationApi {
     readProgress: fail,
     writeProgress: fail,
     reportError: fail,
+    listPendingQuestions: fail,
+    answerQuestion: fail,
   };
 }
 

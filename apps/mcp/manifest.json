@@ -97,11 +97,24 @@
       "description": "Aggiunge al ripasso, cifrate sul PC, le risposte di un quiz al volo."
     },
     {
+      "name": "domande_in_attesa",
+      "description": "Le domande che hai messo in coda dall'app, con la scheda su cui le hai fatte."
+    },
+    {
+      "name": "rispondi_domanda",
+      "description": "Salva la risposta a una domanda in coda: la leggi nell'app in Io › Le mie domande."
+    },
+    {
       "name": "segnala_errore",
       "description": "Corregge una scheda o una domanda sbagliata, dopo averti mostrato l'anteprima."
     }
   ],
   "prompts": [
+    {
+      "name": "rispondi_domande",
+      "description": "Risponde alle domande che hai messo in coda dall'app.",
+      "text": "Rispondi alle mie domande di EpicFeed: chiama domande_in_attesa e rispondi a ciascuna con rispondi_domanda."
+    },
     {
       "name": "genera_lezioni",
       "description": "Genera schede, quiz e concetti per tutte le lezioni ancora da generare.",

@@ -2,11 +2,11 @@
 
 import type { AssistantLanguage, ChatMessage, QuickAsk } from '@epicfeed/assistant';
 import { PROVIDERS, QUICK_ASK_LABELS, cleanQuestion, quickAskText } from '@epicfeed/assistant';
-import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FeedEntry, SubjectFeed } from '../feed/model';
 import { Sheet } from '../feed/sheets';
 import { AnswerText } from './answer-text';
+import { QueueForm } from './queue-form';
 import { FAILURE_MESSAGES, askAssistant } from './assistant-client';
 import { entryContext } from './context';
 import { useAssistant } from './use-assistant';
@@ -17,6 +17,7 @@ const QUICK_ASKS: readonly QuickAsk[] = ['simpler', 'example', 'english', 'quizM
  * *Chiedi a Claude* dal feed (M6, ADR 0021): conversazione sulla scheda con
  * la chiave dello studente. La scheda, la lezione e i suoi concetti vanno al
  * fornitore con la domanda; la conversazione resta solo in questo foglio.
+ * Senza chiave la domanda va in coda per Claude Desktop ({@link QueueForm}).
  */
 export function AskSheet({
   feed,
@@ -83,19 +84,7 @@ export function AskSheet({
   return (
     <Sheet title="Chiedi a Claude" subtitle={`${entry.lessonTitle} · ${title}`} onClose={onClose}>
       {settings === undefined ? null : settings === null ? (
-        <div className="ef-ask-empty">
-          <p>
-            Per avere la risposta subito, anche sul telefono, aggiungi una tua chiave API di Google
-            Gemini (gratuita), Anthropic Claude od OpenAI. Resta solo su questo dispositivo.
-          </p>
-          <Link className="ef-cta" href="/profile/assistant">
-            Aggiungi una chiave
-          </Link>
-          <p className="ef-ask-note">
-            Puoi anche chiedere a Claude Desktop sul PC: «dove si parla di {entry.lessonTitle} nelle
-            mie lezioni?».
-          </p>
-        </div>
+        <QueueForm subjectId={feed.subjectId} entry={entry} language={language} />
       ) : (
         <div className="ef-ask">
           <div className="ef-ask-log" aria-live="polite">

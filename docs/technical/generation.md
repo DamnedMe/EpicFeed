@@ -121,8 +121,10 @@ Strumenti (nomi in italiano, perché Claude li mostra allo studente):
 | `quiz_al_volo { materia?, argomento?, domande?, lingua? }` | Quiz sulle lezioni come scheda interattiva in chat; il testo del risultato porta anche le domande con le soluzioni per il quiz a testo. |
 | `registra_risposte { risposte }` | Aggiunge al ripasso cifrato le risposte del quiz (fino a 20). |
 | `segnala_errore { subjectId, kind, …, confirmed }` | Anteprima (`confirmed: false`) e salvataggio (`confirmed: true`) di una correzione chiesta in chat. |
+| `domande_in_attesa` | Domande di *Chiedi a Claude* fatte senza chiave (fino a 5 per volta), ciascuna con la scheda o la domanda del feed su cui è stata fatta e le istruzioni. |
+| `rispondi_domanda { id, risposta }` | Salva la risposta, che lo studente legge in *Io › Le mie domande*. |
 
-Il prompt MCP `genera_lezioni` avvia la generazione di tutte le lezioni nuove; `genera_domande_esame` quella dei pacchetti d'esame; `correggi_risposte` la correzione delle risposte inviate dall'app; `sistema_segnalazioni` il completamento delle segnalazioni. Le istruzioni del server (`SERVER_INSTRUCTIONS`) dicono a Claude l'ordine degli strumenti e di non chiedere conferma lezione per lezione. Un `409 CONFLICT` suggerisce di rileggere la lezione; un `401` di creare un nuovo token. Gli errori inattesi non mostrano dettagli.
+Il prompt MCP `genera_lezioni` avvia la generazione di tutte le lezioni nuove; `genera_domande_esame` quella dei pacchetti d'esame; `correggi_risposte` la correzione delle risposte inviate dall'app; `sistema_segnalazioni` il completamento delle segnalazioni; `rispondi_domande` le risposte alle domande in coda. Le istruzioni del server (`SERVER_INSTRUCTIONS`) dicono a Claude l'ordine degli strumenti e di non chiedere conferma lezione per lezione. Un `409 CONFLICT` suggerisce di rileggere la lezione; un `401` di creare un nuovo token. Gli errori inattesi non mostrano dettagli.
 
 ### Slide dallo zip (`importa_slide`, ADR 0012)
 Tutto avviene sul PC; a EpicFeed arriva solo il testo.
@@ -241,7 +243,9 @@ Claude Desktop ──▶ server MCP (sul PC) ──▶ API EpicFeed (token "gene
    │  concetti_deboli    GET  /api/generation/progress               decifrata sul PC (ADR 0018)
    │  quiz_al_volo       GET  /api/generation/study/subjects/:id     scheda interattiva in chat (app MCP)
    │  registra_risposte  PUT  /api/generation/progress               cifrata sul PC, con baseRevision
-   └─ segnala_errore     POST /api/generation/corrections            dopo il sì dello studente
+   │  segnala_errore     POST /api/generation/corrections            dopo il sì dello studente
+   │  domande_in_attesa  GET  /api/generation/questions              domande in coda dall'app
+   └─ rispondi_domanda   POST /api/generation/questions/:id/answer   la risposta torna in Le mie domande
 ```
 
 | File (`apps/mcp/src/study`) | Ruolo |
@@ -254,6 +258,7 @@ Claude Desktop ──▶ server MCP (sul PC) ──▶ API EpicFeed (token "gene
 | `quiz-session.ts` | Andamento del quiz nella scheda (domanda corrente, risposte, riepilogo), senza DOM. |
 | `quiz-tools.ts`, `quiz-view.ts` | Strumenti `quiz_al_volo` (con `_meta.ui.resourceUri`) e `registra_risposte`, risorsa `ui://epicfeed/quiz.html` (`text/html;profile=mcp-app`) letta da `server/quiz-view.html`. |
 | `report-error.ts` | `prepareReport`: costruisce la correzione di M5 (`text`, `answer`, `term`), la valida con `correctionDraftSchema` e `checkCorrectionDraft` e la prova con `applyCorrections` sul feed: una frase che non c'è non diventa una correzione. Per una domanda ricava dal feed l'opzione giusta e il testo; per un termine conta dove compare (`countTermUsage`). |
+| `question-tools.ts` | Strumenti `domande_in_attesa` e `rispondi_domanda` e prompt `rispondi_domande`: ogni domanda arriva con l'elemento del feed su cui è stata fatta (`formatQuestion`) e le istruzioni (`QUESTION_INSTRUCTIONS`: rispondere nella lingua della domanda, partire dalla lezione con `cerca_lezione`, in breve). |
 | `tools.ts`, `prompt.ts` | Strumenti, istruzioni del server (`STUDY_SERVER_INSTRUCTIONS`) e prompt `studia_con_epicfeed`. |
 
 - **Segnala errore in due passi**: con `confirmed: false` lo strumento restituisce l'anteprima e chiede a Claude di mostrarla; con `confirmed: true` salva. L'id della correzione lo sceglie il server MCP (UUID). Dopo il salvataggio la materia si riscarica. Le correzioni arrivano già nelle due lingue, quindi non aspettano Claude (`not_needed`).
@@ -261,4 +266,4 @@ Claude Desktop ──▶ server MCP (sul PC) ──▶ API EpicFeed (token "gene
 - **Credenziali**: email (`account_email`) e password (`account_password`, campo `sensitive`, nel portachiavi del sistema) sono impostazioni facoltative del manifest. Servono solo a ricavare la chiave sul PC e non vengono mai inviate; senza, la ricerca e le correzioni funzionano lo stesso.
 - **API**: gli endpoint usano il token "genera" e il limite di frequenza della generazione (`read` per le letture, `save` per le correzioni e la scrittura dei progressi). `PUT /api/generation/progress` è lo stesso `PUT` della sincronizzazione dell'app (`progressPutSchema`, `409` se la revisione è cambiata). `GET /api/generation/study/subjects/:id` restituisce la materia nella stessa forma di `GET /api/feed/subjects/:id` (`subjectFeedResponseSchema`), senza ETag né riallineamento dei minuti, che restano alla web app.
 
-Uso: in Claude Desktop, "dove si parla di AVL nelle mie lezioni?", "su cosa vado peggio in DSA?", "interrogami sui miei concetti deboli", "la scheda sugli heap dice O(n), è sbagliato" (o il prompt `studia_con_epicfeed`).
+Uso: in Claude Desktop, "dove si parla di AVL nelle mie lezioni?", "su cosa vado peggio in DSA?", "interrogami sui miei concetti deboli", "la scheda sugli heap dice O(n), è sbagliato", "rispondi alle mie domande di EpicFeed" (o i prompt `studia_con_epicfeed` e `rispondi_domande`).

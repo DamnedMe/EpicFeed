@@ -13,9 +13,9 @@ Mappa "funzione → file". La repo è organizzata in un pacchetto per funzione (
 | `feed` | schede a battute, domande, generazione via MCP, slide, correzioni personali (Segnala errore) | `/` | `packages/feed` |
 | `review` | ripasso FSRS e sincronizzazione cifrata | `/review` | `packages/review` (la cifratura della copia in `src/crypto`, `@epicfeed/review/crypto`; gli archivi del browser in `apps/web/src/features/review` e `sync`) |
 | `exam` | quiz di modulo, esercizi, correzione di Claude, colloquio | `/review#esame` | `packages/exam` |
-| `assistant` | assistente nell'app con la chiave API dello studente: fornitori, contesto della scheda, richieste | `/profile/assistant`, *Chiedi a Claude* nel feed | `packages/assistant` (solo `domain` e `contracts`; il browser in `apps/web/src/features/assistant`) |
+| `assistant` | assistente nell'app con la chiave API dello studente (fornitori, contesto della scheda, richieste) e domande in coda per Claude Desktop | `/profile/assistant`, `/profile/questions`, *Chiedi a Claude* nel feed | `packages/assistant` (il browser in `apps/web/src/features/assistant`) |
 
-Pagine fuori dalle funzioni: `/login` (accesso), `/profile` e `/profile/saved` (preferenze e schede salvate); `/profile/assistant` usa `features/assistant`.
+Pagine fuori dalle funzioni: `/login` (accesso), `/profile` e `/profile/saved` (preferenze e schede salvate); `/profile/assistant` e `/profile/questions` usano `features/assistant`.
 
 ## Dentro un pacchetto di funzione
 
@@ -66,4 +66,4 @@ Schema in `packages/db/src/schema/`, un file per funzione, migrazioni in `packag
 | `feed` | `packages/feed` | `db/src/schema/feed.ts` | `features/feed/api` | `features/feed` | `src/feed`, `src/study` |
 | `review` | `packages/review` | `db/src/schema/review.ts` | `features/review/api` | `features/review` | `src/study` (progressi) |
 | `exam` | `packages/exam` | `db/src/schema/exam.ts` | `features/exam/api` | `features/exam` | `src/exam` |
-| `assistant` | `packages/assistant` | | | `features/assistant` | |
+| `assistant` | `packages/assistant` | `db/src/schema/assistant.ts` | `features/assistant/api` | `features/assistant`, `app/profile/questions` | `src/study/question-tools.ts` |

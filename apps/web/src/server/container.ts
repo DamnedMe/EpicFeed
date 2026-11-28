@@ -5,6 +5,8 @@ import {
   DrizzleExamSubmissionRepository,
 } from '@epicfeed/exam/infrastructure';
 import { DrizzleProgressRepository } from '@epicfeed/review/infrastructure';
+import { DrizzleQuestionRepository } from '@epicfeed/assistant/infrastructure';
+import { AnswerQuestion, AskQuestion, DeleteQuestion, ListQuestions } from '@epicfeed/assistant';
 import {
   DrizzleCorrectionRepository,
   DrizzleGenerationRepository,
@@ -87,6 +89,11 @@ export interface Services {
   readonly listCorrections: ListCorrections;
   readonly withdrawCorrection: WithdrawCorrection;
   readonly completeCorrection: CompleteCorrection;
+  /** Domande in coda per Claude Desktop (ADR 0021, scelta 1). */
+  readonly askQuestion: AskQuestion;
+  readonly listQuestions: ListQuestions;
+  readonly deleteQuestion: DeleteQuestion;
+  readonly answerQuestion: AnswerQuestion;
 }
 
 let services: Services | undefined;
@@ -118,6 +125,7 @@ export function getServices(): Services {
   const exams = new DrizzleExamPackRepository(db);
   const submissions = new DrizzleExamSubmissionRepository(db);
   const corrections = new DrizzleCorrectionRepository(db);
+  const questions = new DrizzleQuestionRepository(db);
   const verifier = new PossessionProofVerifier(systemClock);
   services = {
     importLesson: new ImportLesson({ catalog, verifier, clock: systemClock }),
@@ -154,6 +162,10 @@ export function getServices(): Services {
     listCorrections: new ListCorrections(corrections),
     withdrawCorrection: new WithdrawCorrection(corrections),
     completeCorrection: new CompleteCorrection(corrections, systemClock),
+    askQuestion: new AskQuestion(questions),
+    listQuestions: new ListQuestions(questions),
+    deleteQuestion: new DeleteQuestion(questions),
+    answerQuestion: new AnswerQuestion(questions, systemClock),
   };
   return services;
 }

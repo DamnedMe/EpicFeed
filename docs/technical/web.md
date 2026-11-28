@@ -12,6 +12,7 @@ Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailw
 | `/profile` | **Io**: aspetto, preferenze di studio, totali, collegamenti | sessione |
 | `/profile/saved` | Schede salvate sul dispositivo | sessione |
 | `/profile/assistant` | **Io › Assistente**: chiave API dello studente per *Chiedi a Claude* ([assistente nell'app](#assistente-nellapp-m6)) | sessione |
+| `/profile/questions` | **Io › Le mie domande**: domande in coda per Claude Desktop e risposte ([domande in coda](#domande-in-coda-m6)) | sessione |
 | `/review` | **Ripasso** dei concetti a battute e sezione **Esame** (`#esame`) ([review.md](../functional/review.md)) | sessione |
 | `GET /api/progress` | Copia cifrata dei progressi (`404` se non c'è) ([sincronizzazione](#sincronizzazione-dei-progressi-m4)) | sessione |
 | `PUT /api/progress` | Scrive la copia cifrata se `baseRevision` è ancora quella (`409` altrimenti) | sessione, stessa origine |
@@ -27,6 +28,8 @@ Next.js 16 (App Router, `src/proxy.ts` al posto del middleware), React 19, Tailw
 | `GET /api/feed/subjects/{id}` | Feed di tutta la materia, con ETag (`304` se invariato) | sessione |
 | `POST /api/exam/submissions`, `GET /api/exam/submissions`, `DELETE /api/exam/submissions/{id}` | Invio per la correzione di Claude, elenco con le correzioni arrivate, cancellazione dopo averle conservate ([esame](#esame-m4)); `POST` e `DELETE` solo dalla stessa origine | sessione |
 | `GET /api/corrections`, `POST /api/corrections`, `DELETE /api/corrections/{id}` | Correzioni personali di *Segnala errore*: elenco da applicare al feed sul dispositivo, nuova correzione (`201`, o `200` se l'id c'era già), annullamento ([ADR 0020](../decisions/0020-report-error-m5.md)); `POST` e `DELETE` solo dalla stessa origine | sessione |
+| `GET /api/questions`, `POST /api/questions`, `DELETE /api/questions/{id}` | Domande per Claude Desktop di *Chiedi a Claude* senza chiave: elenco con le risposte, nuova domanda (`201`, `200` se l'id c'era già, `422` oltre il limite delle domande in attesa), cancellazione ([domande in coda](#domande-in-coda-m6)); `POST` e `DELETE` solo dalla stessa origine | sessione |
+| `GET /api/generation/questions`, `POST /api/generation/questions/{id}/answer` | Domande in attesa di Claude (fino a 5) e salvataggio della risposta ([generation.md](generation.md#assistente-di-studio-m6)) | token "genera" |
 | `GET /api/generation/corrections`, `POST /api/generation/corrections/{id}/completion` | Correzioni in attesa di Claude e salvataggio del suo lavoro ([generation.md](generation.md#segnala-errore-m5)) | token "genera" |
 | `GET /api/exam/subjects/{id}` | Contenuti d'esame della materia: pacchetti dei feed correnti e banca dello studente, con ETag ([esame](#esame-m4)) | sessione |
 | `POST /api/import` | Import di una lezione ([import.md](import.md#api-post-apiimport)) | token di import |
@@ -212,7 +215,15 @@ Decisioni: [ADR 0021](../decisions/0021-study-assistant-m6.md), scelta 0. Lo stu
 - **Risposta**: Markdown semplice (paragrafi, elenchi, codice, grassetto) trasformato in elementi React da `markdown.ts`: l'HTML del modello resta testo.
 - **Errori**: chiave non valida, limite di richieste, credito finito, fornitore non raggiungibile, risposta vuota, ciascuno con un messaggio; la domanda resta nel campo per riprovare. Tempo massimo 30 secondi.
 - **Sicurezza**: la CSP apre `connect-src` solo verso i tre fornitori; nessuno script di terzi nella pagina. *Rimuovi chiave* la cancella dal dispositivo.
-- Codice: regole e richieste HTTP nel pacchetto `@epicfeed/assistant` (puro, nessuna chiamata), browser in `src/features/assistant` (chiave, chiamate, foglio *Chiedi a Claude*, pannello di *Io › Assistente*). Test: pacchetto, `src/features/assistant/*.test.ts` e il test Playwright che salva una chiave di Gemini finta e chiede sulla scheda con il fornitore simulato.
+- Codice: regole e richieste HTTP nel pacchetto `@epicfeed/assistant` (puro, nessuna chiamata), browser in `src/features/assistant` (chiave, chiamate, foglio *Chiedi a Claude*, pannello di *Io › Assistente*). Test: pacchetto, `src/features/assistant/*.test.ts` e il test Playwright che mette una domanda in coda, poi salva una chiave di Gemini finta e chiede sulla scheda con il fornitore simulato.
+
+## Domande in coda (M6)
+Decisioni: [ADR 0021](../decisions/0021-study-assistant-m6.md), scelta 1. Senza chiave, *Chiedi a Claude* mostra `QueueForm`: la domanda va sul server con la scheda (`subjectId`, `lessonId`, tipo e id dell'elemento, lingua) e Claude Desktop risponde con `domande_in_attesa` e `rispondi_domanda`.
+
+- **Tabella** `study_questions` (migrazioni `0018`, `0019`): solo lettura delle proprie righe con RLS, scritture solo dall'API. Stato `pending` → `answered` con risposta e data.
+- **Regole** (`@epicfeed/assistant`, `domain/questions.ts`): domanda fino a 1.000 caratteri, risposta fino a 6.000, al massimo 30 domande in attesa e 300 in tutto per studente; a Claude ne arrivano 5 per volta, le più vecchie prima. Casi d'uso `AskQuestion` (stesso id → `200` senza duplicati), `ListQuestions`, `DeleteQuestion`, `AnswerQuestion`.
+- **Schermata**: `questions-list.tsx` in `/profile/questions`, con lo stato, la lezione (dalla copia della materia sul dispositivo), la risposta in Markdown semplice (`AnswerText`) e *Cancella*. L'id della domanda lo sceglie l'app (`randomId`, anche fuori da HTTPS).
+- Codice: handler in `src/features/assistant/api` (`questions-handler.ts` con la sessione, `question-generation-handler.ts` con il token "genera"), repository Drizzle in `@epicfeed/assistant/infrastructure`.
 
 ## Variabili d'ambiente
 Esempio commentato in `apps/web/.env.example`. In locale vanno in `apps/web/.env.local` (ignorato da git), su Vercel in *Settings → Environment Variables*.

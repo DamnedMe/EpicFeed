@@ -1,8 +1,8 @@
 {
   "aggiornato": "2026-11-28",
   "mvpFinoA": "M4",
-  "ultimoTraguardo": "**M5 Segnala errore** chiusa il 25/11: correzioni personali di schede e domande dal feed, applicate sul dispositivo anche offline, *Le mie segnalazioni* in Io e completamento dell'altra lingua da Claude Desktop.",
-  "inCorso": "**M6 Assistente di studio**: scelte fatte ([ADR 0021](docs/decisions/0021-study-assistant-m6.md)); in Claude Desktop cerca lezione, concetti deboli, segnala errore e quiz al volo che conta nel ripasso; nell'app *Chiedi a Claude* con una chiave API propria (Gemini, Claude, OpenAI).",
+  "ultimoTraguardo": "**M6 Assistente di studio** chiusa il 28/11: in Claude Desktop cerca lezione, concetti deboli, quiz al volo interattivo che conta nel ripasso, segnala errore e risposte alle domande in coda; nell'app *Chiedi a Claude* con una chiave API propria (Gemini, Claude, OpenAI) o, senza, in coda per Claude Desktop con *Io › Le mie domande*.",
+  "inCorso": "**M7 Libri**: da avviare.",
   "milestone": [
     {
       "id": "M0",
@@ -43,8 +43,8 @@
     {
       "id": "M6",
       "nome": "Assistente di studio",
-      "stato": "in-corso",
-      "avanzamento": 0.75
+      "stato": "fatta",
+      "data": "2026-11-28"
     },
     {
       "id": "M7",

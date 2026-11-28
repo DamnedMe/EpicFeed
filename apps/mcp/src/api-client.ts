@@ -24,6 +24,8 @@ import type {
   SaveExamPackResponse,
 } from '@epicfeed/exam';
 import type { ProgressPut, ProgressResponse } from '@epicfeed/review';
+import type { StoredQuestion } from '@epicfeed/assistant';
+import { questionsResponseSchema } from '@epicfeed/assistant';
 import { apiErrorSchema } from '@epicfeed/shared';
 import { progressPutResponseSchema, progressResponseSchema } from '@epicfeed/review';
 import {
@@ -388,6 +390,34 @@ export class EpicFeedApi {
       reportSavedSchema,
     );
     return correction;
+  }
+
+  /**
+   * Domande in coda dello studente, in attesa di risposta (M6, al massimo 5).
+   *
+   * @returns Le domande, dalla più vecchia.
+   */
+  async listPendingQuestions(): Promise<StoredQuestion[]> {
+    const { questions } = await this.request(
+      '/api/generation/questions',
+      { method: 'GET' },
+      questionsResponseSchema,
+    );
+    return questions;
+  }
+
+  /**
+   * Salva la risposta di Claude a una domanda in coda.
+   *
+   * @param id - Id della domanda.
+   * @param answer - Risposta.
+   */
+  async answerQuestion(id: string, answer: string): Promise<void> {
+    await this.request(
+      `/api/generation/questions/${encodeURIComponent(id)}/answer`,
+      { method: 'POST', body: JSON.stringify({ answer }) },
+      completionSavedSchema,
+    );
   }
 
   private async request<T>(path: string, init: RequestInit, schema: z.ZodType<T>): Promise<T> {
